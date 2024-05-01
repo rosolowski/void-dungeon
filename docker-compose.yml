@@ -1,0 +1,41 @@
+services:
+  vd-frontend:
+    build: ./vd-frontend
+    volumes:
+      - ./vd-frontend/src:/app/src
+      - ./vd-frontend/static:/app/static
+      - ./vd-frontend/vite.config.ts:/app/vite.config.ts
+      - ./vd-frontend/.prettierrc:/app/.prettierrc
+      - ./vd-frontend/.eslintrc.js:/app/.eslintrc.js
+      - ./vd-frontend/tsconfig.json:/app/tsconfig.json
+      - ./vd-frontend/svelte.config.js:/app/svelte.config.js
+    ports:
+      - 5173:5173
+    depends_on:
+      - vd-backend
+    env_file:
+      - .env
+
+  vd-backend:
+    build: ./vd-backend
+    volumes:
+      - ./vd-backend/src:/app/src
+      - ./vd-backend/tsconfig.json:/app/tsconfig.json
+      - ./vd-backend/public:/app/public
+    ports:
+      - 3000:3000
+    depends_on:
+      - vd-db
+    env_file:
+      - .env
+
+  vd-db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - ./database/data:/var/lib/postgresql/data

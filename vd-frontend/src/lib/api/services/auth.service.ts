@@ -1,6 +1,6 @@
 import { jwt, user } from '$lib/store/auth';
 
-import { PUBLIC_API_HOST } from '$env/static/public';
+const VITE_API_HOST = import.meta.env.VITE_API_HOST;
 
 class RegisterError {
 	constructor(
@@ -10,7 +10,7 @@ class RegisterError {
 }
 
 export async function register(email: string, username: string, password: string) {
-	const res = await fetch(`${PUBLIC_API_HOST}/auth/register`, {
+	const res = await fetch(`${VITE_API_HOST}/auth/register`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json'
@@ -25,7 +25,7 @@ export async function register(email: string, username: string, password: string
 }
 
 export async function signIn(username: string, password: string) {
-	const res = await fetch(`${PUBLIC_API_HOST}/auth/login`, {
+	const res = await fetch(`${VITE_API_HOST}/auth/login`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json'

@@ -13,7 +13,6 @@ import type { GameInstance } from '$lib/class/GameInstance';
 import type { Inventory } from '$lib/class/Inventory';
 import type { Item } from '$lib/class/Item';
 import type { MoveResponseDto } from '../dto/game.dto';
-import { PUBLIC_API_HOST } from '$env/static/public';
 import type { SerializedInventoryDto } from '../dto/inventory.dto';
 import { get } from 'svelte/store';
 import { initializeInventory } from '$lib/store/inventory';
@@ -21,6 +20,8 @@ import { location } from '$lib/store/location';
 import { socket } from '$lib/store/ws';
 import { goto } from '$app/navigation';
 import type { Stats } from '$lib/class/Stats';
+
+const VITE_API_HOST = import.meta.env.VITE_API_HOST;
 
 type directions = 'up' | 'down' | 'left' | 'right';
 
@@ -154,7 +155,7 @@ export function movePlayer(dir: directions) {
 export async function fetchPlayer() {
 	const token = get(jwt);
 
-	const res = await fetch(`${PUBLIC_API_HOST}/game/player-character`, {
+	const res = await fetch(`${VITE_API_HOST}/game/player-character`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
