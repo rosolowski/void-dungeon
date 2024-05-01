@@ -15,7 +15,7 @@ export function addTestItem() {
 		type: 'weapon',
 		stats: new Stats()
 	});
-	console.log('added test item!');
+	// console.log('added test item!');
 }
 
 export function initializeInventory(data: SerializedInventoryDto) {

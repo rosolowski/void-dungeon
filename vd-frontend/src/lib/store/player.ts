@@ -10,7 +10,7 @@ export function handleMoveCorrection(data: MoveResponseDto) {
 	const { newX, newY } = data;
 
 	if (!data.success && currentPlayer) {
-		console.log('player not synced - updating x and y position');
+		// console.log('player not synced - updating x and y position');
 		currentPlayer.pos.x = newX;
 		currentPlayer.pos.y = newY;
 

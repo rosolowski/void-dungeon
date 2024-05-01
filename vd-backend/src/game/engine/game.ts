@@ -28,7 +28,13 @@ export class Game {
     x: number,
     y: number,
     character: Character,
-  ): { success: boolean; room: string; newX: number; newY: number } {
+  ): {
+    success: boolean;
+    room: string;
+    newX: number;
+    newY: number;
+    isStairs: boolean;
+  } {
     const instance = this.instanceManager.getInstanceFromCharacter(character);
     const canMove = instance.location.collisionMap[y][x] === 1;
 
@@ -40,11 +46,46 @@ export class Game {
     if (canMove && isValidStep) {
       instance.characters.get(character.id).setPos(x, y);
 
+      if (instance.location.terrain[y][x] === 3) {
+        // stairs
+        return {
+          success: true,
+          room: instance.room,
+          newX: x,
+          newY: y,
+          isStairs: true,
+        };
+      }
+
       // valid move, send new coordinates
-      return { success: true, room: instance.room, newX: x, newY: y };
+      return {
+        success: true,
+        room: instance.room,
+        newX: x,
+        newY: y,
+        isStairs: false,
+      };
     }
 
     // player not synced, send correct coordinates and fail move
-    return { success: false, room: instance.room, newX: oldX, newY: oldY };
+    return {
+      success: false,
+      room: instance.room,
+      newX: oldX,
+      newY: oldY,
+      isStairs: false,
+    };
+  }
+
+  moveCharacterToNewInstance(
+    oldInstanceId: number,
+    character: Character,
+  ): GameInstance {
+    this.instanceManager.removePlayerFromInstance(character, oldInstanceId);
+    const instance = this.instanceManager.addGameInstance();
+
+    this.instanceManager.addCharacterToInstance(character, instance.id);
+
+    return instance;
   }
 }

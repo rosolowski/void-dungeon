@@ -22,7 +22,10 @@ export class InstanceManager {
     );
   }
 
-  addGameInstance(location: Location): GameInstance {
+  addGameInstance(): GameInstance {
+    const location = new Location();
+    location.generate();
+
     const newInstance = new GameInstance(
       this.nextFreeInstance,
       `instance-${this.nextFreeInstance}`,
@@ -76,5 +79,23 @@ export class InstanceManager {
     }
 
     return instance;
+  }
+
+  moveCharacterToInstance(character: Character, instanceId: number) {
+    let instance = this.instances.get(instanceId);
+
+    // if instance doesnt exist - move player to city
+    if (!instance) {
+      instance = this.getCityInstance();
+      const { x, y } = CITY_SPAWN_COORDINATES;
+      character.setPos(x, y);
+      character.pos.instanceId = 0;
+    }
+
+    if (instance.characters.get(character.id)) {
+      console.log(`character ${character.id} already in the instance!`);
+    } else {
+      instance.characters.set(character.id, character);
+    }
   }
 }

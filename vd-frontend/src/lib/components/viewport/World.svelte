@@ -27,7 +27,7 @@
 		row.map((tile, x) => {
 			if (tile === 0) return false;
 
-			const radius = 10;
+			const radius = 20;
 			const distanceSquared = (x - $player!.pos.x) ** 2 + (y - $player!.pos.y) ** 2;
 			return distanceSquared <= radius ** 2;
 		})

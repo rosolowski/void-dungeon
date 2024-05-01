@@ -25,6 +25,8 @@ const VITE_API_HOST = import.meta.env.VITE_API_HOST;
 
 type directions = 'up' | 'down' | 'left' | 'right';
 
+const DEBUG_WS = false;
+
 export function initializeServerConnection() {
 	let client = get(socket);
 
@@ -47,23 +49,23 @@ export function initializeServerConnection() {
 	});
 
 	client.on('getInstance', (data: GameInstance) => {
-		console.log('getInstance', data);
+		if (DEBUG_WS) console.log('getInstance', data);
 		location.set(data.location);
 		inititalize(data.characters);
 	});
 
 	client.on('getInventory', (data: SerializedInventoryDto) => {
 		initializeInventory(data);
-		console.log('getInventory', data);
+		if (DEBUG_WS) console.log('getInventory', data);
 	});
 
 	client.on('getPlayerCharacter', (data: Character) => {
-		console.log('getPlayerCharacter', data);
+		if (DEBUG_WS) console.log('getPlayerCharacter', data);
 		player.set(data);
 	});
 
 	client.on('getStats', (data: Stats) => {
-		console.log('getStats', data);
+		if (DEBUG_WS) console.log('getStats', data);
 		player.update((prev) => {
 			if (!prev) return prev;
 
@@ -75,17 +77,17 @@ export function initializeServerConnection() {
 	});
 
 	client.on('moveCorrection', (data: MoveResponseDto) => {
-		console.log(`moveResponse:`, data);
+		if (DEBUG_WS) console.log(`moveResponse:`, data);
 		handleMoveCorrection(data);
 	});
 
 	client.on('characterMoved', (data) => {
-		console.log(`characterMoved:`, data);
+		if (DEBUG_WS) console.log(`characterMoved:`, data);
 		handlePositionUpdate(data);
 	});
 
 	client.on('connect', () => {
-		console.log(`connected to game server with id ${get(characterId)}`);
+		if (DEBUG_WS) console.log(`connected to game server with id ${get(characterId)}`);
 	});
 
 	client.on('disconnect', () => {
@@ -94,7 +96,7 @@ export function initializeServerConnection() {
 	});
 
 	client.on('spawnCharacter', (data: Character) => {
-		console.log('spawn character', data);
+		if (DEBUG_WS) console.log('spawn character', data);
 		spawnCharacter(data);
 	});
 

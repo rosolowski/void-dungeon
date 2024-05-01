@@ -19,6 +19,7 @@ import { InventoryService } from './inventory.service';
 import { Item } from './entities/item.entity';
 import { ItemType } from './class/Item';
 import { CharacterService } from './character.service';
+import { Character } from './class/Character';
 
 @WebSocketGateway({
   cors: {
@@ -119,15 +120,28 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     const { x, y } = data;
-    const character = client.data.character;
+    const character = client.data.character as Character;
 
-    const { success, room, newX, newY } = this.game.moveCharacter(
+    const { success, room, newX, newY, isStairs } = this.game.moveCharacter(
       x,
       y,
       character,
     );
-
-    if (success) {
+    if (success && isStairs) {
+      client.to(room).emit('removeCharacter', character.id);
+      client.leave(room);
+      const newInstance = this.game.moveCharacterToNewInstance(
+        character.pos.instanceId,
+        character,
+      );
+      const { x, y } = newInstance.location.spawnCoords;
+      character.setPos(x, y);
+      character.pos.instanceId = newInstance.id;
+      client.join(newInstance.room);
+      client.emit('getPlayerCharacter', client.data.character);
+      client.emit('getInstance', newInstance.serialize());
+      client.to(newInstance.room).emit('spawnCharacter', client.data.character);
+    } else if (success) {
       client.to(room).emit('characterMoved', {
         characterId: character.id,
         x: newX,
