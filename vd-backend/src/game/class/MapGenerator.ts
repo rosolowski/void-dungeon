@@ -1,3 +1,6 @@
+import { Entity } from './Entity';
+import { EntityGenerator } from './EntityGenerator';
+
 class Room {
   constructor(
     public x: number = 0,
@@ -9,6 +12,7 @@ class Room {
 }
 
 export class MapGenerator {
+  entities: Entity[] = [];
   rooms: Room[] = [];
   terrain: number[][] = [];
   height: number = 0;
@@ -41,6 +45,10 @@ export class MapGenerator {
     return this.rooms;
   }
 
+  getEntities(): Entity[] {
+    return this.entities;
+  }
+
   setSpawn() {
     const firstRoom = this.rooms[0];
     const spawn = this.findFloorInRoom(firstRoom, false);
@@ -53,6 +61,59 @@ export class MapGenerator {
     const exit = this.findFloorInRoom(lastRoom, true);
     this.exitPos = exit;
     return exit;
+  }
+
+  spawnEntities(level: number, instanceId: number) {
+    this.rooms.forEach((room, index) => {
+      if (index === 0) return;
+      const numEntities = Math.floor(Math.random() * 5);
+      const occupiedPositions = new Set();
+
+      for (let i = 0; i < numEntities; i++) {
+        const pos = this.findRandomFloorInRoom(room, occupiedPositions);
+        if (!pos) continue;
+
+        const entityType = this.chooseEntityType();
+        const entityLevel = this.calculateEntityLevel(level);
+
+        const entity = EntityGenerator.createEntity(entityType, entityLevel, {
+          x: pos.x,
+          y: pos.y,
+          instanceId,
+        });
+
+        this.entities.push(entity);
+        occupiedPositions.add(`${pos.x},${pos.y}`);
+      }
+    });
+  }
+
+  findRandomFloorInRoom(
+    room: Room,
+    occupiedPositions: Set<string>,
+  ): { x: number; y: number } | null {
+    const floorPositions = [];
+    for (let y = 0; y < room.height; y++) {
+      for (let x = 0; x < room.width; x++) {
+        if (
+          room.terrain[y][x] === 2 &&
+          !occupiedPositions.has(`${room.x + x},${room.y + y}`)
+        ) {
+          floorPositions.push({ x: room.x + x, y: room.y + y });
+        }
+      }
+    }
+    if (floorPositions.length === 0) return null;
+    return floorPositions[Math.floor(Math.random() * floorPositions.length)];
+  }
+
+  chooseEntityType(): string {
+    const types = ['Snake', 'Goblin', 'Vampire'];
+    return types[Math.floor(Math.random() * types.length)];
+  }
+
+  calculateEntityLevel(level: number): number {
+    return Math.floor(Math.random() * level) + 1;
   }
 
   findFloorInRoom(room: Room, markExit: boolean) {

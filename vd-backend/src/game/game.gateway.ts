@@ -122,12 +122,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { x, y } = data;
     const character = client.data.character as Character;
 
-    const { success, room, newX, newY, isStairs } = this.game.moveCharacter(
+    const { success, room, newX, newY, actionType } = this.game.moveCharacter(
       x,
       y,
       character,
     );
-    if (success && isStairs) {
+    if (success && actionType === 'stairs') {
       client.to(room).emit('removeCharacter', character.id);
       client.leave(room);
       const newInstance = this.game.moveCharacterToNewInstance(

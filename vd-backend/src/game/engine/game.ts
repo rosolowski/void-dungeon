@@ -33,7 +33,7 @@ export class Game {
     room: string;
     newX: number;
     newY: number;
-    isStairs: boolean;
+    actionType: string;
   } {
     const instance = this.instanceManager.getInstanceFromCharacter(character);
     const canMove = instance.location.collisionMap[y][x] === 1;
@@ -53,7 +53,7 @@ export class Game {
           room: instance.room,
           newX: x,
           newY: y,
-          isStairs: true,
+          actionType: 'stairs',
         };
       }
 
@@ -63,7 +63,7 @@ export class Game {
         room: instance.room,
         newX: x,
         newY: y,
-        isStairs: false,
+        actionType: 'move',
       };
     }
 
@@ -73,7 +73,7 @@ export class Game {
       room: instance.room,
       newX: oldX,
       newY: oldY,
-      isStairs: false,
+      actionType: 'move',
     };
   }
 

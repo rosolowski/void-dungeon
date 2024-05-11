@@ -19,8 +19,4 @@ export class GameInstance {
       entities: Array.from(this.entities.values()),
     };
   }
-
-  generate() {
-    this.location.generate();
-  }
 }

@@ -10,8 +10,6 @@ import {
 
 import type { Character } from '$lib/class/Character';
 import type { GameInstance } from '$lib/class/GameInstance';
-import type { Inventory } from '$lib/class/Inventory';
-import type { Item } from '$lib/class/Item';
 import type { MoveResponseDto } from '../dto/game.dto';
 import type { SerializedInventoryDto } from '../dto/inventory.dto';
 import { get } from 'svelte/store';
@@ -20,6 +18,7 @@ import { location } from '$lib/store/location';
 import { socket } from '$lib/store/ws';
 import { goto } from '$app/navigation';
 import type { Stats } from '$lib/class/Stats';
+import { inititalizeEntities } from '$lib/store/entities';
 
 const VITE_API_HOST = import.meta.env.VITE_API_HOST;
 
@@ -49,9 +48,11 @@ export function initializeServerConnection() {
 	});
 
 	client.on('getInstance', (data: GameInstance) => {
+		console.log(data);
 		if (DEBUG_WS) console.log('getInstance', data);
 		location.set(data.location);
 		inititalize(data.characters);
+		inititalizeEntities(data.entities);
 	});
 
 	client.on('getInventory', (data: SerializedInventoryDto) => {

@@ -4,6 +4,8 @@ import { Character } from '../class/Character';
 import { Entity } from '../class/Entity';
 import { GameInstance } from '../class/GameInstance';
 import { Location } from '../class/Location';
+import { MapGenerator } from '../class/MapGenerator';
+import { terrainToCollisionMap } from './utils';
 
 export class InstanceManager {
   private instances = new Map<number, GameInstance>();
@@ -23,18 +25,36 @@ export class InstanceManager {
   }
 
   addGameInstance(): GameInstance {
+    const newInstanceId = this.nextFreeInstance;
     const location = new Location();
-    location.generate();
+
+    const mapGen = new MapGenerator(80, 50);
+    mapGen.generateTerrain();
+    mapGen.spawnEntities(1, newInstanceId);
+
+    const entities = mapGen.getEntities();
+    const entityMap = entities.reduce((map, entity) => {
+      map.set(entity.id, entity);
+      return map;
+    }, new Map<number, Entity>());
+
+    const terrain = mapGen.getTerrain();
+
+    location.terrain = terrain;
+    location.collisionMap = terrainToCollisionMap(terrain);
+    location.width = mapGen.width;
+    location.height = mapGen.height;
+    location.spawnCoords = mapGen.spawnPos;
 
     const newInstance = new GameInstance(
-      this.nextFreeInstance,
-      `instance-${this.nextFreeInstance}`,
+      newInstanceId,
+      `instance-${newInstanceId}`,
       location,
       new Map<number, Character>(),
-      new Map<number, Entity>(),
+      entityMap,
     );
 
-    this.instances.set(this.nextFreeInstance, newInstance);
+    this.instances.set(newInstanceId, newInstance);
     this.nextFreeInstance++;
 
     return newInstance;

@@ -49,7 +49,7 @@
 			<Character {character} />
 		{/if}
 	{/each}
-	{#each $entities as entity (entity.id)}
+	{#each $entities as [id, entity] (id)}
 		{#if canRenderTile[entity.pos.y][entity.pos.x]}
 			<Entity {entity} />
 		{/if}
