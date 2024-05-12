@@ -5,7 +5,7 @@ import { Entity } from '../class/Entity';
 import { GameInstance } from '../class/GameInstance';
 import { Location } from '../class/Location';
 import { MapGenerator } from '../class/MapGenerator';
-import { terrainToCollisionMap } from './utils';
+import { applyEntitiesToCollisionMap, terrainToCollisionMap } from './utils';
 
 export class InstanceManager {
   private instances = new Map<number, GameInstance>();
@@ -29,8 +29,7 @@ export class InstanceManager {
     const location = new Location();
 
     const generator = new MapGenerator(80, 50);
-    generator.generateTerrain();
-    generator.spawnEntities(1, newInstanceId);
+    generator.generateTerrainAndEntities(1, newInstanceId);
 
     const entities = generator.getEntities();
     const entityMap = entities.reduce((map, entity) => {
@@ -42,6 +41,10 @@ export class InstanceManager {
 
     location.terrain = terrain;
     location.collisionMap = terrainToCollisionMap(terrain);
+    location.collisionMap = applyEntitiesToCollisionMap(
+      location.collisionMap,
+      entities,
+    );
     location.width = generator.width;
     location.height = generator.height;
     location.spawnCoords = generator.spawnPos;
@@ -101,7 +104,7 @@ export class InstanceManager {
     return instance;
   }
 
-  moveCharacterToCity(character: Character) {
+  addCharacterToCity(character: Character) {
     const instance = this.getCityInstance();
     const { x, y } = instance.location.spawnCoords;
     character.setPos(x, y);

@@ -2,9 +2,8 @@ import { Entity } from './Entity';
 import { Stats } from './Stats';
 
 export class EntityGenerator {
-  private static entityId = 1;
-
   static createEntity(
+    entityId: number,
     type: string,
     level: number,
     position: { x: number; y: number; instanceId: number },
@@ -13,7 +12,7 @@ export class EntityGenerator {
     const scaledStats = this.scaleStats(baseStats, level);
 
     return new Entity(
-      this.entityId++,
+      entityId,
       'monster',
       position,
       type,

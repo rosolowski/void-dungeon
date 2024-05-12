@@ -18,13 +18,21 @@ import { location } from '$lib/store/location';
 import { socket } from '$lib/store/ws';
 import { goto } from '$app/navigation';
 import type { Stats } from '$lib/class/Stats';
-import { inititalizeEntities } from '$lib/store/entities';
+import { entityOnPosition, inititalizeEntities, removeEntity } from '$lib/store/entities';
+import { Collision } from '$lib/util/types';
 
-const VITE_API_HOST = import.meta.env.VITE_API_HOST;
+type direction = 'up' | 'down' | 'left' | 'right';
 
-type directions = 'up' | 'down' | 'left' | 'right';
+export interface AttackLog {
+	characterId: number;
+	entityId: number;
+	characterDamageTaken: number;
+	entityDamageTaken: number;
+	characterDied: boolean;
+	entityDied: boolean;
+}
 
-const DEBUG_WS = false;
+const DEBUG_WS = true;
 
 export function initializeServerConnection() {
 	let client = get(socket);
@@ -104,6 +112,11 @@ export function initializeServerConnection() {
 	client.on('removeCharacter', (data: number) => {
 		removeCharacter(data);
 	});
+
+	client.on('attackLog', (attackLog: AttackLog) => {
+		console.log('attack log', attackLog);
+		processAttackLog(attackLog);
+	});
 }
 
 export function disconnectFromServer() {
@@ -114,7 +127,7 @@ export function disconnectFromServer() {
 	socket.set(null);
 }
 
-export function movePlayer(dir: directions) {
+export function movePlayer(dir: direction) {
 	const currentPlayer = get(player);
 	const currentLocation = get(location);
 
@@ -138,7 +151,7 @@ export function movePlayer(dir: directions) {
 			break;
 	}
 
-	if (currentLocation.collisionMap[newY][newX] !== 0)
+	if (currentLocation.collisionMap[newY][newX] !== Collision.BAD) {
 		player.update((prev) => {
 			const client = get(socket);
 			if (prev == null || !client) return prev;
@@ -153,21 +166,50 @@ export function movePlayer(dir: directions) {
 
 			return { ...prev, pos: newPos };
 		});
+	} else {
+		const entity = entityOnPosition(newX, newY);
+
+		if (entity) {
+			console.log('trying to attack: ', { entityId: entity.id });
+			const client = get(socket);
+			client?.emit('attackEntity', { entityId: entity.id });
+		}
+	}
 }
 
-export async function fetchPlayer() {
-	const token = get(jwt);
+function processAttackLog(attackLog: AttackLog) {
+	const {
+		characterId,
+		entityId,
+		characterDamageTaken,
+		entityDamageTaken,
+		characterDied,
+		entityDied
+	} = attackLog;
 
-	const res = await fetch(`${VITE_API_HOST}/game/player-character`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${token}`
-		},
-		body: JSON.stringify({ characterId: get(characterId) })
-	});
-	if (!res.ok) {
-		throw new Error('Failed to fetch player character');
+	const currentPlayerIsAttacker = get(player)?.id === characterId;
+
+	if (currentPlayerIsAttacker && !characterDied) {
+		// update player stats
+		player.update((prev) => {
+			if (!prev) return prev;
+
+			prev.stats.hp -= characterDamageTaken;
+
+			return prev;
+		});
 	}
-	return res.json();
+
+	if (attackLog.entityDied) {
+		console.log('removing entity...');
+		const removedEntity = removeEntity(attackLog.entityId);
+
+		if (removedEntity) {
+			const { x, y } = removedEntity.pos;
+			location.update((prev) => {
+				if (prev) prev.collisionMap[y][x] = Collision.WALKABLE;
+				return prev;
+			});
+		}
+	}
 }

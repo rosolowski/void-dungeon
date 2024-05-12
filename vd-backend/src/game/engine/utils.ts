@@ -34,15 +34,15 @@ export function terrainToCollisionMap(terrain: number[][]): number[][] {
 }
 
 export function applyEntitiesToCollisionMap(
-  terrain: number[][],
+  collisionMap: number[][],
   entities: EntityClass[],
 ): number[][] {
   entities.forEach((entity) => {
     const { x, y } = entity.pos;
-    terrain[y][x] = 1;
+    collisionMap[y][x] = Collision.BAD;
   });
 
-  return terrain;
+  return collisionMap;
 }
 
 export function characterEntityToCharacterClass(

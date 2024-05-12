@@ -21,6 +21,7 @@ import { ItemType } from '../class/Item';
 import { CharacterService } from '../character.service';
 import { Character } from '../class/Character';
 import { GameInstance } from '../class/GameInstance';
+import { AttackLog } from '../engine/battle-manager';
 
 @WebSocketGateway({
   cors: {
@@ -81,7 +82,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       this.emitCharacterJoinInstance(instance, client);
-      this.emitUpdatedInventory(client);
+      this.emitUpdatedInventoryFromDb(client);
     } catch (error) {
       console.error(error);
       client.disconnect();
@@ -135,6 +136,58 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('attackEntity')
+  async handleAttackEntity(
+    @MessageBody() data: { entityId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    if (!client.data.validated) {
+      client.disconnect();
+      return;
+    }
+    const character: Character = client.data.character;
+    const { entityId } = data;
+
+    const { success, instance, attackLog } = this.game.attackEntity(
+      character,
+      entityId,
+    );
+
+    if (success) {
+      this.emitEntityAttack(client, instance, attackLog);
+
+      const { characterDied, entityDied } = attackLog;
+
+      if (characterDied) {
+        // player died, move to city
+        const oldInstance =
+          this.game.disconnectCharacterFromInstance(character);
+        this.emitCharacterLeaveInstance(oldInstance, client);
+
+        // heal player
+        character.stats.hp = character.stats.maxHp;
+
+        const cityInstance = this.game.addCharacterToCity(character);
+
+        await this.gameService.syncCharacter(character);
+        await this.chatacterService.syncStatsToDatabase(character);
+
+        this.game.connectCharacterToInstance(character);
+        this.emitCharacterJoinInstance(cityInstance, client);
+      }
+
+      if (entityDied) {
+        // TODO: handle adding items
+
+        this.game.removeEntity(instance, entityId);
+      }
+    } else {
+      client.emit('error', {
+        message: 'Error while attacking. Invalid entity or instance.',
+      });
+    }
+  }
+
   @SubscribeMessage('addItem')
   async handleAddItem(
     @MessageBody() itemData: Partial<Item>,
@@ -149,9 +202,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     try {
       await this.inventoryService.addItem(characterId, itemData);
-      this.emitUpdatedInventory(client);
+      this.emitUpdatedInventoryFromDb(client);
     } catch (error) {
-      this.emitUpdatedInventory(client);
+      this.emitUpdatedInventoryFromDb(client);
       client.emit('error', { message: error.message });
     }
   }
@@ -166,18 +219,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const characterId = client.data?.character?.id;
+    const character: Character = client.data.character;
 
     try {
       await this.inventoryService.equipItem(
-        characterId,
+        character,
         data.fromSlotId,
         data.equipmentSlot,
       );
-      await this.emitUpdatedInventory(client);
-      await this.emitCharacterStats(client);
+      await this.emitUpdatedInventoryFromDb(client);
+      await this.emitCharacterStatsFromDb(client);
     } catch (error) {
-      this.emitUpdatedInventory(client);
+      this.emitUpdatedInventoryFromDb(client);
       client.emit('error', { message: error.message });
     }
   }
@@ -192,14 +245,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const characterId = client.data?.character?.id;
+    const character: Character = client.data.character;
 
     try {
-      await this.inventoryService.unequipItem(characterId, data.equipmentSlot);
-      await this.emitUpdatedInventory(client);
-      await this.emitCharacterStats(client);
+      await this.inventoryService.unequipItem(character, data.equipmentSlot);
+      await this.emitUpdatedInventoryFromDb(client);
+      await this.emitCharacterStatsFromDb(client);
     } catch (error) {
-      this.emitUpdatedInventory(client);
+      this.emitUpdatedInventoryFromDb(client);
       client.emit('error', { message: error.message });
     }
   }
@@ -216,19 +269,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const characterId = client.data?.character?.id;
+    const character: Character = client.data.character;
 
     try {
       await this.inventoryService.unequipItemToSlot(
-        characterId,
+        character,
         data.equipmentSlot,
         data.targetSlotId,
       );
 
-      await this.emitUpdatedInventory(client);
-      await this.emitCharacterStats(client);
+      await this.emitUpdatedInventoryFromDb(client);
+      await this.emitCharacterStatsFromDb(client);
     } catch (error) {
-      this.emitUpdatedInventory(client);
+      this.emitUpdatedInventoryFromDb(client);
       client.emit('error', { message: error.message });
     }
   }
@@ -253,21 +306,25 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         data.fromSlotId,
         data.targetSlotId,
       );
-      this.emitUpdatedInventory(client);
+      this.emitUpdatedInventoryFromDb(client);
     } catch (error) {
       client.emit('error', { message: error.message });
-      this.emitUpdatedInventory(client);
+      this.emitUpdatedInventoryFromDb(client);
     }
   }
 
-  async emitUpdatedInventory(client: Socket): Promise<void> {
+  async emitUpdatedInventoryFromDb(client: Socket): Promise<void> {
     const characterId = client.data?.character?.id;
     const inventoryEntity = await this.gameService.getInventory(characterId);
     const inventory = InventoryEntityToInventoryClass(inventoryEntity);
     client.emit('getInventory', inventory.serialize());
   }
 
-  async emitCharacterStats(client: Socket): Promise<void> {
+  async emitCharacterStats(client: Socket) {
+    client.emit('getStats', client.data.character.stats);
+  }
+
+  async emitCharacterStatsFromDb(client: Socket): Promise<void> {
     // get new stats from db
     const characterId = client.data?.character?.id;
     const { stats } = await this.chatacterService.getCharacter(characterId);
@@ -310,5 +367,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } else {
       client.emit('moveCorrection', { success, newX, newY });
     }
+  }
+
+  emitEntityAttack(
+    client: Socket,
+    instance: GameInstance,
+    attackLog: AttackLog,
+  ) {
+    this.server.to(instance.room).emit('attackLog', attackLog);
   }
 }

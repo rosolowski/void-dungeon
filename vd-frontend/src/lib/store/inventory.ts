@@ -9,12 +9,14 @@ import { writable } from 'svelte/store';
 export const inventory = writable<Inventory | null>(null);
 
 export function addTestItem() {
-	addItemToInventory({
+	const testItem: Partial<Item> = {
 		name: 'unkown',
 		description: 'An unkown item',
 		type: 'weapon',
 		stats: new Stats()
-	});
+	};
+
+	addItemToInventory(testItem);
 	// console.log('added test item!');
 }
 

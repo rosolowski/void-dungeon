@@ -7,6 +7,7 @@ import { ItemType } from './class/Item';
 import { Equipment as EquipmentEntity } from './entities/equipment.entity';
 import { Slot as SlotEntity } from './entities/slot.entity';
 import { CharacterService } from './character.service';
+import { Character as CharacterClass } from './class/Character';
 
 @Injectable()
 export class InventoryService {
@@ -23,12 +24,12 @@ export class InventoryService {
   ) {}
 
   async equipItem(
-    characterId: number,
+    character: CharacterClass,
     fromSlotIndex: number,
     equipmentSlot: ItemType,
   ): Promise<void> {
     const inventory = await this.inventoryRepository.findOne({
-      where: { character: { id: characterId } },
+      where: { character: { id: character.id } },
       relations: [
         'character',
         'equipment',
@@ -39,7 +40,7 @@ export class InventoryService {
     });
 
     if (!inventory) {
-      throw new Error(`Inventory not found for character ID ${characterId}`);
+      throw new Error(`Inventory not found for character ID ${character.id}`);
     }
 
     // Find the source slot by fromSlotIndex
@@ -63,7 +64,7 @@ export class InventoryService {
       // Move the currently equipped item back to the source slot
       fromSlot.item = currentItemInEquipmentSlot;
       await this.characterService.updateStatsOnUnequip(
-        characterId,
+        character,
         currentItemInEquipmentSlot,
       );
     } else {
@@ -78,15 +79,15 @@ export class InventoryService {
     await this.slotRepository.save(fromSlot);
     await this.equipmentRepository.save(inventory.equipment);
 
-    await this.characterService.updateStatsOnEquip(characterId, itemToEquip);
+    await this.characterService.updateStatsOnEquip(character, itemToEquip);
   }
 
   async unequipItem(
-    characterId: number,
+    character: CharacterClass,
     equipmentSlot: ItemType,
   ): Promise<void> {
     const inventory = await this.inventoryRepository.findOne({
-      where: { character: { id: characterId } },
+      where: { character: { id: character.id } },
       relations: [
         'character',
         'equipment',
@@ -97,7 +98,7 @@ export class InventoryService {
     });
 
     if (!inventory) {
-      throw new Error(`Inventory not found for character ID ${characterId}`);
+      throw new Error(`Inventory not found for character ID ${character.id}`);
     }
 
     // Check if the equipment slot is occupied
@@ -120,19 +121,16 @@ export class InventoryService {
     await this.slotRepository.save(emptySlot);
     await this.equipmentRepository.save(inventory.equipment);
 
-    await this.characterService.updateStatsOnUnequip(
-      characterId,
-      itemToUnequip,
-    );
+    await this.characterService.updateStatsOnUnequip(character, itemToUnequip);
   }
 
   async unequipItemToSlot(
-    characterId: number,
+    character: CharacterClass,
     equipmentSlot: ItemType,
     targetSlotIndex: number,
   ): Promise<void> {
     const inventory = await this.inventoryRepository.findOne({
-      where: { character: { id: characterId } },
+      where: { character: { id: character.id } },
       relations: [
         'character',
         'equipment',
@@ -143,7 +141,7 @@ export class InventoryService {
     });
 
     if (!inventory) {
-      throw new Error(`Inventory not found for character ID ${characterId}`);
+      throw new Error(`Inventory not found for character ID ${character.id}`);
     }
 
     // Ensure the item is currently equipped in the specified slot
@@ -172,10 +170,7 @@ export class InventoryService {
     await this.slotRepository.save(targetSlot);
     await this.equipmentRepository.save(inventory.equipment);
 
-    await this.characterService.updateStatsOnUnequip(
-      characterId,
-      itemToUnequip,
-    );
+    await this.characterService.updateStatsOnUnequip(character, itemToUnequip);
   }
 
   async moveItem(

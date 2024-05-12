@@ -1,31 +1,32 @@
 import { Entity } from '../class/Entity';
 
+// attack is always initiated by character and target is an entity
+
 export interface AttackLog {
-  damageTaken: number;
-  damageDealt: number;
-  attackerDied: boolean;
-  targetDied: boolean;
+  characterId: number;
+  entityId: number;
+  characterDamageTaken: number;
+  entityDamageTaken: number;
+  characterDied: boolean;
+  entityDied: boolean;
 }
 
-export function simulateAttack(
-  attackerEntity: Entity,
-  targetEntity: Entity,
-): AttackLog {
-  const targetBlocked = Math.floor(Math.random() * targetEntity.stats.armor);
-  const targetDamage = attackerEntity.stats.damage - targetBlocked;
+export function simulateAttack(character: Entity, entity: Entity): AttackLog {
+  const entityBlock = Math.floor(Math.random() * entity.stats.armor);
+  const entityDamageTaken = character.stats.damage - entityBlock;
 
-  const attackerBlocked = Math.floor(
-    Math.random() * attackerEntity.stats.armor,
-  );
-  const attackerDamage = targetEntity.stats.damage - attackerBlocked;
+  const characterBlock = Math.floor(Math.random() * character.stats.armor);
+  const characterDamageTaken = entity.stats.damage - characterBlock;
 
-  const attackerDied = attackerEntity.stats.hp - attackerDamage <= 0;
-  const targetDied = targetEntity.stats.hp - targetDamage <= 0;
+  const characterDied = character.stats.hp - characterDamageTaken <= 0;
+  const entityDied = entity.stats.hp - entityDamageTaken <= 0;
 
   return {
-    damageTaken: attackerDamage,
-    damageDealt: targetDamage,
-    attackerDied,
-    targetDied,
+    characterId: character.id,
+    entityId: entity.id,
+    characterDamageTaken,
+    entityDamageTaken,
+    characterDied,
+    entityDied,
   };
 }

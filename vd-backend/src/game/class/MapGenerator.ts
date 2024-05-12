@@ -1,10 +1,11 @@
+import { Tile } from '../engine/utils';
 import { Entity } from './Entity';
 import { EntityGenerator } from './EntityGenerator';
 
 class Room {
   constructor(
-    public x: number = 0,
-    public y: number = 0,
+    public globalX: number = 0,
+    public globalY: number = 0,
     public width: number = 0,
     public height: number = 0,
     public terrain: number[][] = [],
@@ -15,6 +16,7 @@ export class MapGenerator {
   entities: Entity[] = [];
   rooms: Room[] = [];
   terrain: number[][] = [];
+  entityOccupied: boolean[][];
   height: number = 0;
   width: number = 0;
 
@@ -35,6 +37,9 @@ export class MapGenerator {
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
+    this.entityOccupied = Array.from({ length: this.height }, () =>
+      Array(this.width).fill(false),
+    );
   }
 
   getTerrain(): number[][] {
@@ -64,13 +69,13 @@ export class MapGenerator {
   }
 
   spawnEntities(level: number, instanceId: number) {
+    let entityIndex = 0;
     this.rooms.forEach((room, index) => {
       if (index === 0) return;
-      const numEntities = Math.floor(Math.random() * 5);
-      const occupiedPositions: Set<string> = new Set();
+      const numEntities = Math.floor(Math.random() * 5) + 1;
 
       for (let i = 0; i < numEntities; i++) {
-        const pos = this.findRandomFloorInRoom(room, occupiedPositions);
+        const pos = this.findRandomFloorInRoom(room);
         if (!pos) continue;
         if (
           this.exitPos &&
@@ -82,30 +87,68 @@ export class MapGenerator {
         const entityType = this.chooseEntityType();
         const entityLevel = this.calculateEntityLevel(level);
 
-        const entity = EntityGenerator.createEntity(entityType, entityLevel, {
-          x: pos.x,
-          y: pos.y,
-          instanceId,
-        });
+        const entity = EntityGenerator.createEntity(
+          entityIndex++,
+          entityType,
+          entityLevel,
+          {
+            x: pos.x,
+            y: pos.y,
+            instanceId,
+          },
+        );
 
         this.entities.push(entity);
-        occupiedPositions.add(`${pos.x},${pos.y}`);
+        this.entityOccupied[pos.y][pos.x] = true;
       }
     });
   }
 
-  findRandomFloorInRoom(
-    room: Room,
-    occupiedPositions: Set<string>,
-  ): { x: number; y: number } | null {
+  generateTerrainAndEntities(level: number, instanceId: number) {
+    this.terrain = Array.from({ length: this.height }, () =>
+      Array(this.width).fill(0),
+    );
+    const gridSize = this.RECT_ROOM_MAX_SIZE;
+    const gridWidth = Math.ceil(this.width / gridSize);
+    const gridHeight = Math.ceil(this.height / gridSize);
+
+    for (let gy = 0; gy < gridHeight; gy++) {
+      for (let gx = 0; gx < gridWidth; gx++) {
+        const choice = Math.random();
+        if (choice < 0.2) continue;
+
+        const room = this.generateRoom();
+        const x = gx * gridSize + this.MIN_DISTANCE_BETWEEN_ROOMS;
+        const y = gy * gridSize + this.MIN_DISTANCE_BETWEEN_ROOMS;
+
+        if (x + room.width < this.width && y + room.height < this.height) {
+          room.globalX = x;
+          room.globalY = y;
+          this.rooms.push(room);
+          this.mergeRoomTerrain(room);
+        }
+      }
+    }
+
+    this.connectRooms();
+
+    this.setSpawn();
+    this.setExit();
+
+    this.spawnEntities(level, instanceId);
+  }
+
+  findRandomFloorInRoom(room: Room): { x: number; y: number } | null {
     const floorPositions = [];
     for (let y = 0; y < room.height; y++) {
       for (let x = 0; x < room.width; x++) {
+        const globalX = room.globalX + x;
+        const globalY = room.globalY + y;
         if (
-          room.terrain[y][x] === 2 &&
-          !occupiedPositions.has(`${room.x + x},${room.y + y}`)
+          this.terrain[globalY][globalX] === Tile.FLOOR &&
+          !this.entityOccupied[globalY][globalX]
         ) {
-          floorPositions.push({ x: room.x + x, y: room.y + y });
+          floorPositions.push({ x: globalX, y: globalY });
         }
       }
     }
@@ -125,50 +168,17 @@ export class MapGenerator {
   findFloorInRoom(room: Room, markExit: boolean) {
     for (let y = 0; y < room.height; y++) {
       for (let x = 0; x < room.width; x++) {
-        if (room.terrain[y][x] === 2) {
-          const tileX = room.x + x;
-          const tileY = room.y + y;
+        if (room.terrain[y][x] === Tile.FLOOR) {
+          const tileX = room.globalX + x;
+          const tileY = room.globalY + y;
           if (markExit) {
-            this.terrain[tileY][tileX] = 3;
+            this.terrain[tileY][tileX] = Tile.STAIRS;
           }
           return { x: tileX, y: tileY };
         }
       }
     }
     return null;
-  }
-
-  generateTerrain() {
-    this.terrain = Array.from({ length: this.height }, () =>
-      Array(this.width).fill(0),
-    );
-    const gridSize = this.RECT_ROOM_MAX_SIZE;
-    const gridWidth = Math.ceil(this.width / gridSize);
-    const gridHeight = Math.ceil(this.height / gridSize);
-
-    for (let gy = 0; gy < gridHeight; gy++) {
-      for (let gx = 0; gx < gridWidth; gx++) {
-        const choice = Math.random();
-        if (choice < 0.2) continue;
-
-        const room = this.generateRoom();
-        const x = gx * gridSize + this.MIN_DISTANCE_BETWEEN_ROOMS;
-        const y = gy * gridSize + this.MIN_DISTANCE_BETWEEN_ROOMS;
-
-        if (x + room.width < this.width && y + room.height < this.height) {
-          room.x = x;
-          room.y = y;
-          this.rooms.push(room);
-          this.mergeRoomTerrain(room);
-        }
-      }
-    }
-
-    this.connectRooms();
-
-    this.setSpawn();
-    this.setExit();
-    // this.printAsString(this.terrain);
   }
 
   connectRooms() {
@@ -184,7 +194,7 @@ export class MapGenerator {
     let currentY = from.y;
 
     while (currentX !== to.x || currentY !== to.y) {
-      this.terrain[currentY][currentX] = 2; // floor
+      this.terrain[currentY][currentX] = Tile.FLOOR;
       const randomChoice = Math.random();
 
       if (randomChoice < 0.5) {
@@ -204,8 +214,8 @@ export class MapGenerator {
   }
 
   getRoomCenter(room: Room): { x: number; y: number } {
-    const centerX = Math.floor(room.x + room.width / 2);
-    const centerY = Math.floor(room.y + room.height / 2);
+    const centerX = Math.floor(room.globalX + room.width / 2);
+    const centerY = Math.floor(room.globalY + room.height / 2);
     return { x: centerX, y: centerY };
   }
 
@@ -232,12 +242,12 @@ export class MapGenerator {
       ) + this.RECT_ROOM_MIN_SIZE;
 
     const terrain: number[][] = Array.from({ length: roomHeight }, () =>
-      Array(roomWidth).fill(1),
+      Array(roomWidth).fill(Tile.WALL),
     );
 
     for (let y = 1; y < roomHeight - 1; y++) {
       for (let x = 1; x < roomWidth - 1; x++) {
-        terrain[y][x] = 2;
+        terrain[y][x] = Tile.FLOOR;
       }
     }
 
@@ -257,18 +267,19 @@ export class MapGenerator {
       Array(diameter).fill(0),
     );
 
+    const wallRadius = radius - 0.5;
+    const floorRadius = radius - 1.5;
+
     for (let y = 0; y < diameter; y++) {
       for (let x = 0; x < diameter; x++) {
-        if (
-          Math.sqrt(Math.pow(x - radius, 2) + Math.pow(y - radius, 2)) <= radius
-        ) {
-          terrain[y][x] = 1;
+        const distance = Math.sqrt(
+          Math.pow(x - radius, 2) + Math.pow(y - radius, 2),
+        );
+        if (distance <= wallRadius) {
+          terrain[y][x] = Tile.WALL;
         }
-        if (
-          Math.sqrt(Math.pow(x - radius, 2) + Math.pow(y - radius, 2)) <
-          radius - 1
-        ) {
-          terrain[y][x] = 2;
+        if (distance < floorRadius) {
+          terrain[y][x] = Tile.FLOOR;
         }
       }
     }
@@ -281,7 +292,7 @@ export class MapGenerator {
     for (let y = 0; y < room.height; y++) {
       for (let x = 0; x < room.width; x++) {
         if (room.terrain[y][x] !== 0)
-          this.terrain[room.y + y][room.x + x] = room.terrain[y][x];
+          this.terrain[room.globalY + y][room.globalX + x] = room.terrain[y][x];
       }
     }
   }

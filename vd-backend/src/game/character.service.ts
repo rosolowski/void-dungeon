@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Item as ItemEntity } from './entities/item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Character } from './entities/character.entity';
+import { Character as CharacterClass } from './class/Character';
 import { Repository } from 'typeorm';
 import { Stats } from './entities/stats.entity';
 
@@ -21,9 +22,9 @@ export class CharacterService {
     });
   }
 
-  async syncStatsToDatabase(characterId: number, character: Character) {
+  async syncStatsToDatabase(character: CharacterClass) {
     const characterEntity = await this.charactersRepository.findOne({
-      where: { id: characterId },
+      where: { id: character.id },
       relations: ['stats'],
     });
     const characterStats = characterEntity.stats;
@@ -42,45 +43,49 @@ export class CharacterService {
     this.charactersRepository.save(characterEntity);
   }
 
-  async updateStatsOnEquip(characterId: number, item: ItemEntity) {
-    const character = await this.charactersRepository.findOne({
-      where: { id: characterId },
+  async updateCharacterStats(
+    character: CharacterClass,
+    item: ItemEntity,
+    equip: boolean,
+  ) {
+    const operation = equip ? 1 : -1;
+    const characterEntity = await this.charactersRepository.findOne({
+      where: { id: character.id },
       relations: ['stats'],
     });
-    const characterStats = character.stats;
-    const itemStats = item.stats;
 
-    for (const stat in itemStats) {
-      if (stat == 'id') continue;
-
-      if (stat in characterStats) {
-        characterStats[stat] += itemStats[stat];
-      } else {
-        console.warn(`Stat ${stat} not found in character stats`);
-      }
+    if (!characterEntity) {
+      console.error('Character not found.');
+      return;
     }
 
-    this.charactersRepository.save(character);
+    const statsToUpdate = character.stats;
+
+    Object.keys(item.stats).forEach((statKey) => {
+      if (statKey === 'id' || statKey === 'hp' || statKey === 'mana') return;
+
+      if (statKey in characterEntity.stats) {
+        statsToUpdate[statKey] =
+          characterEntity.stats[statKey] + item.stats[statKey] * operation;
+      } else {
+        console.warn(`Stat ${statKey} not found in character stats`);
+      }
+    });
+
+    characterEntity.stats = { ...characterEntity.stats, ...statsToUpdate };
+
+    if (characterEntity.stats.hp > characterEntity.stats.maxHp) {
+      characterEntity.stats.hp = characterEntity.stats.maxHp;
+    }
+
+    await this.charactersRepository.save(characterEntity);
   }
 
-  async updateStatsOnUnequip(characterId: number, item: ItemEntity) {
-    const character = await this.charactersRepository.findOne({
-      where: { id: characterId },
-      relations: ['stats'],
-    });
-    const characterStats = character.stats;
-    const itemStats = item.stats;
+  updateStatsOnEquip(character: CharacterClass, item: ItemEntity) {
+    return this.updateCharacterStats(character, item, true);
+  }
 
-    for (const stat in itemStats) {
-      if (stat == 'id') continue;
-
-      if (stat in characterStats) {
-        characterStats[stat] -= itemStats[stat];
-      } else {
-        console.warn(`Stat ${stat} not found in character stats`);
-      }
-    }
-
-    this.charactersRepository.save(character);
+  updateStatsOnUnequip(character: CharacterClass, item: ItemEntity) {
+    return this.updateCharacterStats(character, item, false);
   }
 }

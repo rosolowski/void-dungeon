@@ -1,4 +1,5 @@
 import { Character } from '../class/Character';
+import { Entity } from '../class/Entity';
 import { GameInstance } from '../class/GameInstance';
 import { AttackLog, simulateAttack } from './battle-manager';
 import { InstanceManager } from './instance-manager';
@@ -34,14 +35,19 @@ export class Game {
     return instance;
   }
 
-  moveCharacterToCity(character: Character): GameInstance {
-    this.disconnectCharacterFromInstance(character);
-
-    this.instanceManager.moveCharacterToCity(character);
+  addCharacterToCity(character: Character): GameInstance {
+    this.instanceManager.addCharacterToCity(character);
 
     const instance = this.instanceManager.getCityInstance();
 
     return instance;
+  }
+
+  removeEntity(instance: GameInstance, entityId: number) {
+    const entity = instance.entities.get(entityId);
+    const { x, y } = entity.pos;
+    instance.location.collisionMap[y][x] = Collision.WALKABLE;
+    instance.entities.delete(entity.id);
   }
 
   attackEntity(
@@ -49,7 +55,7 @@ export class Game {
     entityId: number,
   ): {
     success: boolean;
-    room: string;
+    instance?: GameInstance;
     attackLog?: AttackLog;
   } {
     const instance = this.instanceManager.getInstanceFromCharacter(character);
@@ -59,7 +65,6 @@ export class Game {
       // invalid entity/instance
       return {
         success: false,
-        room: '',
       };
     }
 
@@ -69,21 +74,35 @@ export class Game {
     const isValid =
       (xDiff === 1 && yDiff === 0) || (xDiff === 0 && yDiff === 1);
 
+    // console.log('isValid', isValid);
+    // console.log('instance', instance);
+    // console.log('entity', entity);
+    // console.log('character', character);
+    // console.log('entityId', entityId);
+
     if (!isValid) {
       // invalid positions
       return {
         success: false,
-        room: '',
       };
     }
 
     const attackLog = simulateAttack(character, entity);
 
+    this.processAttackLog(attackLog, character, entity);
+
+    // console.log('attackLog', attackLog);
+
     return {
-      success: false,
-      room: instance.room,
+      success: true,
+      instance,
       attackLog,
     };
+  }
+
+  processAttackLog(attackLog: AttackLog, character: Character, entity: Entity) {
+    character.stats.hp -= attackLog.characterDamageTaken;
+    entity.stats.hp -= attackLog.entityDamageTaken;
   }
 
   moveCharacter(
