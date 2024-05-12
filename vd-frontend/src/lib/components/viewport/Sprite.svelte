@@ -19,4 +19,16 @@
 	.s-monster1 {
 		background-image: url('$lib/assets/entities/monsters/monster1.gif');
 	}
+
+	.s-Goblin {
+		background-image: url('$lib/assets/entities/monsters/monster1.gif');
+	}
+
+	.s-Snake {
+		background-image: url('$lib/assets/entities/monsters/snake.gif');
+	}
+
+	.s-Vampire {
+		background-image: url('$lib/assets/entities/monsters/vampire.gif');
+	}
 </style>

@@ -18,8 +18,14 @@ import { location } from '$lib/store/location';
 import { socket } from '$lib/store/ws';
 import { goto } from '$app/navigation';
 import type { Stats } from '$lib/class/Stats';
-import { entityOnPosition, inititalizeEntities, removeEntity } from '$lib/store/entities';
-import { Collision } from '$lib/util/types';
+import {
+	entityOnPosition,
+	inititalizeEntities,
+	processAttackLogForEntity,
+	removeEntity
+} from '$lib/store/entities';
+import { Collision, Tile } from '$lib/util/types';
+import { attackLogToFightNumbers } from '$lib/store/viewport-effects';
 
 type direction = 'up' | 'down' | 'left' | 'right';
 
@@ -162,6 +168,10 @@ export function movePlayer(dir: direction) {
 				y: newY
 			};
 
+			if (currentLocation.terrain[newY][newX] === Tile.STAIRS) {
+				location.set(null);
+			}
+
 			client.emit('move', { x: newX, y: newY });
 
 			return { ...prev, pos: newPos };
@@ -200,16 +210,7 @@ function processAttackLog(attackLog: AttackLog) {
 		});
 	}
 
-	if (attackLog.entityDied) {
-		console.log('removing entity...');
-		const removedEntity = removeEntity(attackLog.entityId);
+	attackLogToFightNumbers(attackLog);
 
-		if (removedEntity) {
-			const { x, y } = removedEntity.pos;
-			location.update((prev) => {
-				if (prev) prev.collisionMap[y][x] = Collision.WALKABLE;
-				return prev;
-			});
-		}
-	}
+	processAttackLogForEntity(attackLog);
 }

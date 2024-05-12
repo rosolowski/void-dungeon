@@ -13,10 +13,13 @@ export interface AttackLog {
 
 export function simulateAttack(character: Entity, entity: Entity): AttackLog {
   const entityBlock = Math.floor(Math.random() * entity.stats.armor);
-  const entityDamageTaken = character.stats.damage - entityBlock;
+  const entityDamageTaken = Math.max(character.stats.damage - entityBlock, 0);
 
   const characterBlock = Math.floor(Math.random() * character.stats.armor);
-  const characterDamageTaken = entity.stats.damage - characterBlock;
+  const characterDamageTaken = Math.max(
+    entity.stats.damage - characterBlock,
+    0,
+  );
 
   const characterDied = character.stats.hp - characterDamageTaken <= 0;
   const entityDied = entity.stats.hp - entityDamageTaken <= 0;

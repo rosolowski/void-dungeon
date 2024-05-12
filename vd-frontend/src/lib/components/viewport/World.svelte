@@ -8,6 +8,8 @@
 	import Player from '$lib/components/viewport/Player.svelte';
 	import Character from './Character.svelte';
 	import Entity from './Entity.svelte';
+	import { fightNumbers } from '$lib/store/viewport-effects';
+	import FightNumber from './FightNumber.svelte';
 
 	export let viewportWidth: number;
 	export let viewportHeight: number;
@@ -53,6 +55,9 @@
 		{#if canRenderTile[entity.pos.y][entity.pos.x]}
 			<Entity {entity} />
 		{/if}
+	{/each}
+	{#each $fightNumbers as [index, fightNumber]}
+		<FightNumber {fightNumber} />
 	{/each}
 	<Player />
 </div>

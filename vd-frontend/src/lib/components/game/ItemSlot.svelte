@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { clearDrag, itemDrag, startDrag } from '$lib/store/itemDrag';
+	import { clearDrag, itemDrag, startDrag } from '$lib/store/item-drag';
 	import { Item, type ItemType } from '$lib/class/Item';
 	import ItemComponent from './ItemComponent.svelte';
 	import { get } from 'svelte/store';

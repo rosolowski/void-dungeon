@@ -38,7 +38,8 @@
 		}
 
 		&.type-3 {
-			background-color: rgba(255, 0, 0, 0.365);
+			background-image: url('$lib/assets/tiles/t3.png');
+			background-size: 100%;
 		}
 	}
 </style>

@@ -1,6 +1,10 @@
 import { Entity } from '$lib/class/Entity';
 // import { Stats } from '$lib/class/Stats';
 import { get, writable } from 'svelte/store';
+import { type AttackLog } from '$lib/api/services/game.service';
+import { location } from './location';
+import { Collision } from '$lib/util/types';
+import { entityTracker, refreshEntityTracker } from './entity-tracker';
 
 // const initEntities = [
 // 	new Entity(0, 'monster', { x: 1, y: 2, instanceId: 0 }, 'big frog', 5, new Stats()),
@@ -16,6 +20,33 @@ export function inititalizeEntities(data: Array<Entity>) {
 	}
 
 	entities.set(newEntities);
+	refreshEntityTracker();
+}
+
+export function processAttackLogForEntity(attackLog: AttackLog) {
+	const entity = get(entities).get(attackLog.entityId);
+
+	if (attackLog.entityDied) {
+		removeEntity(attackLog.entityId);
+
+		if (entity) {
+			const { x, y } = entity.pos;
+			location.update((prev) => {
+				if (prev) prev.collisionMap[y][x] = Collision.WALKABLE;
+				return prev;
+			});
+		}
+
+		entityTracker.set(null);
+	} else if (entity) {
+		entity.stats.hp -= attackLog.entityDamageTaken;
+
+		if (get(entityTracker) === null && entity) {
+			entityTracker.set(entity);
+		}
+	}
+
+	refreshEntityTracker();
 }
 
 export function spawnEntity(newEntity: Entity) {
@@ -26,17 +57,15 @@ export function spawnEntity(newEntity: Entity) {
 	});
 }
 
-export function removeEntity(id: number): Entity | undefined {
-	let entity: Entity | undefined;
+export function removeEntity(id: number) {
 	entities.update((currentEntities) => {
 		const newEntities = new Map(currentEntities);
-		entity = newEntities.get(id);
 		newEntities.delete(id);
 		console.log('new eneities: ', newEntities);
 		return newEntities;
 	});
 
-	return entity;
+	refreshEntityTracker();
 }
 
 export function entityOnPosition(x: number, y: number): Entity | null {

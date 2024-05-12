@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { itemDrag } from '$lib/store/itemDrag';
+	import { itemDrag } from '$lib/store/item-drag';
 	import ItemComponent from './ItemComponent.svelte';
 
 	let x: number = 0;

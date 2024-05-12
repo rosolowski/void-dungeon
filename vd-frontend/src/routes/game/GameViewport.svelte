@@ -5,6 +5,7 @@
 	import { player } from '$lib/store/player';
 	import { location } from '$lib/store/location';
 	import { renderer } from '$lib/store/renderer';
+	import EntityTracker from '$lib/components/viewport/EntityTracker.svelte';
 
 	let viewportWidth: number;
 	let viewportHeight: number;
@@ -27,6 +28,7 @@
 	on:wheel={onWheel}
 >
 	<InputHandler />
+	<EntityTracker />
 
 	{#if $player}
 		<GameHud />

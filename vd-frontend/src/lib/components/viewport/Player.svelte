@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { renderer } from '$lib/store/renderer';
 	import { player } from '$lib/store/player';
-	import PlayerSprite from './PlayerSprite.svelte';
+	import Sprite from './Sprite.svelte';
 
 	$: posX = ($player?.pos.x || 1) * $renderer.tileSize;
 	$: posY = ($player?.pos.y || 1) * $renderer.tileSize;
@@ -14,7 +14,7 @@
 	style:width={`${$renderer.tileSize}px`}
 	style:height={`${$renderer.tileSize}px`}
 >
-	<PlayerSprite />
+	<Sprite spriteId="warrior" />
 </div>
 
 <style lang="scss">
