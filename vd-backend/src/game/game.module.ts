@@ -3,7 +3,7 @@ import { CharacterAvatar } from './entities/character-avatar.entity';
 import { ConfigService } from '@nestjs/config';
 import { Equipment } from './entities/equipment.entity';
 import { GameController } from './game.controller';
-import { GameGateway } from './game.gateway';
+import { GameGateway } from './gateway/game.gateway';
 import { GameService } from './game.service';
 import { Inventory } from './entities/inventory.entity';
 import { InventoryService } from './inventory.service';

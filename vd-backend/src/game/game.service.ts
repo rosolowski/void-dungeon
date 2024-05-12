@@ -20,6 +20,7 @@ export class GameService {
     private configService: ConfigService,
   ) {}
 
+  // loads character's inventory from database
   async getInventory(characterId: number): Promise<Inventory> {
     return await this.inventoryRepository.findOne({
       where: { character: { id: characterId } },
@@ -37,6 +38,7 @@ export class GameService {
     });
   }
 
+  // loads user's character from database
   async getPlayerCharacter(
     userId: number,
     characterId: number,
@@ -92,6 +94,7 @@ export class GameService {
     }
   }
 
+  // saves character in database
   async syncCharacter(characterClass: CharacterClass): Promise<void> {
     const characterEntity = await this.charactersRepository.findOneBy({
       id: characterClass.id,

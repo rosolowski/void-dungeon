@@ -67,11 +67,17 @@ export class MapGenerator {
     this.rooms.forEach((room, index) => {
       if (index === 0) return;
       const numEntities = Math.floor(Math.random() * 5);
-      const occupiedPositions = new Set();
+      const occupiedPositions: Set<string> = new Set();
 
       for (let i = 0; i < numEntities; i++) {
         const pos = this.findRandomFloorInRoom(room, occupiedPositions);
         if (!pos) continue;
+        if (
+          this.exitPos &&
+          pos.x === this.exitPos.x &&
+          pos.y === this.exitPos.y
+        )
+          continue;
 
         const entityType = this.chooseEntityType();
         const entityLevel = this.calculateEntityLevel(level);

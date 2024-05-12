@@ -1,13 +1,15 @@
 import { Character } from '../class/Character';
 import { GameInstance } from '../class/GameInstance';
+import { AttackLog, simulateAttack } from './battle-manager';
 import { InstanceManager } from './instance-manager';
+import { Collision, Tile } from './utils';
 
 export class Game {
   private instanceManager = new InstanceManager();
 
   constructor() {}
 
-  connectCharacter(character: Character): GameInstance {
+  connectCharacterToInstance(character: Character): GameInstance {
     const instance = this.instanceManager.addCharacterToInstance(
       character,
       character.getInstance(),
@@ -16,12 +18,72 @@ export class Game {
     return instance;
   }
 
-  disconnectCharacter(character: Character): GameInstance {
+  disconnectCharacterFromInstance(character: Character): GameInstance {
     const instance = this.instanceManager.getInstanceFromCharacter(character);
-
-    instance.characters.delete(character.id);
+    this.instanceManager.removeCharacterFromInstance(character, instance.id);
 
     return instance;
+  }
+
+  generateNewInstance(): GameInstance {
+    // this.disconnectCharacterFromInstance(character);
+    const instance = this.instanceManager.addGameInstance();
+
+    // this.instanceManager.addCharacterToInstance(character, instance.id);
+
+    return instance;
+  }
+
+  moveCharacterToCity(character: Character): GameInstance {
+    this.disconnectCharacterFromInstance(character);
+
+    this.instanceManager.moveCharacterToCity(character);
+
+    const instance = this.instanceManager.getCityInstance();
+
+    return instance;
+  }
+
+  attackEntity(
+    character: Character,
+    entityId: number,
+  ): {
+    success: boolean;
+    room: string;
+    attackLog?: AttackLog;
+  } {
+    const instance = this.instanceManager.getInstanceFromCharacter(character);
+    const entity = instance.entities.get(entityId);
+
+    if (!entity || !instance) {
+      // invalid entity/instance
+      return {
+        success: false,
+        room: '',
+      };
+    }
+
+    // check if can attack (by position)
+    const xDiff = Math.abs(character.pos.x - entity.pos.x);
+    const yDiff = Math.abs(character.pos.y - entity.pos.y);
+    const isValid =
+      (xDiff === 1 && yDiff === 0) || (xDiff === 0 && yDiff === 1);
+
+    if (!isValid) {
+      // invalid positions
+      return {
+        success: false,
+        room: '',
+      };
+    }
+
+    const attackLog = simulateAttack(character, entity);
+
+    return {
+      success: false,
+      room: instance.room,
+      attackLog,
+    };
   }
 
   moveCharacter(
@@ -36,7 +98,7 @@ export class Game {
     actionType: string;
   } {
     const instance = this.instanceManager.getInstanceFromCharacter(character);
-    const canMove = instance.location.collisionMap[y][x] === 1;
+    const canMove = instance.location.collisionMap[y][x] === Collision.WALKABLE;
 
     const oldX = character.pos.x;
     const oldY = character.pos.y;
@@ -46,7 +108,7 @@ export class Game {
     if (canMove && isValidStep) {
       instance.characters.get(character.id).setPos(x, y);
 
-      if (instance.location.terrain[y][x] === 3) {
+      if (instance.location.terrain[y][x] === Tile.STAIRS) {
         // stairs
         return {
           success: true,
@@ -75,17 +137,5 @@ export class Game {
       newY: oldY,
       actionType: 'move',
     };
-  }
-
-  moveCharacterToNewInstance(
-    oldInstanceId: number,
-    character: Character,
-  ): GameInstance {
-    this.instanceManager.removePlayerFromInstance(character, oldInstanceId);
-    const instance = this.instanceManager.addGameInstance();
-
-    this.instanceManager.addCharacterToInstance(character, instance.id);
-
-    return instance;
   }
 }

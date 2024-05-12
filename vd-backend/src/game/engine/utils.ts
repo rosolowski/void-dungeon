@@ -3,17 +3,46 @@ import { Inventory as InventoryEntity } from '../entities/inventory.entity';
 import { Character as CharacterClass } from '../class/Character';
 import { Character as CharacterEntity } from '../entities/character.entity';
 import { Equipment as EquipmentClass } from '../class/Equipment';
-import { Equipment as EquipmentEntity } from '../entities/equipment.entity';
+// import { Equipment as EquipmentEntity } from '../entities/equipment.entity';
 import { Inventory as InventoryClass } from '../class/Inventory';
 import { Item as ItemClass } from '../class/Item';
 import { Item as ItemEntity } from '../entities/item.entity';
 import { Stats as StatsClass } from '../class/Stats';
-import { Stats as StatsEntity } from '../entities/stats.entity';
+import { Entity as EntityClass } from '../class/Entity';
+// import { Stats as StatsEntity } from '../entities/stats.entity';
+
+export enum Tile {
+  EMPTY = 0,
+  WALL = 1,
+  FLOOR = 2,
+  STAIRS = 3,
+}
+
+export enum Collision {
+  BAD = 0,
+  WALKABLE = 1,
+}
 
 export function terrainToCollisionMap(terrain: number[][]): number[][] {
   return terrain.map((row) =>
-    row.map((cell) => (cell === 0 || cell === 1 ? 0 : 1)),
+    row.map((cell) =>
+      cell === Tile.EMPTY || cell === Tile.WALL
+        ? Collision.BAD
+        : Collision.WALKABLE,
+    ),
   );
+}
+
+export function applyEntitiesToCollisionMap(
+  terrain: number[][],
+  entities: EntityClass[],
+): number[][] {
+  entities.forEach((entity) => {
+    const { x, y } = entity.pos;
+    terrain[y][x] = 1;
+  });
+
+  return terrain;
 }
 
 export function characterEntityToCharacterClass(

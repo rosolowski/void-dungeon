@@ -21,6 +21,27 @@ export class CharacterService {
     });
   }
 
+  async syncStatsToDatabase(characterId: number, character: Character) {
+    const characterEntity = await this.charactersRepository.findOne({
+      where: { id: characterId },
+      relations: ['stats'],
+    });
+    const characterStats = characterEntity.stats;
+    const newStats = character.stats;
+
+    for (const stat in newStats) {
+      if (stat == 'id') continue;
+
+      if (stat in characterStats) {
+        characterStats[stat] = newStats[stat];
+      } else {
+        console.warn(`Stat ${stat} not found in character stats`);
+      }
+    }
+
+    this.charactersRepository.save(characterEntity);
+  }
+
   async updateStatsOnEquip(characterId: number, item: ItemEntity) {
     const character = await this.charactersRepository.findOne({
       where: { id: characterId },
