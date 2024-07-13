@@ -115,6 +115,7 @@ function transformItemEntityToClass(
     itemEntity.name,
     itemEntity.description,
     itemEntity.type,
+    itemEntity.rarity,
     stats,
   );
 }

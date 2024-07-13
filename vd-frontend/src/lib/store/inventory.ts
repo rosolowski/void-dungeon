@@ -10,9 +10,10 @@ export const inventory = writable<Inventory | null>(null);
 
 export function addTestItem() {
 	const testItem: Partial<Item> = {
-		name: 'unkown',
-		description: 'An unkown item',
+		name: 'Epic sword',
+		description: 'The epic sword',
 		type: 'weapon',
+		rarity: 'legendary',
 		stats: new Stats()
 	};
 

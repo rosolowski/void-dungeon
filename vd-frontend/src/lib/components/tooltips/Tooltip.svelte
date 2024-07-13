@@ -1,42 +1,60 @@
 <script lang="ts">
-  export let title = '';
+	export let title = '';
+	export let rarity = 'common';
 	let isHovered = false;
-	let x: number;
-	let y: number;
+	let x = 0;
+	let y = 0;
 
-	function mouseOver(event: MouseEvent) {
+	function handleMouseMove(event: MouseEvent) {
 		isHovered = true;
-		x = event.pageX + 5;
-		y = event.pageY + 5;
+		x = event.clientX + 10;
+		y = event.clientY + 10;
 	}
 
-	function mouseMove(event: MouseEvent) {
-		x = event.pageX + 5;
-		y = event.pageY + 5;
-	}
-
-	function mouseLeave() {
+	function handleMouseLeave() {
 		isHovered = false;
 	}
 </script>
 
-<!-- svelte-ignore a11y-mouse-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-	on:mouseover={mouseOver}
-  on:mouseleave={mouseLeave}
-	on:mousemove={mouseMove}>
+<div on:mousemove={handleMouseMove} on:mouseleave={handleMouseLeave}>
 	<slot />
 </div>
 
 {#if isHovered}
-	<div style="top: {y}px; left: {x}px;" class="tooltip">{title}</div>
+	<div class="tooltip {rarity}" style="--x: {x}px; --y: {y}px;">
+		{@html title}
+	</div>
 {/if}
 
-<style>
-  .tooltip {
-    position: fixed;
-    z-index: var(--zi-tooltips);
-  }
+<style lang="scss">
+	.tooltip {
+		position: fixed;
+		z-index: 1000;
+		max-width: 300px;
+		padding: 10px;
+		border-radius: 2px;
+		font-size: 14px;
+		color: #fff;
+		background-color: rgba(0, 0, 0, 0.8);
+		box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+		pointer-events: none;
+		left: var(--x);
+		top: var(--y);
+
+		&.common {
+			border: 1px solid #c0c0c0;
+		}
+		&.uncommon {
+			border: 1px solid #1eff00;
+		}
+		&.rare {
+			border: 1px solid #0070dd;
+		}
+		&.epic {
+			border: 1px solid #a335ee;
+		}
+		&.legendary {
+			border: 1px solid #ff8000;
+		}
+	}
 </style>

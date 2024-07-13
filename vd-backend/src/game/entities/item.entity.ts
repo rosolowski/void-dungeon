@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { ItemType } from '../class/Item';
+import { ItemRarity, ItemType } from '../class/Item';
 import { Stats } from './stats.entity';
 
 @Entity()
@@ -25,6 +25,12 @@ export class Item {
     enum: ItemType,
   })
   type: ItemType;
+
+  @Column({
+    type: 'enum',
+    enum: ItemRarity,
+  })
+  rarity: ItemRarity;
 
   @OneToOne(() => Stats, { cascade: true, eager: true })
   @JoinColumn()

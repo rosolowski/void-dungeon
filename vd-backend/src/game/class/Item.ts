@@ -8,12 +8,21 @@ export enum ItemType {
   Amulet = 'amulet',
 }
 
+export enum ItemRarity {
+  Common = 'common',
+  Uncommon = 'uncommon',
+  Rare = 'rare',
+  Epic = 'epic',
+  Legendary = 'legendary',
+}
+
 export class Item {
   constructor(
     public id: number = -1,
     public name: string = 'unkown',
     public description: string = 'An unkown item',
     public type: ItemType = ItemType.Weapon,
+    public rarity: ItemRarity = ItemRarity.Common,
     public stats: Stats,
   ) {}
 }

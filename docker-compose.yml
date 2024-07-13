@@ -15,6 +15,9 @@ services:
       - vd-backend
     env_file:
       - .env
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
 
   vd-backend:
     build: ./vd-backend
@@ -28,6 +31,8 @@ services:
       - vd-db
     env_file:
       - .env
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
   vd-db:
     image: postgres:latest
