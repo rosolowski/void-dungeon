@@ -20,8 +20,10 @@ export class MapGenerator {
   height: number = 0;
   width: number = 0;
 
-  rectRoomChance = 0.4;
+  rectRoomChance = 0.3;
   circRoomChance = 0.2;
+  lShapedRoomChance = 0.2;
+  crossShapedRoomChance = 0.1;
 
   RECT_ROOM_MIN_SIZE = 5;
   RECT_ROOM_MAX_SIZE = 10;
@@ -225,8 +227,20 @@ export class MapGenerator {
       return this.generateRectRoom();
     } else if (choice < this.rectRoomChance + this.circRoomChance) {
       return this.generateCircularRoom();
+    } else if (
+      choice <
+      this.rectRoomChance + this.circRoomChance + this.lShapedRoomChance
+    ) {
+      return this.generateLShapedRoom();
+    } else if (
+      choice <
+      this.rectRoomChance +
+        this.circRoomChance +
+        this.lShapedRoomChance +
+        this.crossShapedRoomChance
+    ) {
+      return this.generateCrossShapedRoom();
     } else {
-      // placeholder
       return this.generateRectRoom();
     }
   }
@@ -288,11 +302,67 @@ export class MapGenerator {
     return room;
   }
 
+  generateLShapedRoom(): Room {
+    const width =
+      Math.floor(
+        Math.random() * (this.RECT_ROOM_MAX_SIZE - this.RECT_ROOM_MIN_SIZE + 1),
+      ) + this.RECT_ROOM_MIN_SIZE;
+    const height =
+      Math.floor(
+        Math.random() * (this.RECT_ROOM_MAX_SIZE - this.RECT_ROOM_MIN_SIZE + 1),
+      ) + this.RECT_ROOM_MIN_SIZE;
+    const terrain: number[][] = Array.from({ length: height }, () =>
+      Array(width).fill(Tile.WALL),
+    );
+
+    const splitX = Math.floor(width / 2);
+    const splitY = Math.floor(height / 2);
+
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        if (x < splitX || y >= splitY) {
+          terrain[y][x] = Tile.FLOOR;
+        }
+      }
+    }
+
+    return new Room(0, 0, width, height, terrain);
+  }
+
+  generateCrossShapedRoom(): Room {
+    const size =
+      Math.floor(
+        Math.random() * (this.RECT_ROOM_MAX_SIZE - this.RECT_ROOM_MIN_SIZE + 1),
+      ) + this.RECT_ROOM_MIN_SIZE;
+    const terrain: number[][] = Array.from({ length: size }, () =>
+      Array(size).fill(Tile.WALL),
+    );
+
+    const corridorWidth = Math.max(3, Math.floor(size / 3));
+    const start = Math.floor((size - corridorWidth) / 2);
+    const end = start + corridorWidth;
+
+    for (let y = start; y < end; y++) {
+      for (let x = 1; x < size - 1; x++) {
+        terrain[y][x] = Tile.FLOOR;
+      }
+    }
+
+    for (let x = start; x < end; x++) {
+      for (let y = 1; y < size - 1; y++) {
+        terrain[y][x] = Tile.FLOOR;
+      }
+    }
+
+    return new Room(0, 0, size, size, terrain);
+  }
+
   mergeRoomTerrain(room: Room) {
     for (let y = 0; y < room.height; y++) {
       for (let x = 0; x < room.width; x++) {
-        if (room.terrain[y][x] !== 0)
+        if (room.terrain[y][x] !== 0) {
           this.terrain[room.globalY + y][room.globalX + x] = room.terrain[y][x];
+        }
       }
     }
   }
