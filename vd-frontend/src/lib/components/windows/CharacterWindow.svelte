@@ -110,7 +110,7 @@
 						<div class="text">{$player?.exp} / {$player?.maxExp}</div>
 						<div
 							class="fill"
-							style:width={(($player?.exp || 1) / ($player?.maxExp || 1)) * 100 + '%'}
+							style:width={(($player?.exp || 0) / ($player?.maxExp || 1)) * 100 + '%'}
 						></div>
 					</div>
 				</div>
@@ -120,7 +120,7 @@
 						<div class="text">{stats?.hp} / {stats?.maxHp}</div>
 						<div
 							class="fill"
-							style:width={((stats?.hp || 1) / (stats?.maxHp || 1)) * 100 + '%'}
+							style:width={((stats?.hp || 0) / (stats?.maxHp || 1)) * 100 + '%'}
 						></div>
 					</div>
 				</div>
@@ -130,7 +130,7 @@
 						<div class="text">{stats?.mana} / {stats?.maxMana}</div>
 						<div
 							class="fill"
-							style:width={((stats?.mana || 1) / (stats?.maxMana || 1)) * 100 + '%'}
+							style:width={((stats?.mana || 0) / (stats?.maxMana || 1)) * 100 + '%'}
 						></div>
 					</div>
 				</div>

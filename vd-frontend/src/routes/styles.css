@@ -25,6 +25,17 @@
 	--exp: rgb(105, 87, 6);
 	--expLight: rgb(175, 146, 18);
 
+	--rarityCommon: #c0c0c0;
+	--rarityUncommon: #1eff00;
+	--rarityRare: #0070dd;
+	--rarityEpic: #a335ee;
+	--rarityLegendary: #ff8000;
+
+	--entityCharacter: #4a90e2;
+	--entityMonster: #e74c3c;
+	--entityNpc: #2ecc71;
+	--entityChest: #f39c12;
+
 	--primarySpeed: 0.15s;
 	--secondarySpeed: 0.2s;
 	--primaryEasingFunction: ease;

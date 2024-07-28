@@ -1,6 +1,6 @@
 <script lang="ts">
-	export let title = '';
-	export let rarity = 'common';
+	export let content = '';
+	export let borderClass = '';
 	let isHovered = false;
 	let x = 0;
 	let y = 0;
@@ -21,8 +21,8 @@
 </div>
 
 {#if isHovered}
-	<div class="tooltip {rarity}" style="--x: {x}px; --y: {y}px;">
-		{@html title}
+	<div class="tooltip {borderClass}" style="--x: {x}px; --y: {y}px;">
+		{@html content}
 	</div>
 {/if}
 
@@ -40,21 +40,34 @@
 		pointer-events: none;
 		left: var(--x);
 		top: var(--y);
+		border: 1px solid var(--tetriary);
 
 		&.common {
-			border: 1px solid #c0c0c0;
+			border: 1px solid var(--rarityCommon);
 		}
 		&.uncommon {
-			border: 1px solid #1eff00;
+			border: 1px solid var(--rarityUncommon);
 		}
 		&.rare {
-			border: 1px solid #0070dd;
+			border: 1px solid var(--rarityRare);
 		}
 		&.epic {
-			border: 1px solid #a335ee;
+			border: 1px solid var(--rarityEpic);
 		}
 		&.legendary {
-			border: 1px solid #ff8000;
+			border: 1px solid var(--rarityLegendary);
+		}
+		&.character {
+			border: 1px solid var(--entityCharacter);
+		}
+		&.monster {
+			border: 1px solid var(--entityMonster);
+		}
+		&.npc {
+			border: 1px solid var(--entityNpc);
+		}
+		&.chest {
+			border: 1px solid var(--entityChest);
 		}
 	}
 </style>

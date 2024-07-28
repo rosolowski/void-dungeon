@@ -232,6 +232,11 @@ export class InventoryService {
     const inventory = await this.inventoryRepository.findOne({
       where: { character: { id: characterId } },
       relations: ['slots', 'slots.item'],
+      order: {
+        slots: {
+          index: 'ASC',
+        },
+      },
     });
 
     if (!inventory) {
@@ -239,7 +244,12 @@ export class InventoryService {
     }
 
     // Check for an empty slot in the inventory
+    console.log(inventory.slots);
+
     const emptySlot = inventory.slots.find((slot) => !slot.item);
+
+    console.log(emptySlot);
+
     if (!emptySlot) {
       throw new Error('No empty slots available in inventory.');
     }

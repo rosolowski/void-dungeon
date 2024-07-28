@@ -37,10 +37,12 @@
 		}
 		clearDrag();
 	}
+
+	$: rarityClass = item ? item.rarity : 'empty';
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="slot" on:mousedown={onMouseDown} on:mouseup={onMouseUp}>
+<div class="slot {rarityClass}" on:mousedown={onMouseDown} on:mouseup={onMouseUp}>
 	{#if item && !isDragged}
 		<ItemComponent {item} />
 	{/if}
@@ -58,6 +60,39 @@
 
 		&:hover {
 			border: 1px solid var(--secondary);
+		}
+
+		&.empty {
+			box-shadow: inset 0 0 2px var(--tetriary);
+		}
+
+		&.empty {
+			box-shadow: inset 0 0 8px var(--tetriary);
+		}
+
+		&.common {
+			box-shadow: inset 0 0 8px var(--rarityCommon);
+			border: 1px solid var(--rarityCommon);
+		}
+
+		&.uncommon {
+			box-shadow: inset 0 0 8px var(--rarityUncommon);
+			border: 1px solid var(--rarityUncommon);
+		}
+
+		&.rare {
+			box-shadow: inset 0 0 8px var(--rarityRare);
+			border: 1px solid var(--rarityRare);
+		}
+
+		&.epic {
+			box-shadow: inset 0 0 8px var(--rarityEpic);
+			border: 1px solid var(--rarityEpic);
+		}
+
+		&.legendary {
+			box-shadow: inset 0 0 8px var(--rarityLegendary);
+			border: 1px solid var(--rarityLegendary);
 		}
 	}
 </style>

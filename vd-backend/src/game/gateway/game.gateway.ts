@@ -33,7 +33,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private game: Game;
 
-  // character IDs -> socket clients
+  // Character IDs -> socket clients
   private connectionsMap: Map<number, Socket> = new Map();
 
   constructor(
@@ -57,7 +57,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    // handle multiple connections from the same player
+    // Handle multiple connections from the same player
     const prevSocket = this.connectionsMap.get(parseInt(characterId));
     if (prevSocket) {
       prevSocket.emit('error', {
@@ -159,12 +159,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const { characterDied, entityDied } = attackLog;
 
       if (characterDied) {
-        // player died, move to city
+        // Player died, move to city
         const oldInstance =
           this.game.disconnectCharacterFromInstance(character);
         this.emitCharacterLeaveInstance(oldInstance, client);
 
-        // heal player
+        // Heal player
         character.stats.hp = character.stats.maxHp;
 
         const cityInstance = this.game.addCharacterToCity(character);

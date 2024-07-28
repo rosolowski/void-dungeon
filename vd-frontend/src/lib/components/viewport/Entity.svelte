@@ -2,29 +2,34 @@
 	import type { Entity } from '$lib/class/Entity';
 	import { entityTracker } from '$lib/store/entity-tracker';
 	import { renderer } from '$lib/store/renderer';
+	import { entities } from '$lib/store/entities';
 	import Sprite from './Sprite.svelte';
+	import EntityTooltip from '../tooltips/EntityTooltip.svelte';
 
 	export let entity: Entity;
 
-	$: posX = entity.pos.x * $renderer.tileSize;
-	$: posY = entity.pos.y * $renderer.tileSize;
+	$: currentEntity = $entities.get(entity.id) || entity;
+	$: posX = currentEntity.pos.x * $renderer.tileSize;
+	$: posY = currentEntity.pos.y * $renderer.tileSize;
 
 	function handleClick() {
-		entityTracker.set(entity);
-		console.log(entity)
+		entityTracker.set(currentEntity);
+		console.log(currentEntity);
 	}
 </script>
 
-<div
-	class="entity {$entityTracker?.id === entity.id ? 'tracked' : ''}"
-	style:left={`${posX}px`}
-	style:top={`${posY}px`}
-	style:width={`${$renderer.tileSize}px`}
-	style:height={`${$renderer.tileSize}px`}
-	on:click={handleClick}
->
-	<Sprite spriteId={entity.name} />
-</div>
+<EntityTooltip entity={currentEntity}>
+	<div
+		class="entity {$entityTracker?.id === currentEntity.id ? 'tracked' : ''}"
+		style:left={`${posX}px`}
+		style:top={`${posY}px`}
+		style:width={`${$renderer.tileSize}px`}
+		style:height={`${$renderer.tileSize}px`}
+		on:click={handleClick}
+	>
+		<Sprite spriteId={currentEntity.name} />
+	</div>
+</EntityTooltip>
 
 <style lang="scss">
 	.entity {

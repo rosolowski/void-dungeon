@@ -52,7 +52,7 @@
 	}
 </script>
 
-<Tooltip title={getTooltipContent(item)} rarity={getItemRarity(item)}>
+<Tooltip content={getTooltipContent(item)} borderClass={getItemRarity(item)}>
 	<div class="item">
 		<img src={itemImages[itemImageIndex]} alt={item.name} />
 	</div>

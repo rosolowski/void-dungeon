@@ -24,27 +24,38 @@ export function inititalizeEntities(data: Array<Entity>) {
 }
 
 export function processAttackLogForEntity(attackLog: AttackLog) {
-	const entity = get(entities).get(attackLog.entityId);
+	entities.update(currentEntities => {
+			const entity = currentEntities.get(attackLog.entityId);
 
-	if (attackLog.entityDied) {
-		removeEntity(attackLog.entityId);
+			if (attackLog.entityDied) {
+					currentEntities.delete(attackLog.entityId);
 
-		if (entity) {
-			const { x, y } = entity.pos;
-			location.update((prev) => {
-				if (prev) prev.collisionMap[y][x] = Collision.WALKABLE;
-				return prev;
-			});
-		}
+					if (entity) {
+							const { x, y } = entity.pos;
+							location.update((prev) => {
+									if (prev) prev.collisionMap[y][x] = Collision.WALKABLE;
+									return prev;
+							});
+					}
 
-		entityTracker.set(null);
-	} else if (entity) {
-		entity.stats.hp -= attackLog.entityDamageTaken;
+					entityTracker.set(null);
+			} else if (entity) {
+					const updatedEntity = {
+							...entity,
+							stats: {
+									...entity.stats,
+									hp: entity.stats.hp - attackLog.entityDamageTaken
+							}
+					};
+					currentEntities.set(attackLog.entityId, updatedEntity);
 
-		if (get(entityTracker) === null && entity) {
-			entityTracker.set(entity);
-		}
-	}
+					if (get(entityTracker) === null) {
+							entityTracker.set(updatedEntity);
+					}
+			}
+
+			return new Map(currentEntities);
+	});
 
 	refreshEntityTracker();
 }
@@ -59,11 +70,15 @@ export function spawnEntity(newEntity: Entity) {
 
 export function removeEntity(id: number) {
 	entities.update((currentEntities) => {
-		const newEntities = new Map(currentEntities);
-		newEntities.delete(id);
-		console.log('new eneities: ', newEntities);
-		return newEntities;
+			const newEntities = new Map(currentEntities);
+			newEntities.delete(id);
+			console.log('new entities: ', newEntities);
+			return newEntities;
 	});
+
+	if (get(entityTracker)?.id === id) {
+			entityTracker.set(null);
+	}
 
 	refreshEntityTracker();
 }
