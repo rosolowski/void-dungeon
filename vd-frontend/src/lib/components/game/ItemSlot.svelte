@@ -6,7 +6,7 @@
 	import { handleItemAction } from '$lib/api/services/inventory.service';
 
 	export let item: Item | null = null;
-	export let slotType: 'inventory' | 'equipment';
+	export let slotType: 'inventory' | 'equipment' | 'merchant';
 	export let slotIndex: number;
 	export let acceptableTypes: ItemType[] | undefined = undefined;
 

@@ -29,7 +29,7 @@
 <style lang="scss">
 	.tooltip {
 		position: fixed;
-		z-index: 1000;
+		z-index: var(--zi-tooltips);
 		max-width: 300px;
 		padding: 10px;
 		border-radius: 2px;

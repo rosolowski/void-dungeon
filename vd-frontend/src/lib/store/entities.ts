@@ -6,11 +6,6 @@ import { location } from './location';
 import { Collision } from '$lib/util/types';
 import { entityTracker, refreshEntityTracker } from './entity-tracker';
 
-// const initEntities = [
-// 	new Entity(0, 'monster', { x: 1, y: 2, instanceId: 0 }, 'big frog', 5, new Stats()),
-// 	new Entity(1, 'monster', { x: 2, y: 2, instanceId: 0 }, 'big frog', 5, new Stats())
-// ];
-
 export const entities = writable<Map<number, Entity>>(new Map());
 
 export function inititalizeEntities(data: Array<Entity>) {

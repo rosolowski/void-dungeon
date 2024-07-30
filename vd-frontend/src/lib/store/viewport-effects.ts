@@ -50,7 +50,6 @@ export function attackLogToFightNumbers(attackLog: AttackLog) {
 				if (!prev) return prev;
 				const newMap = new Map(prev);
 				newMap.delete(fnId);
-				console.log('deleteing', fnId);
 
 				return newMap;
 			});
@@ -80,7 +79,6 @@ export function attackLogToFightNumbers(attackLog: AttackLog) {
 				if (!prev) return prev;
 				const newMap = new Map(prev);
 				newMap.delete(fnId);
-				console.log('deleteing', fnId);
 
 				return newMap;
 			});

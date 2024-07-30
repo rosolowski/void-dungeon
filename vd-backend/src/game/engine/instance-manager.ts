@@ -6,6 +6,7 @@ import { GameInstance } from '../class/GameInstance';
 import { Location } from '../class/Location';
 import { MapGenerator } from '../class/MapGenerator';
 import { applyEntitiesToCollisionMap, terrainToCollisionMap } from './utils';
+import { Stats } from '../class/Stats';
 
 export class InstanceManager {
   private instances = new Map<number, GameInstance>();
@@ -21,6 +22,21 @@ export class InstanceManager {
         new Map<number, Character>(),
         new Map<number, Entity>(),
       ),
+    );
+
+    const merchant = new Entity(
+      0,
+      'npc',
+      { x: 1, y: 4, instanceId: 0 },
+      'The Merchant',
+      50,
+      new Stats(),
+    );
+
+    this.instances.get(0).entities.set(0, merchant);
+    this.instances.get(0).location.collisionMap = applyEntitiesToCollisionMap(
+      this.instances.get(0).location.collisionMap,
+      [merchant],
     );
   }
 

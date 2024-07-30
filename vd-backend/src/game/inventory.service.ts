@@ -23,6 +23,21 @@ export class InventoryService {
     private characterService: CharacterService,
   ) {}
 
+  private isItemTypeValidForSlot(
+    itemType: ItemType,
+    equipmentSlot: ItemType,
+  ): boolean {
+    const validItemTypes: Record<ItemType, ItemType[]> = {
+      [ItemType.Weapon]: [ItemType.Weapon],
+      [ItemType.Secondary]: [ItemType.Secondary],
+      [ItemType.Armor]: [ItemType.Armor],
+      [ItemType.Boots]: [ItemType.Boots],
+      [ItemType.Amulet]: [ItemType.Amulet],
+    };
+
+    return validItemTypes[equipmentSlot]?.includes(itemType) ?? false;
+  }
+
   async equipItem(
     character: CharacterClass,
     fromSlotIndex: number,
@@ -55,6 +70,13 @@ export class InventoryService {
 
     // Prepare the item to be equipped from the source slot
     const itemToEquip = fromSlot.item;
+
+    // Check if the item type matches the equipment slot
+    if (!this.isItemTypeValidForSlot(itemToEquip.type, equipmentSlot)) {
+      throw new Error(
+        `Item type ${itemToEquip.type} cannot be equipped in ${equipmentSlot} slot`,
+      );
+    }
 
     // Check if there's already an item in the target equipment slot
     const currentItemInEquipmentSlot = inventory.equipment[equipmentSlot];

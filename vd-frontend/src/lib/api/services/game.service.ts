@@ -22,10 +22,10 @@ import {
 	entityOnPosition,
 	inititalizeEntities,
 	processAttackLogForEntity,
-	removeEntity
 } from '$lib/store/entities';
 import { Collision, Tile } from '$lib/util/types';
 import { attackLogToFightNumbers } from '$lib/store/viewport-effects';
+import { dialogueState, progressDialogue } from '$lib/store/dialogue';
 
 type direction = 'up' | 'down' | 'left' | 'right';
 
@@ -134,6 +134,8 @@ export function disconnectFromServer() {
 }
 
 export function movePlayer(dir: direction) {
+	if (get(dialogueState).currentId !== null) return;
+
 	const currentPlayer = get(player);
 	const currentLocation = get(location);
 
@@ -179,10 +181,12 @@ export function movePlayer(dir: direction) {
 	} else {
 		const entity = entityOnPosition(newX, newY);
 
-		if (entity) {
+		if (entity && entity.type == 'monster') {
 			console.log('trying to attack: ', { entityId: entity.id });
 			const client = get(socket);
 			client?.emit('attackEntity', { entityId: entity.id });
+		} else if (entity && entity.type == 'npc' && entity.name === 'The Merchant') {
+			progressDialogue(0);
 		}
 	}
 }
@@ -190,11 +194,11 @@ export function movePlayer(dir: direction) {
 function processAttackLog(attackLog: AttackLog) {
 	const {
 		characterId,
-		entityId,
+		//entityId,
 		characterDamageTaken,
-		entityDamageTaken,
+		//entityDamageTaken,
 		characterDied,
-		entityDied
+		//entityDied
 	} = attackLog;
 
 	const currentPlayerIsAttacker = get(player)?.id === characterId;

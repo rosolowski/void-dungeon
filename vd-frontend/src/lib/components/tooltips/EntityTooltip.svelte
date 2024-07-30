@@ -8,15 +8,19 @@
 		return entity.type.charAt(0).toUpperCase() + entity.type.slice(1);
 	}
 
-	$: tooltipContent = `
+	$: tooltipContent =
+		entity.type === 'npc'
+			? `
+		<div class="entity-name">${entity.name}</div>
+		<div class="entity-type">${getEntityType(entity)}</div>
+		<div class="entity-level">Level: ${entity.level}</div>
+	`
+			: `
 		<div class="entity-name">${entity.name}</div>
 		<div class="entity-type">${getEntityType(entity)}</div>
 		<div class="entity-level">Level: ${entity.level}</div>
 		<div class="entity-hp">HP: ${entity.stats.hp} / ${entity.stats.maxHp}</div>
 	`;
-
-	// For debugging
-	$: console.log('Entity updated in tooltip:', entity);
 </script>
 
 <Tooltip content={tooltipContent} borderClass={entity.type}>

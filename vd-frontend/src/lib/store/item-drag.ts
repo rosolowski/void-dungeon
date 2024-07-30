@@ -4,7 +4,7 @@ import { writable } from 'svelte/store';
 export interface DragState {
 	isDragging: boolean;
 	item: Item | null;
-	sourceType: 'inventory' | 'equipment' | null;
+	sourceType: 'inventory' | 'equipment' | 'merchant' | null;
 	sourceIndex: number;
 }
 
@@ -29,7 +29,7 @@ function handleMouseUp() {
 	window.removeEventListener('mouseup', handleMouseUp);
 }
 
-export function startDrag(item: Item, sourceType: 'inventory' | 'equipment', sourceIndex: number) {
+export function startDrag(item: Item, sourceType: 'inventory' | 'equipment' | 'merchant', sourceIndex: number) {
 	itemDrag.set({
 		isDragging: true,
 		item,

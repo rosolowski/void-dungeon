@@ -1,13 +1,22 @@
 <script lang="ts">
 	import { inventory } from '$lib/store/inventory';
+	import gold from '../../assets/items/currency/gold.png';
+	import shards from '../../assets/items/currency/shards.png';
 	import ItemSlot from '../game/ItemSlot.svelte';
 </script>
 
 <div class="inventory-window">
 	{#if $inventory}
 		<div class="currency">
-			<div class="gold">GOLD: <span class="value">{$inventory.gold}</span></div>
-			<div class="shards">SHARDS: <span class="value">{$inventory.shards}</span></div>
+			<div class="gold">
+				<img src={gold} width="16px" height="16px" alt="gold" />
+				GOLD: <span class="value">{$inventory.gold}</span>
+			</div>
+			<div class="shards">
+				<img src={shards} width="16px" height="16px" alt="shards" />
+				SHARDS:
+				<span class="value">{$inventory.shards}</span>
+			</div>
 		</div>
 
 		<div class="slots">
@@ -29,6 +38,20 @@
 			padding: 20px;
 			border-bottom: 1px solid var(--tetriary);
 			color: var(--secondary);
+
+			div {
+				display: flex;
+				align-items: center;
+				gap: 5px;
+			}
+
+			.gold .value {
+				color: gold;
+			}
+
+			img {
+				image-rendering: pixelated;
+			}
 
 			.value {
 				color: var(--primary);

@@ -6,6 +6,7 @@
 	import { location } from '$lib/store/location';
 	import { renderer } from '$lib/store/renderer';
 	import EntityTracker from '$lib/components/viewport/EntityTracker.svelte';
+	import Dialogue from '$lib/components/viewport/Dialogue.svelte';
 
 	let viewportWidth: number;
 	let viewportHeight: number;
@@ -32,6 +33,7 @@
 
 	{#if $player}
 		<GameHud />
+		<Dialogue />
 	{/if}
 
 	{#if $player && $location}

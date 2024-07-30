@@ -2,7 +2,7 @@
 	export let spriteId: string;
 </script>
 
-<div class="sprite s-{spriteId}"></div>
+<div class="sprite s-{spriteId.replaceAll(' ', '-').toLocaleLowerCase()}"></div>
 
 <style>
 	.sprite {
@@ -20,15 +20,19 @@
 		background-image: url('$lib/assets/entities/monsters/monster1.gif');
 	}
 
-	.s-Goblin {
+	.s-goblin {
 		background-image: url('$lib/assets/entities/monsters/monster1.gif');
 	}
 
-	.s-Snake {
+	.s-snake {
 		background-image: url('$lib/assets/entities/monsters/snake.gif');
 	}
 
-	.s-Vampire {
+	.s-vampire {
 		background-image: url('$lib/assets/entities/monsters/vampire.gif');
+	}
+
+	.s-the-merchant {
+		background-image: url('$lib/assets/entities/npc/merchant.gif');
 	}
 </style>

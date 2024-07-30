@@ -25,9 +25,9 @@ function determineEquipmentSlot(index: number): ItemType {
 }
 
 export function handleItemAction(
-	sourceSlotType: 'inventory' | 'equipment',
+	sourceSlotType: 'inventory' | 'equipment' | 'merchant',
 	sourceSlotIndex: number,
-	targetSlotType: 'inventory' | 'equipment',
+	targetSlotType: 'inventory' | 'equipment' | 'merchant',
 	targetSlotIndex: number
 ) {
 	const client = get(socket);
@@ -39,7 +39,7 @@ export function handleItemAction(
 		client.emit('equipItem', {
 			characterId: characterIdValue,
 			fromSlotId: sourceSlotIndex,
-			equipmentSlot: determineEquipmentSlot(targetSlotIndex) // Implement this based on your UI's slot index to equipment slot mapping
+			equipmentSlot: determineEquipmentSlot(targetSlotIndex)
 		});
 
 		// optimistic prediction
@@ -59,11 +59,11 @@ export function handleItemAction(
 	else if (sourceSlotType === 'equipment' && targetSlotType === 'inventory') {
 		client.emit('unequipItemToSlot', {
 			characterId: characterIdValue,
-			equipmentSlot: determineEquipmentSlot(sourceSlotIndex), // Mapping function for equipment slot
+			equipmentSlot: determineEquipmentSlot(sourceSlotIndex),
 			targetSlotId: targetSlotIndex
 		});
 
-		// optimistic prediction
+		// Optimistic prediction
 		inventory.update((prev) => {
 			if (!prev) return prev;
 
@@ -82,7 +82,7 @@ export function handleItemAction(
 			targetSlotId: targetSlotIndex
 		});
 
-		// optimistic prediction
+		// Optimistic prediction
 		inventory.update((prev) => {
 			if (!prev) return prev;
 
