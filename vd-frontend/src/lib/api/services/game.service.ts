@@ -26,6 +26,7 @@ import {
 import { Collision, Tile } from '$lib/util/types';
 import { attackLogToFightNumbers } from '$lib/store/viewport-effects';
 import { dialogueState, progressDialogue } from '$lib/store/dialogue';
+import { entityTracker } from '$lib/store/entity-tracker';
 
 type direction = 'up' | 'down' | 'left' | 'right';
 
@@ -67,6 +68,7 @@ export function initializeServerConnection() {
 		location.set(data.location);
 		inititalize(data.characters);
 		inititalizeEntities(data.entities);
+		entityTracker.set(null);
 	});
 
 	client.on('getInventory', (data: SerializedInventoryDto) => {

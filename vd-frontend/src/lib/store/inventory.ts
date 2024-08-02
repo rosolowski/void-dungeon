@@ -14,7 +14,7 @@ export function addTestItem() {
 		description: 'The epic sword',
 		type: 'weapon',
 		rarity: 'legendary',
-		stats: new Stats()
+		stats: new Stats(20, 20, 5, 5, 2, 55, 20)
 	};
 
 	addItemToInventory(testItem);

@@ -30,10 +30,16 @@
 			currentDrag.isDragging &&
 			currentDrag.item &&
 			currentDrag.sourceType &&
-			(currentDrag.sourceType !== slotType || currentDrag.sourceIndex !== slotIndex) &&
-			(!acceptableTypes || acceptableTypes.includes(currentDrag.item.type))
+			(currentDrag.sourceType !== slotType || currentDrag.sourceIndex !== slotIndex)
 		) {
-			handleItemAction(currentDrag.sourceType, currentDrag.sourceIndex, slotType, slotIndex);
+			// Handle selling to merchant
+			if (currentDrag.sourceType === 'inventory' && slotType === 'merchant' && slotIndex === 0) {
+				handleItemAction(currentDrag.sourceType, currentDrag.sourceIndex, slotType, slotIndex);
+			}
+			// Handle equipment and inventory actions
+			else if (!acceptableTypes || acceptableTypes.includes(currentDrag.item.type)) {
+				handleItemAction(currentDrag.sourceType, currentDrag.sourceIndex, slotType, slotIndex);
+			}
 		}
 		clearDrag();
 	}

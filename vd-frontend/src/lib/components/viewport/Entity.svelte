@@ -30,18 +30,14 @@
 		const playerY = $player?.pos.y!;
 		const entityX = currentEntity.pos.x;
 		const entityY = currentEntity.pos.y;
-
-		if (isPlayerNextToEntity(playerX, playerY, entityX, entityY)) {
-			if (entity.type === 'monster') {
-				entityTracker.set(currentEntity);
-			} else if (entity.type === 'npc') {
+		if (entity.type === 'monster') {
+			entityTracker.set(currentEntity);
+		} else if (isPlayerNextToEntity(playerX, playerY, entityX, entityY)) {
+			if (entity.type === 'npc') {
 				if (entity.name === 'The Merchant') {
 					progressDialogue(0);
 				}
 			}
-			console.log('Interacting with:', currentEntity);
-		} else {
-			console.log('Player is not next to the entity. Cannot interact.');
 		}
 	}
 </script>

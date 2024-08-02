@@ -75,8 +75,8 @@
 		movePlayer(direction);
 		setTimeout(() => {
 			if (isMoving()) movePlayerLoop();
-		}, 100);
-	}, 80);
+		}, 150);
+	}, 100);
 </script>
 
 <svelte:window on:keydown={onKeyDown} on:keyup={onKeyUp} />

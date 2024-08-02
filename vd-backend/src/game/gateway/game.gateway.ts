@@ -313,6 +313,37 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('sellItem')
+  async handleSellItem(
+    @MessageBody() data: { slotIndex: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    if (!client.data.validated) {
+      client.disconnect();
+      return;
+    }
+
+    const character = client.data.character as Character;
+
+    // Can only sell items in city
+    if (character.pos.instanceId != 0) {
+      return;
+    }
+
+    const characterId = character.id;
+
+    try {
+      const { goldGained } = await this.inventoryService.sellItem(
+        characterId,
+        data.slotIndex,
+      );
+      await this.emitUpdatedInventoryFromDb(client);
+      client.emit('lootGold', { goldGained });
+    } catch (error) {
+      client.emit('error', { message: error.message });
+    }
+  }
+
   async emitUpdatedInventoryFromDb(client: Socket): Promise<void> {
     const characterId = client.data?.character?.id;
     const inventoryEntity = await this.gameService.getInventory(characterId);

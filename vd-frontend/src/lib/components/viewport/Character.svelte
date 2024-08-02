@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Character } from '$lib/class/Character';
 	import { renderer } from '$lib/store/renderer';
+	import CharacterTooltip from '../tooltips/CharacterTooltip.svelte';
 	import CharacterSprite from './CharacterSprite.svelte';
 
 	export let character: Character;
@@ -9,15 +10,17 @@
 	$: posY = character.pos.y * $renderer.tileSize;
 </script>
 
-<div
-	class="character characterid-{character.id}"
-	style:left={`${posX}px`}
-	style:top={`${posY}px`}
-	style:width={`${$renderer.tileSize}px`}
-	style:height={`${$renderer.tileSize}px`}
->
-	<CharacterSprite />
-</div>
+<CharacterTooltip {character}>
+	<div
+		class="character characterid-{character.id}"
+		style:left={`${posX}px`}
+		style:top={`${posY}px`}
+		style:width={`${$renderer.tileSize}px`}
+		style:height={`${$renderer.tileSize}px`}
+	>
+		<CharacterSprite />
+	</div>
+</CharacterTooltip>
 
 <style lang="scss">
 	.character {

@@ -3,6 +3,22 @@
 	import gold from '../../assets/items/currency/gold.png';
 	import shards from '../../assets/items/currency/shards.png';
 	import ItemSlot from '../game/ItemSlot.svelte';
+	import { tweened } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
+
+	const tweenedGold = tweened(0, {
+		duration: 400,
+		easing: cubicOut
+	});
+	const tweenedShards = tweened(0, {
+		duration: 400,
+		easing: cubicOut
+	});
+
+	$: if ($inventory) {
+		tweenedGold.set($inventory.gold);
+		tweenedShards.set($inventory.shards);
+	}
 </script>
 
 <div class="inventory-window">
@@ -10,12 +26,12 @@
 		<div class="currency">
 			<div class="gold">
 				<img src={gold} width="16px" height="16px" alt="gold" />
-				GOLD: <span class="value">{$inventory.gold}</span>
+				GOLD: <span class="value">{Math.round($tweenedGold)}</span>
 			</div>
 			<div class="shards">
 				<img src={shards} width="16px" height="16px" alt="shards" />
 				SHARDS:
-				<span class="value">{$inventory.shards}</span>
+				<span class="value">{Math.round($tweenedShards)}</span>
 			</div>
 		</div>
 
@@ -55,6 +71,9 @@
 
 			.value {
 				color: var(--primary);
+				min-width: 6ch;
+				display: inline-block;
+				text-align: left;
 			}
 		}
 

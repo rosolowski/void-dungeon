@@ -34,6 +34,25 @@ export function handleItemAction(
 	if (!client) return;
 	const characterIdValue = get(characterId);
 
+	if (sourceSlotType === 'inventory' && targetSlotType === 'merchant' && targetSlotIndex === 0) {
+		client.emit('sellItem', {
+			characterId: characterIdValue,
+			slotIndex: sourceSlotIndex
+		});
+
+		// Optimistic prediction
+		inventory.update((prev) => {
+			if (!prev) return prev;
+
+			const newSlots = new Map(prev.slots);
+			newSlots.delete(sourceSlotIndex);
+			return {
+				...prev,
+				slots: newSlots
+			};
+		});
+	}
+
 	// Equip Action: Moving from inventory to equipment
 	if (sourceSlotType === 'inventory' && targetSlotType === 'equipment') {
 		client.emit('equipItem', {

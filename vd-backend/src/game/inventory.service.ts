@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Inventory as InventoryEntity } from './entities/inventory.entity';
 import { Item as ItemEntity } from './entities/item.entity';
-import { ItemType } from './class/Item';
+import { ItemRarity, ItemType } from './class/Item';
 import { Equipment as EquipmentEntity } from './entities/equipment.entity';
 import { Slot as SlotEntity } from './entities/slot.entity';
 import { CharacterService } from './character.service';
@@ -323,5 +323,84 @@ export class InventoryService {
     await this.slotRepository.save(itemSlot);
 
     await this.itemRepository.delete({ id: itemId });
+  }
+
+  calculateItemPrice(item: ItemEntity): number {
+    let basePrice = 10;
+
+    const rarityMultiplier = {
+      [ItemRarity.Common]: 1,
+      [ItemRarity.Uncommon]: 2,
+      [ItemRarity.Rare]: 5,
+      [ItemRarity.Epic]: 10,
+      [ItemRarity.Legendary]: 25,
+    };
+
+    basePrice *= rarityMultiplier[item.rarity];
+
+    const stats = item.stats;
+    basePrice += stats.hp + stats.maxHp + stats.mana + stats.maxMana;
+    basePrice += stats.armor * 5 + stats.evasion * 5;
+    basePrice += stats.damage * 10;
+    basePrice += (stats.attackSpeed - 1) * 50;
+    basePrice += (stats.critMultiplier - 1) * 100 + stats.critChance * 20;
+    basePrice +=
+      stats.poisonDamage +
+      stats.fireDamage +
+      stats.coldDamage +
+      stats.lightDamage +
+      stats.voidDamage;
+    basePrice +=
+      (stats.poisonChance +
+        stats.fireChance +
+        stats.coldChance +
+        stats.lightChance +
+        stats.voidChance) *
+      10;
+    basePrice +=
+      (stats.poisonStatus +
+        stats.fireStatus +
+        stats.coldStatus +
+        stats.lightStatus +
+        stats.voidStatus) *
+      5;
+    basePrice +=
+      stats.extraCurrencyChance * 50 +
+      stats.extraDropChance * 50 +
+      stats.dropRarityBoost * 100;
+
+    return Math.round(basePrice);
+  }
+
+  async sellItem(
+    characterId: number,
+    slotIndex: number,
+  ): Promise<{ goldGained: number }> {
+    const inventory = await this.inventoryRepository.findOne({
+      where: { character: { id: characterId } },
+      relations: ['slots', 'slots.item', 'slots.item.stats'],
+    });
+
+    if (!inventory) {
+      throw new Error(`Inventory not found for character ID ${characterId}`);
+    }
+
+    const slot = inventory.slots.find((s) => s.index === slotIndex);
+    if (!slot || !slot.item) {
+      throw new Error(`No item found in slot ${slotIndex}`);
+    }
+
+    const item = slot.item;
+    const sellPrice = Math.floor(this.calculateItemPrice(item) * 0.5); // 50% of buy price
+
+    slot.item = null;
+    await this.slotRepository.save(slot);
+
+    await this.itemRepository.remove(item);
+
+    inventory.gold += sellPrice;
+    await this.inventoryRepository.save(inventory);
+
+    return { goldGained: sellPrice };
   }
 }
