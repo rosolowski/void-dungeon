@@ -56,7 +56,7 @@
 			<Entity {entity} />
 		{/if}
 	{/each}
-	{#each $fightNumbers as [index, fightNumber]}
+	{#each [...$fightNumbers] as [index, fightNumber] (index)}
 		<FightNumber {fightNumber} />
 	{/each}
 	<Player />

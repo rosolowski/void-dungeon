@@ -5,7 +5,8 @@ export enum ItemType {
   Secondary = 'secondary',
   Armor = 'armor',
   Boots = 'boots',
-  Amulet = 'amulet',
+  Talisman = 'talisman',
+  Helmet = 'helmet',
 }
 
 export enum ItemRarity {

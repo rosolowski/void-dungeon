@@ -36,8 +36,8 @@
 	--entityNpc: #2ecc71;
 	--entityChest: #f39c12;
 
-	--primarySpeed: 0.15s;
-	--secondarySpeed: 0.2s;
+	--primarySpeed: 0.1s;
+	--secondarySpeed: 0.15s;
 	--primaryEasingFunction: ease;
 	--secondaryEasingFunction: ease;
 

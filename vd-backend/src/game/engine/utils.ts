@@ -7,9 +7,9 @@ import { Equipment as EquipmentClass } from '../class/Equipment';
 import { Inventory as InventoryClass } from '../class/Inventory';
 import { Item as ItemClass } from '../class/Item';
 import { Item as ItemEntity } from '../entities/item.entity';
+import { Stats as StatsEntity } from '../entities/stats.entity';
 import { Stats as StatsClass } from '../class/Stats';
 import { Entity as EntityClass } from '../class/Entity';
-// import { Stats as StatsEntity } from '../entities/stats.entity';
 
 export enum Tile {
   EMPTY = 0,
@@ -61,7 +61,7 @@ export function characterEntityToCharacterClass(
   );
 }
 
-export function InventoryEntityToInventoryClass(
+export function inventoryEntityToInventoryClass(
   inventoryEntity: InventoryEntity,
 ): InventoryClass {
   const equipmentEntity = inventoryEntity.equipment;
@@ -95,7 +95,7 @@ export function InventoryEntityToInventoryClass(
 export function characterEntityToInventory(
   characterEntity: CharacterEntity,
 ): InventoryClass {
-  return InventoryEntityToInventoryClass(characterEntity.inventory);
+  return inventoryEntityToInventoryClass(characterEntity.inventory);
 }
 
 function transformItemEntityToClass(
@@ -118,4 +118,24 @@ function transformItemEntityToClass(
     itemEntity.rarity,
     stats,
   );
+}
+
+export function transformItemClassToEntity(itemClass: ItemClass): ItemEntity {
+  const statsEntity = new StatsEntity();
+
+  Object.keys(itemClass.stats).forEach((key) => {
+    if (key in statsEntity) {
+      statsEntity[key] = itemClass.stats[key];
+    }
+  });
+
+  const itemEntity = new ItemEntity();
+  itemEntity.id = itemClass.id;
+  itemEntity.name = itemClass.name;
+  itemEntity.description = itemClass.description;
+  itemEntity.type = itemClass.type;
+  itemEntity.rarity = itemClass.rarity;
+  itemEntity.stats = statsEntity;
+
+  return itemEntity;
 }

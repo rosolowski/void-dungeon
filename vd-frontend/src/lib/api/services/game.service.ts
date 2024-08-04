@@ -21,23 +21,14 @@ import type { Stats } from '$lib/class/Stats';
 import {
 	entityOnPosition,
 	inititalizeEntities,
-	processAttackLogForEntity,
+	processAttackLogForEntity
 } from '$lib/store/entities';
-import { Collision, Tile } from '$lib/util/types';
-import { attackLogToFightNumbers } from '$lib/store/viewport-effects';
+import { Collision, Tile, type AttackLog, type SingleAttackLog } from '$lib/util/types';
+import { showDamageEffect, showDodgeEffect, showStatusEffects } from '$lib/store/viewport-effects';
 import { dialogueState, progressDialogue } from '$lib/store/dialogue';
 import { entityTracker } from '$lib/store/entity-tracker';
 
 type direction = 'up' | 'down' | 'left' | 'right';
-
-export interface AttackLog {
-	characterId: number;
-	entityId: number;
-	characterDamageTaken: number;
-	entityDamageTaken: number;
-	characterDied: boolean;
-	entityDied: boolean;
-}
 
 const DEBUG_WS = true;
 
@@ -187,36 +178,57 @@ export function movePlayer(dir: direction) {
 			console.log('trying to attack: ', { entityId: entity.id });
 			const client = get(socket);
 			client?.emit('attackEntity', { entityId: entity.id });
-		} else if (entity && entity.type == 'npc' && entity.name === 'The Merchant') {
+		} else if (entity && entity.type == 'npc' && entity.id === 0) {
+			console.log('talk with merchant');
+
 			progressDialogue(0);
+		} else if (entity && entity.type == 'npc' && entity.id === 1) {
+			console.log('talk with doctor');
+			progressDialogue(100);
 		}
 	}
 }
 
-function processAttackLog(attackLog: AttackLog) {
-	const {
-		characterId,
-		//entityId,
-		characterDamageTaken,
-		//entityDamageTaken,
-		characterDied,
-		//entityDied
-	} = attackLog;
+export function processAttackLog(attackLog: AttackLog) {
+	const { characterId, entityId, characterAttacks, entityAttacks, characterDied } = attackLog;
 
 	const currentPlayerIsAttacker = get(player)?.id === characterId;
 
+	// Process character's attacks
+	characterAttacks.forEach((attack) => {
+		processAttack(attack, entityId, 'entity');
+	});
+
+	// Process entity's attacks
+	entityAttacks.forEach((attack) => {
+		processAttack(attack, characterId, 'character');
+	});
+
 	if (currentPlayerIsAttacker && !characterDied) {
-		// update player stats
+		// Update player stats
 		player.update((prev) => {
 			if (!prev) return prev;
-
-			prev.stats.hp -= characterDamageTaken;
-
+			prev.stats.hp = Math.max(prev.stats.hp - getTotalDamage(entityAttacks), 0);
 			return prev;
 		});
 	}
 
-	attackLogToFightNumbers(attackLog);
-
 	processAttackLogForEntity(attackLog);
+}
+
+function processAttack(
+	attack: SingleAttackLog,
+	targetId: number,
+	targetType: 'character' | 'entity'
+) {
+	if (attack.dodged) {
+		showDodgeEffect(targetId, targetType);
+	} else {
+		showDamageEffect(attack.damageDone, targetId, targetType, attack.criticalHit);
+		showStatusEffects(attack.effectsApplied, targetId, targetType);
+	}
+}
+
+function getTotalDamage(attacks: SingleAttackLog[]): number {
+	return attacks.reduce((total, attack) => total + attack.damageDone, 0);
 }

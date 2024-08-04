@@ -35,4 +35,8 @@
 	.s-the-merchant {
 		background-image: url('$lib/assets/entities/npc/merchant.gif');
 	}
+
+	.s-the-doctor {
+		background-image: url('$lib/assets/entities/npc/plague_doctor.gif');
+	}
 </style>

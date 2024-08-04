@@ -34,8 +34,10 @@
 			entityTracker.set(currentEntity);
 		} else if (isPlayerNextToEntity(playerX, playerY, entityX, entityY)) {
 			if (entity.type === 'npc') {
-				if (entity.name === 'The Merchant') {
+				if (entity.id === 0) {
 					progressDialogue(0);
+				} else if (entity.id === 1) {
+					progressDialogue(100);
 				}
 			}
 		}

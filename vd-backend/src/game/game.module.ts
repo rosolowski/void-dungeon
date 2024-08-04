@@ -15,6 +15,10 @@ import { Stats } from './entities/stats.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/users/user.entity';
 import { CharacterService } from './character.service';
+import { ConnectionHandler } from './gateway/connection.handler';
+import { MovementHandler } from './gateway/movement.handler';
+import { CombatHandler } from './gateway/combat.handler';
+import { InventoryHandler } from './gateway/inventory.handler';
 
 @Module({
   imports: [
@@ -36,6 +40,10 @@ import { CharacterService } from './character.service';
     ConfigService,
     InventoryService,
     CharacterService,
+    ConnectionHandler,
+    MovementHandler,
+    CombatHandler,
+    InventoryHandler,
   ],
   exports: [],
   controllers: [GameController],

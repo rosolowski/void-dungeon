@@ -3,11 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Inventory as InventoryEntity } from './entities/inventory.entity';
 import { Item as ItemEntity } from './entities/item.entity';
+import { Item as ItemClass } from './class/Item';
 import { ItemRarity, ItemType } from './class/Item';
 import { Equipment as EquipmentEntity } from './entities/equipment.entity';
 import { Slot as SlotEntity } from './entities/slot.entity';
 import { CharacterService } from './character.service';
 import { Character as CharacterClass } from './class/Character';
+import { ItemGenerator } from './class/ItemGenerator';
+import { Stats as StatsEntity } from './entities/stats.entity';
 
 @Injectable()
 export class InventoryService {
@@ -20,6 +23,8 @@ export class InventoryService {
     private slotRepository: Repository<SlotEntity>,
     @InjectRepository(EquipmentEntity)
     private equipmentRepository: Repository<EquipmentEntity>,
+    @InjectRepository(StatsEntity)
+    private statsRepository: Repository<StatsEntity>,
     private characterService: CharacterService,
   ) {}
 
@@ -32,7 +37,8 @@ export class InventoryService {
       [ItemType.Secondary]: [ItemType.Secondary],
       [ItemType.Armor]: [ItemType.Armor],
       [ItemType.Boots]: [ItemType.Boots],
-      [ItemType.Amulet]: [ItemType.Amulet],
+      [ItemType.Talisman]: [ItemType.Talisman],
+      [ItemType.Helmet]: [ItemType.Helmet],
     };
 
     return validItemTypes[equipmentSlot]?.includes(itemType) ?? false;
@@ -296,6 +302,59 @@ export class InventoryService {
     return { slotIndex: emptySlot.index, item };
   }
 
+  async generateAndAddItem(
+    character: CharacterClass,
+    enemyLevel: number,
+  ): Promise<ItemEntity | null> {
+    // Calculate drop chance
+    const baseDropChance = 0.1; // 10% base drop chance
+    const dropChance = baseDropChance + (character.stats.extraDropChance || 0);
+
+    if (Math.random() > dropChance) {
+      return null; // No item dropped
+    }
+
+    // Generate item
+    const itemClass: ItemClass = ItemGenerator.generateItem(enemyLevel);
+
+    // Apply rarity boost
+    const rarityBoost = character.stats.dropRarityBoost || 0;
+    if (rarityBoost > 0 && Math.random() < rarityBoost) {
+      const rarities = Object.values(ItemRarity);
+      const currentIndex = rarities.indexOf(itemClass.rarity);
+      if (currentIndex < rarities.length - 1) {
+        itemClass.rarity = rarities[currentIndex + 1];
+      }
+    }
+
+    const roundedStats = Object.fromEntries(
+      Object.entries(itemClass.stats).map(([key, value]) => [
+        key,
+        Math.round(value as number),
+      ]),
+    );
+
+    // Convert ItemClass to ItemEntity
+    const itemEntity = this.itemRepository.create({
+      name: itemClass.name,
+      description: itemClass.description,
+      type: itemClass.type,
+      rarity: itemClass.rarity,
+      stats: this.statsRepository.create(roundedStats),
+    });
+
+    // Try to add item to inventory
+    try {
+      const { item: addedItem } = await this.addItem(character.id, itemEntity);
+      return addedItem;
+    } catch (error) {
+      if (error.message === 'No empty slots available in inventory.') {
+        return null; // Inventory is full, item is not added
+      }
+      throw error;
+    }
+  }
+
   async deleteItem(characterId: number, itemId: number): Promise<void> {
     // Fetch the character's inventory along with slots and items
     const inventory = await this.inventoryRepository.findOne({
@@ -402,5 +461,54 @@ export class InventoryService {
     await this.inventoryRepository.save(inventory);
 
     return { goldGained: sellPrice };
+  }
+
+  async dismantleItem(
+    characterId: number,
+    slotIndex: number,
+  ): Promise<{ shardsGained: number }> {
+    const inventory = await this.inventoryRepository.findOne({
+      where: { character: { id: characterId } },
+      relations: ['slots', 'slots.item', 'slots.item.stats'],
+    });
+
+    if (!inventory) {
+      throw new Error(`Inventory not found for character ID ${characterId}`);
+    }
+
+    const slot = inventory.slots.find((s) => s.index === slotIndex);
+    if (!slot || !slot.item) {
+      throw new Error(`No item found in slot ${slotIndex}`);
+    }
+
+    const item = slot.item;
+    const shardsGained = this.calculateDismantleShards(item.rarity);
+
+    slot.item = null;
+    await this.slotRepository.save(slot);
+
+    await this.itemRepository.remove(item);
+
+    inventory.shards = (inventory.shards || 0) + shardsGained;
+    await this.inventoryRepository.save(inventory);
+
+    return { shardsGained };
+  }
+
+  private calculateDismantleShards(rarity: ItemRarity): number {
+    switch (rarity) {
+      case ItemRarity.Common:
+        return 5;
+      case ItemRarity.Uncommon:
+        return 10;
+      case ItemRarity.Rare:
+        return 20;
+      case ItemRarity.Epic:
+        return 50;
+      case ItemRarity.Legendary:
+        return 200;
+      default:
+        return 5;
+    }
   }
 }

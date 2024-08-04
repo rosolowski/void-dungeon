@@ -1,4 +1,4 @@
-import type { AttackLog } from '$lib/api/services/game.service';
+import type { AttackLog, SingleAttackLog, StatusEffects } from '$lib/util/types';
 import type { Character } from '$lib/class/Character';
 import { get, writable } from 'svelte/store';
 import { player } from './player';
@@ -6,7 +6,16 @@ import { characters } from './characters';
 import { entities } from './entities';
 import type { Entity } from '$lib/class/Entity';
 
-type FightNumberType = 'DAMAGE' | 'HEAL' | 'POISON' | 'FIRE';
+type FightNumberType =
+	| 'DAMAGE'
+	| 'HEAL'
+	| 'POISON'
+	| 'FIRE'
+	| 'COLD'
+	| 'LIGHT'
+	| 'VOID'
+	| 'DODGE'
+	| 'CRITICAL';
 
 export interface FightNumber {
 	x: number;
@@ -27,61 +36,128 @@ export function attackLogToFightNumbers(attackLog: AttackLog) {
 
 	const entityTarget: Entity | undefined = get(entities).get(attackLog.entityId);
 
-	if (characterTarget && attackLog.characterDamageTaken > 0) {
-		const fnId = fightNumbersCounter++;
+	// Process character's attacks
+	attackLog.characterAttacks.forEach((attack) => {
+		if (entityTarget) {
+			processSingleAttack(attack, entityTarget);
+		}
+	});
 
-		const fightNumberCharacter: FightNumber = {
-			type: 'DAMAGE',
-			value: -attackLog.characterDamageTaken,
-			x: characterTarget.pos.x,
-			y: characterTarget.pos.y
-		};
+	// Process entity's attacks
+	attackLog.entityAttacks.forEach((attack) => {
+		if (characterTarget) {
+			processSingleAttack(attack, characterTarget);
+		}
+	});
+}
 
-		fightNumbers.update((prev) => {
-			if (!prev) return prev;
-			const newMap = new Map(prev);
-			newMap.set(fnId, fightNumberCharacter);
-
-			return newMap;
+function processSingleAttack(attack: SingleAttackLog, target: Character | Entity) {
+	if (attack.dodged) {
+		addFightNumber({
+			type: 'DODGE',
+			value: 0,
+			x: target.pos.x,
+			y: target.pos.y
+		});
+	} else {
+		// Display damage
+		addFightNumber({
+			type: attack.criticalHit ? 'CRITICAL' : 'DAMAGE',
+			value: -attack.damageDone,
+			x: target.pos.x,
+			y: target.pos.y
 		});
 
-		setTimeout(() => {
-			fightNumbers.update((prev) => {
-				if (!prev) return prev;
-				const newMap = new Map(prev);
-				newMap.delete(fnId);
-
-				return newMap;
-			});
-		}, 1000);
+		// Display status effects
+		Object.entries(attack.effectsApplied).forEach(([effectType, value]) => {
+			if (value > 0) {
+				addFightNumber({
+					type: effectType.toUpperCase() as FightNumberType,
+					value: -value,
+					x: target.pos.x,
+					y: target.pos.y
+				});
+			}
+		});
 	}
+}
 
-	if (entityTarget && attackLog.entityDamageTaken > 0) {
-		const fnId = fightNumbersCounter++;
+function addFightNumber(fightNumber: FightNumber) {
+	const fnId = fightNumbersCounter++;
 
-		const fightNumberEntity: FightNumber = {
-			type: 'DAMAGE',
-			value: -attackLog.entityDamageTaken,
-			x: entityTarget.pos.x,
-			y: entityTarget.pos.y
-		};
+	fightNumbers.update((prev) => {
+		if (!prev) return prev;
+		const newMap = new Map(prev);
+		newMap.set(fnId, fightNumber);
+		return newMap;
+	});
 
+	setTimeout(() => {
 		fightNumbers.update((prev) => {
 			if (!prev) return prev;
 			const newMap = new Map(prev);
-			newMap.set(fnId, fightNumberEntity);
-
+			newMap.delete(fnId);
 			return newMap;
 		});
+	}, 1000);
+}
 
-		setTimeout(() => {
-			fightNumbers.update((prev) => {
-				if (!prev) return prev;
-				const newMap = new Map(prev);
-				newMap.delete(fnId);
+export function showDamageEffect(
+	damage: number,
+	targetId: number,
+	targetType: 'character' | 'entity',
+	isCritical: boolean
+) {
+	const target = getTarget(targetId, targetType);
+	if (target) {
+		addFightNumber({
+			type: isCritical ? 'CRITICAL' : 'DAMAGE',
+			value: -damage,
+			x: target.pos.x,
+			y: target.pos.y
+		});
+	}
+}
 
-				return newMap;
-			});
-		}, 1000);
+export function showDodgeEffect(targetId: number, targetType: 'character' | 'entity') {
+	const target = getTarget(targetId, targetType);
+	if (target) {
+		addFightNumber({
+			type: 'DODGE',
+			value: 0,
+			x: target.pos.x,
+			y: target.pos.y
+		});
+	}
+}
+
+export function showStatusEffects(
+	effects: StatusEffects,
+	targetId: number,
+	targetType: 'character' | 'entity'
+) {
+	const target = getTarget(targetId, targetType);
+	if (target) {
+		Object.entries(effects).forEach(([effectType, value]) => {
+			if (value > 0) {
+				addFightNumber({
+					type: effectType.toUpperCase() as FightNumberType,
+					value: -value,
+					x: target.pos.x,
+					y: target.pos.y
+				});
+			}
+		});
+	}
+}
+
+function getTarget(
+	targetId: number,
+	targetType: 'character' | 'entity'
+): Character | Entity | null | undefined {
+	if (targetType === 'character') {
+		return get(player)!.id === targetId ? get(player) : get(characters).get(targetId);
+	} else {
+		return get(entities).get(targetId);
 	}
 }

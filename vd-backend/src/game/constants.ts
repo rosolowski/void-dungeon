@@ -1,7 +1,7 @@
 import { Location } from './class/Location';
 import { terrainToCollisionMap } from './engine/utils';
 
-const cityTerrain = [
+const CITY_TERRAIN = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0],
   [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 1, 2, 2, 2, 1, 1, 0],
   [1, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2, 2, 2, 1, 1, 0],
@@ -23,9 +23,9 @@ const cityTerrain = [
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
 ];
-const cityCollisionMap = terrainToCollisionMap(cityTerrain);
-const cityHeight = 20;
-const cityWidth = 20;
+const CITY_COLLISION_MAP = terrainToCollisionMap(CITY_TERRAIN);
+const CITY_HEIGHT = 20;
+const CITY_WIDTH = 20;
 
 export const CITY_SPAWN_COORDINATES = { x: 1, y: 1 };
 
@@ -34,10 +34,12 @@ export const CITY_EXIT_COORDINATES = [
   { x: 19, y: 14 },
 ];
 
+export const CITY_INSTANCE_ID = 0;
+
 export const CITY_LOCATION = new Location(
-  cityTerrain,
-  cityCollisionMap,
-  cityWidth,
-  cityHeight,
+  CITY_TERRAIN,
+  CITY_COLLISION_MAP,
+  CITY_WIDTH,
+  CITY_HEIGHT,
   CITY_SPAWN_COORDINATES,
 );

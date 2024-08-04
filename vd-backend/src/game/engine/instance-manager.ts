@@ -1,5 +1,4 @@
 import { CITY_LOCATION, CITY_SPAWN_COORDINATES } from '../constants';
-
 import { Character } from '../class/Character';
 import { Entity } from '../class/Entity';
 import { GameInstance } from '../class/GameInstance';
@@ -7,63 +6,55 @@ import { Location } from '../class/Location';
 import { MapGenerator } from '../class/MapGenerator';
 import { applyEntitiesToCollisionMap, terrainToCollisionMap } from './utils';
 import { Stats } from '../class/Stats';
+import { CITY_INSTANCE_ID } from '../constants';
 
 export class InstanceManager {
   private instances = new Map<number, GameInstance>();
   private nextFreeInstance: number = 1;
 
   constructor() {
-    this.instances.set(
-      0,
-      new GameInstance(
-        0,
-        'city',
-        CITY_LOCATION,
-        new Map<number, Character>(),
-        new Map<number, Entity>(),
-      ),
+    this.initializeCityInstance();
+  }
+
+  private initializeCityInstance(): void {
+    const cityInstance = new GameInstance(
+      CITY_INSTANCE_ID,
+      'city',
+      CITY_LOCATION,
+      new Map<number, Character>(),
+      new Map<number, Entity>(),
     );
 
     const merchant = new Entity(
       0,
       'npc',
-      { x: 1, y: 4, instanceId: 0 },
+      { x: 1, y: 4, instanceId: CITY_INSTANCE_ID },
       'The Merchant',
       50,
       new Stats(),
     );
-
-    this.instances.get(0).entities.set(0, merchant);
-    this.instances.get(0).location.collisionMap = applyEntitiesToCollisionMap(
-      this.instances.get(0).location.collisionMap,
-      [merchant],
+    const doctor = new Entity(
+      1,
+      'npc',
+      { x: 2, y: 4, instanceId: CITY_INSTANCE_ID },
+      'The Doctor',
+      75,
+      new Stats(),
     );
+    cityInstance.entities.set(0, merchant);
+    cityInstance.entities.set(1, doctor);
+    cityInstance.location.collisionMap = applyEntitiesToCollisionMap(
+      cityInstance.location.collisionMap,
+      [merchant, doctor],
+    );
+
+    this.instances.set(CITY_INSTANCE_ID, cityInstance);
   }
 
   addGameInstance(): GameInstance {
-    const newInstanceId = this.nextFreeInstance;
-    const location = new Location();
-
-    const generator = new MapGenerator(80, 50);
-    generator.generateTerrainAndEntities(1, newInstanceId);
-
-    const entities = generator.getEntities();
-    const entityMap = entities.reduce((map, entity) => {
-      map.set(entity.id, entity);
-      return map;
-    }, new Map<number, Entity>());
-
-    const terrain = generator.getTerrain();
-
-    location.terrain = terrain;
-    location.collisionMap = terrainToCollisionMap(terrain);
-    location.collisionMap = applyEntitiesToCollisionMap(
-      location.collisionMap,
-      entities,
-    );
-    location.width = generator.width;
-    location.height = generator.height;
-    location.spawnCoords = generator.spawnPos;
+    const newInstanceId = this.nextFreeInstance++;
+    const { location, entities } = this.generateNewLocation();
+    const entityMap = new Map(entities.map((entity) => [entity.id, entity]));
 
     const newInstance = new GameInstance(
       newInstanceId,
@@ -74,27 +65,45 @@ export class InstanceManager {
     );
 
     this.instances.set(newInstanceId, newInstance);
-    this.nextFreeInstance++;
-
     return newInstance;
+  }
+
+  private generateNewLocation(): { location: Location; entities: Entity[] } {
+    const generator = new MapGenerator(80, 50);
+    generator.generateTerrainAndEntities(1, this.nextFreeInstance);
+
+    const location = new Location();
+    location.terrain = generator.getTerrain();
+    location.collisionMap = terrainToCollisionMap(location.terrain);
+    const entities = generator.getEntities();
+    location.collisionMap = applyEntitiesToCollisionMap(
+      location.collisionMap,
+      entities,
+    );
+    location.width = generator.width;
+    location.height = generator.height;
+    location.spawnCoords = generator.spawnPos;
+
+    return { location, entities };
   }
 
   disposeInstance(instanceId: number): void {
     this.instances.delete(instanceId);
   }
 
-  getInstanceFromCharacter(character: Character): GameInstance {
+  getInstanceFromCharacter(character: Character): GameInstance | undefined {
     return this.instances.get(character.pos.instanceId);
   }
 
   getCityInstance(): GameInstance {
-    return this.instances.get(0);
+    return this.instances.get(CITY_INSTANCE_ID)!;
   }
 
-  removeCharacterFromInstance(character: Character, instanceId: number) {
+  removeCharacterFromInstance(character: Character, instanceId: number): void {
     const instance = this.instances.get(instanceId);
-
-    instance.characters.delete(character.id);
+    if (instance) {
+      instance.characters.delete(character.id);
+    }
   }
 
   addCharacterToInstance(
@@ -103,28 +112,25 @@ export class InstanceManager {
   ): GameInstance {
     let instance = this.instances.get(instanceId);
 
-    // if instance doesnt exist - move player to city
     if (!instance) {
       instance = this.getCityInstance();
       const { x, y } = CITY_SPAWN_COORDINATES;
       character.setPos(x, y);
-      character.pos.instanceId = 0;
+      character.pos.instanceId = CITY_INSTANCE_ID;
     }
 
-    if (instance.characters.get(character.id)) {
-      console.log(`character ${character.id} already in the instance!`);
-    } else {
+    if (!instance.characters.has(character.id)) {
       instance.characters.set(character.id, character);
     }
 
     return instance;
   }
 
-  addCharacterToCity(character: Character) {
-    const instance = this.getCityInstance();
-    const { x, y } = instance.location.spawnCoords;
+  addCharacterToCity(character: Character): void {
+    const cityInstance = this.getCityInstance();
+    const { x, y } = cityInstance.location.spawnCoords;
     character.setPos(x, y);
-    character.pos.instanceId = 0;
-    instance.characters.set(character.id, character);
+    character.pos.instanceId = CITY_INSTANCE_ID;
+    cityInstance.characters.set(character.id, character);
   }
 }
