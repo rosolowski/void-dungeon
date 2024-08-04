@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { itemImages } from '$lib/assets/items';
+	import { getItemImage } from '$lib/assets/items';
 	import type { Item } from '$lib/class/Item';
 	import ItemTooltip from '../tooltips/ItemTooltip.svelte';
 
 	export let item: Item;
 
-	$: itemImageIndex = item.id % itemImages.length;
+	$: itemImage = getItemImage(item.type, item.rarity, item.id);
 </script>
 
 <ItemTooltip {item}>
 	<div class="item">
-		<img src={itemImages[itemImageIndex]} alt={item.name} />
+		<img src={itemImage} alt={item.name} />
 	</div>
 </ItemTooltip>
 

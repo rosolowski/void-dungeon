@@ -223,7 +223,7 @@ const modifiers: Modifier[] = [
   },
   {
     name: 'Swift',
-    description: 'grants unparalleled speed',
+    description: 'infused with unparalleled speed',
     apply: (item: Item) => {
       item.stats.attackSpeed *= 1.3;
       item.stats.evasion *= 1.2;
@@ -232,7 +232,7 @@ const modifiers: Modifier[] = [
   },
   {
     name: "Archmage's",
-    description: 'amplifies magical prowess',
+    description: 'amplified with magical prowess',
     apply: (item: Item) => {
       item.stats.maxMana *= 1.5;
       item.stats.fireDamage += 0.2;
@@ -246,7 +246,7 @@ const modifiers: Modifier[] = [
   },
   {
     name: 'Ethereal',
-    description: 'phase in and out of reality',
+    description: 'phasing in and out of reality',
     apply: (item: Item) => {
       item.stats.evasion += 0.1;
       item.stats.evasion *= 1.4;
