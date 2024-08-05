@@ -1,11 +1,20 @@
 <script lang="ts">
+	import { contextMenu } from '$lib/store/context-menu';
 	export let content = '';
 	export let borderClass = '';
 	let isHovered = false;
 	let x = 0;
 	let y = 0;
 
+	$: if ($contextMenu.isOpen) {
+		isHovered = false;
+	}
+
 	function handleMouseMove(event: MouseEvent) {
+		if ($contextMenu.isOpen) {
+			isHovered = false;
+			return;
+		}
 		isHovered = true;
 		x = event.clientX + 10;
 		y = event.clientY + 10;

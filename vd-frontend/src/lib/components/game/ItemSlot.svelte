@@ -1,14 +1,18 @@
 <script lang="ts">
+	import { createEventDispatcher } from 'svelte';
 	import { clearDrag, itemDrag, startDrag } from '$lib/store/item-drag';
 	import { Item, type ItemType } from '$lib/class/Item';
 	import ItemComponent from './ItemComponent.svelte';
 	import { get } from 'svelte/store';
 	import { handleItemAction } from '$lib/api/services/inventory.service';
+	import { contextMenu } from '$lib/store/context-menu';
 
 	export let item: Item | null = null;
 	export let slotType: 'inventory' | 'equipment' | 'merchant';
 	export let slotIndex: number;
 	export let acceptableTypes: ItemType[] | undefined = undefined;
+
+	const dispatch = createEventDispatcher();
 
 	let isDragged: boolean = false;
 
@@ -17,6 +21,7 @@
 	}
 
 	function onMouseDown(event: MouseEvent): void {
+		if (event.button !== 0) return;
 		event.preventDefault();
 		if (item) {
 			startDrag(item, slotType, slotIndex);
@@ -32,23 +37,80 @@
 			currentDrag.sourceType &&
 			(currentDrag.sourceType !== slotType || currentDrag.sourceIndex !== slotIndex)
 		) {
-			// Handle selling to merchant
 			if (currentDrag.sourceType === 'inventory' && slotType === 'merchant' && slotIndex === 0) {
 				handleItemAction(currentDrag.sourceType, currentDrag.sourceIndex, slotType, slotIndex);
-			}
-			// Handle equipment and inventory actions
-			else if (!acceptableTypes || acceptableTypes.includes(currentDrag.item.type)) {
+			} else if (!acceptableTypes || acceptableTypes.includes(currentDrag.item.type)) {
 				handleItemAction(currentDrag.sourceType, currentDrag.sourceIndex, slotType, slotIndex);
 			}
 		}
 		clearDrag();
 	}
 
+	function onContextMenu(event: MouseEvent) {
+		event.preventDefault();
+		if (!item) return;
+
+		contextMenu.open(event.clientX, event.clientY, getContextMenuOptions());
+	}
+
+	function getContextMenuOptions() {
+		if (!item) return [];
+
+		const options = [];
+
+		if (
+			item.type === 'weapon' ||
+			item.type === 'armor' ||
+			item.type === 'boots' ||
+			item.type === 'helmet' ||
+			item.type === 'talisman' ||
+			item.type === 'secondary'
+		) {
+			options.push({
+				label: 'Equip',
+				action: () =>
+					handleItemAction('inventory', slotIndex, 'equipment', getEquipmentSlotIndex(item.type))
+			});
+		}
+
+		options.push({
+			label: 'Dismantle',
+			action: () => {
+				dispatch('dismantle');
+			}
+		});
+
+		return options;
+	}
+
+	function getEquipmentSlotIndex(itemType: ItemType): number {
+		switch (itemType) {
+			case 'helmet':
+				return 0;
+			case 'weapon':
+				return 1;
+			case 'armor':
+				return 2;
+			case 'secondary':
+				return 3;
+			case 'boots':
+				return 4;
+			case 'talisman':
+				return 5;
+			default:
+				throw new Error('Invalid item type for equipment');
+		}
+	}
+
 	$: rarityClass = item ? item.rarity : 'empty';
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="slot {rarityClass}" on:mousedown={onMouseDown} on:mouseup={onMouseUp}>
+<div
+	class="slot {rarityClass}"
+	on:mousedown={onMouseDown}
+	on:mouseup={onMouseUp}
+	on:contextmenu={onContextMenu}
+>
 	{#if item && !isDragged}
 		<ItemComponent {item} />
 	{/if}

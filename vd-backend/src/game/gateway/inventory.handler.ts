@@ -126,6 +126,31 @@ export class InventoryHandler extends BaseHandler {
     }
   }
 
+  async handleDismantleAllItems(
+    data: { rarity: string },
+    client: Socket,
+  ): Promise<void> {
+    if (!this.validateClient(client)) return;
+    try {
+      const character = client.data.character as Character;
+
+      const { shardsGained, itemsDismantled } =
+        await this.inventoryService.dismantleAllItems(
+          character.id,
+          data.rarity,
+        );
+
+      client.emit('lootShards', { shardsGained });
+      client.emit('itemsDismantled', { count: itemsDismantled });
+
+      if (itemsDismantled > 0) {
+        await this.emitUpdatedInventoryFromDb(client);
+      }
+    } catch (error) {
+      this.handleError(client, 'Dismantle all items error', error);
+    }
+  }
+
   async handleDismantleItem(
     data: { slotIndex: number },
     client: Socket,

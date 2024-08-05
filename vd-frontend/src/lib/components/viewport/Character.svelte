@@ -3,11 +3,41 @@
 	import { renderer } from '$lib/store/renderer';
 	import CharacterTooltip from '../tooltips/CharacterTooltip.svelte';
 	import CharacterSprite from './CharacterSprite.svelte';
+	import { contextMenu } from '$lib/store/context-menu';
 
 	export let character: Character;
 
 	$: posX = character.pos.x * $renderer.tileSize;
 	$: posY = character.pos.y * $renderer.tileSize;
+
+	function onContextMenu(event: MouseEvent) {
+		event.preventDefault();
+		const options = [
+			{
+				label: 'View Profile',
+				action: () => {
+					console.log('Viewing profile of:', character.name);
+				}
+			},
+			{
+				label: 'Invite to Party',
+				action: () => {
+					console.log('Inviting to party:', character.name);
+				}
+			}
+		];
+
+		// if (character.isInParty) {
+		// 	options.push({
+		// 		label: 'Remove from Party',
+		// 		action: () => {
+		// 			console.log('Removing from party:', character.name);
+		// 		}
+		// 	});
+		// }
+
+		contextMenu.open(event.clientX, event.clientY, options);
+	}
 </script>
 
 <CharacterTooltip {character}>
@@ -17,6 +47,7 @@
 		style:top={`${posY}px`}
 		style:width={`${$renderer.tileSize}px`}
 		style:height={`${$renderer.tileSize}px`}
+		on:contextmenu={onContextMenu}
 	>
 		<CharacterSprite />
 	</div>

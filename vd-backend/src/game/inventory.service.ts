@@ -463,6 +463,53 @@ export class InventoryService {
     return { goldGained: sellPrice };
   }
 
+  async dismantleAllItems(
+    characterId: number,
+    rarity: string,
+  ): Promise<{ shardsGained: number; itemsDismantled: number }> {
+    const inventory = await this.inventoryRepository.findOne({
+      where: { character: { id: characterId } },
+      relations: ['slots', 'slots.item'],
+    });
+
+    if (!inventory) {
+      throw new Error(`Inventory not found for character ID ${characterId}`);
+    }
+
+    const itemsToDismantle = inventory.slots
+      .filter(
+        (slot) => slot.item?.rarity.toLowerCase() === rarity.toLowerCase(),
+      )
+      .map((slot) => slot.item);
+
+    if (itemsToDismantle.length === 0) {
+      return { shardsGained: 0, itemsDismantled: 0 };
+    }
+
+    const shardsGained = itemsToDismantle.reduce(
+      (total, item) => total + this.calculateDismantleShards(item.rarity),
+      0,
+    );
+
+    await Promise.all(
+      itemsToDismantle.map(async (item) => {
+        const slot = inventory.slots.find(
+          (s) => s.item && s.item.id === item.id,
+        );
+        if (slot) {
+          slot.item = null;
+          await this.slotRepository.save(slot);
+        }
+        await this.itemRepository.remove(item);
+      }),
+    );
+
+    inventory.shards += shardsGained;
+    await this.inventoryRepository.save(inventory);
+
+    return { shardsGained, itemsDismantled: itemsToDismantle.length };
+  }
+
   async dismantleItem(
     characterId: number,
     slotIndex: number,

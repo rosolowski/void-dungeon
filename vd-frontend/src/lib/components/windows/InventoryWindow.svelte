@@ -5,6 +5,8 @@
 	import ItemSlot from '../game/ItemSlot.svelte';
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
+	import { socket } from '$lib/store/ws';
+	import { get } from 'svelte/store';
 
 	const tweenedGold = tweened(0, {
 		duration: 400,
@@ -18,6 +20,23 @@
 	$: if ($inventory) {
 		tweenedGold.set($inventory.gold);
 		tweenedShards.set($inventory.shards);
+	}
+
+	const rarityOptions = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
+	let selectedRarity = 'Common';
+
+	function dismantleItem(slotIndex: number) {
+		const client = get(socket);
+		if (!client) return;
+
+		client.emit('dismantleItem', { slotIndex });
+	}
+
+	function dismantleAll() {
+		const client = get(socket);
+		if (!client) return;
+
+		client.emit('dismantleAllItems', { rarity: selectedRarity.toLowerCase() });
 	}
 </script>
 
@@ -35,9 +54,23 @@
 			</div>
 		</div>
 
+		<div class="dismantle-all">
+			<select bind:value={selectedRarity}>
+				{#each rarityOptions as rarity}
+					<option value={rarity}>{rarity}</option>
+				{/each}
+			</select>
+			<button on:click={dismantleAll}>Dismantle {selectedRarity}</button>
+		</div>
+
 		<div class="slots">
 			{#each { length: $inventory.capacity } as _, i}
-				<ItemSlot slotIndex={i} slotType="inventory" item={$inventory.slots.get(i)}></ItemSlot>
+				<ItemSlot
+					slotIndex={i}
+					slotType="inventory"
+					item={$inventory.slots.get(i)}
+					on:dismantle={() => dismantleItem(i)}
+				/>
 			{/each}
 		</div>
 	{/if}
@@ -74,6 +107,34 @@
 				min-width: 6ch;
 				display: inline-block;
 				text-align: left;
+			}
+		}
+
+		.dismantle-all {
+			padding: 10px 20px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			border-bottom: 1px solid var(--tetriary);
+
+			select,
+			button {
+				padding: 5px;
+				background-color: var(--background);
+				color: var(--text);
+				border: 1px solid var(--secondary);
+				font-family: var(--font-mono);
+				outline: none;
+				box-shadow: none;
+				font-size: 14px;
+			}
+
+			button {
+				cursor: pointer;
+				&:hover {
+					background-color: var(--secondary);
+					color: var(--background);
+				}
 			}
 		}
 

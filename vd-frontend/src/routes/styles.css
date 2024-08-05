@@ -50,8 +50,9 @@
 	--zi-windows: 1000;
 	--zi-item-drag: 9980000;
 	--zi-tooltips: 9990000;
-	--zi-mobile-menu: 9990001;
-	--zi-game-loader: 9990002;
+	--zi-context-menu: 9990001;
+	--zi-mobile-menu: 9990002;
+	--zi-game-loader: 9990003;
 }
 
 *,

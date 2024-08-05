@@ -115,6 +115,20 @@ export function handleItemAction(
 	}
 }
 
+export function dismantleItem(slotIndex: number) {
+	const client = get(socket);
+	if (!client) return;
+
+	client.emit('dismantleItem', { slotIndex });
+}
+
+export function dismantleAllItems(rarity: string) {
+	const client = get(socket);
+	if (!client) return;
+
+	client.emit('dismantleAllItems', { rarity });
+}
+
 export function addItemToInventory(itemData: Partial<Item>) {
 	const client = get(socket);
 	if (!client) return;

@@ -123,10 +123,17 @@ export class GameGateway
 
   @SubscribeMessage('dismantleItem')
   async handleDismantleItem(
-    @MessageBody() data: { slotIndex: number },
-    @ConnectedSocket() client: Socket,
+    client: Socket,
+    data: { slotIndex: number },
   ): Promise<void> {
-    this.logger.log(`Dismantle item request received from client ${client.id}`);
     await this.inventoryHandler.handleDismantleItem(data, client);
+  }
+
+  @SubscribeMessage('dismantleAllItems')
+  async handleDismantleAllItems(
+    client: Socket,
+    data: { rarity: string },
+  ): Promise<void> {
+    await this.inventoryHandler.handleDismantleAllItems(data, client);
   }
 }
