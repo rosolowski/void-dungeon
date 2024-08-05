@@ -6,6 +6,7 @@
 	import { get } from 'svelte/store';
 	import { handleItemAction } from '$lib/api/services/inventory.service';
 	import { contextMenu } from '$lib/store/context-menu';
+	import { inventory } from '$lib/store/inventory';
 
 	export let item: Item | null = null;
 	export let slotType: 'inventory' | 'equipment' | 'merchant';
@@ -66,19 +67,35 @@
 			item.type === 'talisman' ||
 			item.type === 'secondary'
 		) {
-			options.push({
-				label: 'Equip',
-				action: () =>
-					handleItemAction('inventory', slotIndex, 'equipment', getEquipmentSlotIndex(item.type))
-			});
+			if (slotType === 'inventory') {
+				options.push({
+					label: 'Equip',
+					action: () =>
+						handleItemAction('inventory', slotIndex, 'equipment', getEquipmentSlotIndex(item.type))
+				});
+			} else if (slotType === 'equipment') {
+				options.push({
+					label: 'Unequip',
+					action: () => {
+						const emptySlot = findFirstEmptyInventorySlot();
+						if (emptySlot !== -1) {
+							handleItemAction('equipment', slotIndex, 'inventory', emptySlot);
+						} else {
+							console.log('No empty inventory slots available');
+						}
+					}
+				});
+			}
 		}
 
-		options.push({
-			label: 'Dismantle',
-			action: () => {
-				dispatch('dismantle');
-			}
-		});
+		if (slotType === 'inventory') {
+			options.push({
+				label: 'Dismantle',
+				action: () => {
+					dispatch('dismantle');
+				}
+			});
+		}
 
 		return options;
 	}
@@ -100,6 +117,18 @@
 			default:
 				throw new Error('Invalid item type for equipment');
 		}
+	}
+
+	function findFirstEmptyInventorySlot(): number {
+		const inv = get(inventory);
+		if (!inv) return -1;
+
+		for (let i = 0; i < inv.capacity; i++) {
+			if (!inv.slots.has(i)) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	$: rarityClass = item ? item.rarity : 'empty';
