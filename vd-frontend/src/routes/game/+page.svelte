@@ -11,6 +11,7 @@
 	import { goto } from '$app/navigation';
 	import ItemDragged from '$lib/components/game/ItemDragged.svelte';
 	import ContextMenu from '$lib/components/game/ContextMenu.svelte';
+	import Notifications from '$lib/components/viewport/Notifications.svelte';
 
 	onMount(async () => {
 		if (!$jwt || !$user || !$characterId) {
@@ -28,6 +29,7 @@
 	<ItemDragged />
 	<WindowManager />
 	<ContextMenu />
+	<Notifications />
 	<div class="game-container">
 		<GameViewport />
 		<GameMenu />

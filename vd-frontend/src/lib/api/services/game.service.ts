@@ -27,6 +27,8 @@ import { Collision, Tile, type AttackLog, type SingleAttackLog } from '$lib/util
 import { showDamageEffect, showDodgeEffect, showStatusEffects } from '$lib/store/viewport-effects';
 import { dialogueState, progressDialogue } from '$lib/store/dialogue';
 import { entityTracker } from '$lib/store/entity-tracker';
+import type { Item } from '$lib/class/Item';
+import { notifications } from '$lib/store/notifications';
 
 type direction = 'up' | 'down' | 'left' | 'right';
 
@@ -115,6 +117,19 @@ export function initializeServerConnection() {
 	client.on('attackLog', (attackLog: AttackLog) => {
 		console.log('attack log', attackLog);
 		processAttackLog(attackLog);
+	});
+
+	client.on('itemDropped', (item: Item) => {
+		console.log('item dropped', item);
+		notifications.notifyItemDropped(item);
+	});
+
+	client.on('lootGold', ({ goldGained }: { goldGained: number }) => {
+		notifications.notifyGoldLooted(goldGained);
+	});
+
+	client.on('lootShards', ({ shardsGained }: { shardsGained: number }) => {
+		notifications.notifyShardsLooted(shardsGained);
 	});
 }
 
