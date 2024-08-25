@@ -19,6 +19,7 @@ import { ConnectionHandler } from './gateway/connection.handler';
 import { MovementHandler } from './gateway/movement.handler';
 import { CombatHandler } from './gateway/combat.handler';
 import { InventoryHandler } from './gateway/inventory.handler';
+import { PartyHandler } from './gateway/party.handler';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { InventoryHandler } from './gateway/inventory.handler';
     MovementHandler,
     CombatHandler,
     InventoryHandler,
+    PartyHandler,
   ],
   exports: [],
   controllers: [GameController],

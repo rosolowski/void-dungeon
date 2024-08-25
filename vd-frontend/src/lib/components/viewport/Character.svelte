@@ -4,6 +4,7 @@
 	import CharacterTooltip from '../tooltips/CharacterTooltip.svelte';
 	import CharacterSprite from './CharacterSprite.svelte';
 	import { contextMenu } from '$lib/store/context-menu';
+	import { inviteToParty } from '$lib/api/services/game.service';
 
 	export let character: Character;
 
@@ -14,7 +15,7 @@
 		event.preventDefault();
 		const options = [
 			{
-				label: 'View Profile',
+				label: 'Profile',
 				action: () => {
 					console.log('Viewing profile of:', character.name);
 				}
@@ -22,6 +23,7 @@
 			{
 				label: 'Invite to Party',
 				action: () => {
+					inviteToParty(character.id);
 					console.log('Inviting to party:', character.name);
 				}
 			}

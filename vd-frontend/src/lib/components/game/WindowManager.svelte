@@ -11,7 +11,12 @@
 			on:close={() => windows.closeWindow(id)}
 		>
 			<span slot="title">{title || ''}</span>
-			<svelte:component this={component} slot="content" {...props} />
+			<svelte:component
+				this={component}
+				slot="content"
+				on:close={() => windows.closeWindow(id)}
+				{...props}
+			/>
 		</DraggableWindow>
 	{/each}
 </div>

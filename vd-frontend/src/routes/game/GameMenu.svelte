@@ -5,7 +5,7 @@
 	import CharacterWindow from '$lib/components/windows/CharacterWindow.svelte';
 	import { windows } from '$lib/store/windows';
 	import InventoryWindow from '$lib/components/windows/InventoryWindow.svelte';
-	import { disconnectFromServer } from '$lib/api/services/game.service';
+	import { disconnectFromServer, exitDungeon } from '$lib/api/services/game.service';
 	import { addTestItem } from '$lib/store/inventory';
 
 	function openCharacterWindow() {
@@ -61,13 +61,14 @@
 	</div>
 
 	<ul class="actions">
+		<li><button on:click={exitDungeon}>[EXIT DUNGEON]</button></li>
 		<li><button on:click={openCharacterWindow}>[CHARACTER]</button></li>
 		<li><button on:click={openInventoryWindow}>[INVENTORY]</button></li>
 		<li><button on:click={openSkillsWindow}>[SKILLS]</button></li>
 		<li><button on:click={openLeadboardWindow}>[LEADBOARD]</button></li>
 		<li><button>[GUILD]</button></li>
 		<br />
-		<li><button class="logout-btn" on:click={logout}>[EXIT]</button></li>
+		<li><button class="logout-btn" on:click={logout}>[LOG OUT]</button></li>
 	</ul>
 </div>
 
@@ -123,7 +124,7 @@
 	}
 
 	.logout-btn {
-		color: rgb(102, 0, 0);
+		color: var(--hp);
 	}
 
 	// mobile

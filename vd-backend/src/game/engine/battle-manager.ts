@@ -272,5 +272,5 @@ export function calculateAverageElementalChance(
     stats.coldChance +
     stats.lightChance +
     stats.voidChance;
-  return totalChance / 5; // Average of 5 elemental chances
+  return totalChance / 5;
 }

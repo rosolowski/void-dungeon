@@ -1,16 +1,21 @@
+import { Socket } from 'socket.io';
 import { Character } from '../class/Character';
 import { Entity } from '../class/Entity';
 import { GameInstance } from '../class/GameInstance';
 import { AttackLog, simulateAttack } from './battle-manager';
 import { InstanceManager } from './instance-manager';
+import { PartyManager } from './party-manager';
 import { Collision, Tile } from './utils';
 
 export class Game {
   private static instance: Game;
   private instanceManager: InstanceManager;
+  private partyManager: PartyManager;
+  private connectionsMap: Map<number, Socket> = new Map();
 
   private constructor() {
     this.instanceManager = new InstanceManager();
+    this.partyManager = new PartyManager();
   }
 
   public static getInstance(): Game {
@@ -18,6 +23,27 @@ export class Game {
       Game.instance = new Game();
     }
     return Game.instance;
+  }
+
+  public getPartyManager(): PartyManager {
+    return this.partyManager;
+  }
+
+  public addConnection(characterId: number, socket: Socket): void {
+    this.connectionsMap.set(characterId, socket);
+  }
+
+  public removeConnection(characterId: number): void {
+    this.connectionsMap.delete(characterId);
+  }
+
+  public getConnection(characterId: number): Socket | undefined {
+    return this.connectionsMap.get(characterId);
+  }
+
+  public getCharacterById(characterId: number): Character | undefined {
+    const socket = this.getConnection(characterId);
+    return socket?.data.character;
   }
 
   connectCharacterToInstance(character: Character): GameInstance {
@@ -59,7 +85,6 @@ export class Game {
     if (!instance) return { success: false };
 
     const entity = instance.entities.get(entityId);
-
     if (!entity) return { success: false };
 
     const isValidAttack = this.isValidAttackPosition(character, entity);
@@ -145,5 +170,13 @@ export class Game {
     actionType: string;
   } {
     return { success, room, newX, newY, actionType };
+  }
+
+  getPartyFromCharacter(character: Character) {
+    return this.partyManager.getPartyFromCharacter(character.id);
+  }
+
+  public getCityInstance(): GameInstance {
+    return this.instanceManager.getCityInstance();
   }
 }

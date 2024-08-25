@@ -11,7 +11,6 @@ import { GameInstance } from '../class/GameInstance';
 
 @Injectable()
 export class ConnectionHandler extends BaseHandler {
-  private readonly connectionsMap: Map<number, Socket> = new Map();
   private readonly game: Game;
   private server: Server;
 
@@ -46,6 +45,7 @@ export class ConnectionHandler extends BaseHandler {
     );
     this.emitCharacterLeaveInstance(instance, client);
     this.gameService.syncCharacter(client.data.character);
+    this.game.removeConnection(client.data.character.id);
   }
 
   private extractConnectionInfo(client: Socket): {
@@ -71,7 +71,7 @@ export class ConnectionHandler extends BaseHandler {
   }
 
   private handleMultipleConnections(characterId: string): void {
-    const prevSocket = this.connectionsMap.get(parseInt(characterId));
+    const prevSocket = this.game.getConnection(parseInt(characterId));
     if (prevSocket) {
       prevSocket.emit('error', {
         message: 'Multiple connections detected, disconnected.',
@@ -92,7 +92,7 @@ export class ConnectionHandler extends BaseHandler {
     client.data.user = data.user;
     client.data.character = characterEntityToCharacterClass(data.character);
     client.data.validated = true;
-    this.connectionsMap.set(parseInt(characterId), client);
+    this.game.addConnection(parseInt(characterId), client);
     const instance = this.game.connectCharacterToInstance(
       client.data.character,
     );

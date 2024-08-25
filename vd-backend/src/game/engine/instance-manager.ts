@@ -58,7 +58,7 @@ export class InstanceManager {
 
     const newInstance = new GameInstance(
       newInstanceId,
-      `instance-${newInstanceId}`,
+      `instance:${newInstanceId}`,
       location,
       new Map<number, Character>(),
       entityMap,

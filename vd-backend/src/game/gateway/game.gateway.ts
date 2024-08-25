@@ -15,6 +15,7 @@ import { CombatHandler } from './combat.handler';
 import { InventoryHandler } from './inventory.handler';
 import { MoveCharacterDto } from '../dto/game.dto';
 import { ItemType } from '../class/Item';
+import { PartyHandler } from './party.handler';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class GameGateway
@@ -28,6 +29,7 @@ export class GameGateway
     private readonly movementHandler: MovementHandler,
     private readonly combatHandler: CombatHandler,
     private readonly inventoryHandler: InventoryHandler,
+    private readonly partyHandler: PartyHandler,
   ) {}
 
   onModuleInit() {
@@ -35,6 +37,7 @@ export class GameGateway
     this.movementHandler.setServer(this.server);
     this.combatHandler.setServer(this.server);
     this.inventoryHandler.setServer(this.server);
+    this.partyHandler.setServer(this.server);
   }
 
   async handleConnection(client: Socket): Promise<void> {
@@ -45,8 +48,8 @@ export class GameGateway
   handleDisconnect(client: Socket): void {
     this.logger.log(`Client disconnected: ${client.id}`);
     this.connectionHandler.handleDisconnect(client);
+    this.partyHandler.handleDisconnection(client as any);
   }
-
   @SubscribeMessage('move')
   handleMove(
     @MessageBody() data: MoveCharacterDto,
@@ -135,5 +138,45 @@ export class GameGateway
     data: { rarity: string },
   ): Promise<void> {
     await this.inventoryHandler.handleDismantleAllItems(data, client);
+  }
+
+  @SubscribeMessage('inviteToParty')
+  handleInviteToParty(
+    @MessageBody() data: { inviteeId: number },
+    @ConnectedSocket() client: Socket,
+  ): void {
+    this.logger.log(`Party invite request received from client ${client.id}`);
+    this.partyHandler.handleInvite(client as any, data.inviteeId);
+  }
+
+  @SubscribeMessage('respondToPartyInvite')
+  handleRespondToPartyInvite(
+    @MessageBody() data: { accepted: boolean; inviterId: number },
+    @ConnectedSocket() client: Socket,
+  ): void {
+    this.logger.log(`Party invite response received from client ${client.id}`);
+    this.partyHandler.handleInviteResponse(
+      client as any,
+      data.accepted,
+      data.inviterId,
+    );
+  }
+
+  @SubscribeMessage('leaveParty')
+  handleLeaveParty(@ConnectedSocket() client: Socket): void {
+    this.logger.log(`Leave party request received from client ${client.id}`);
+    this.partyHandler.handleLeaveParty(client as any);
+  }
+
+  @SubscribeMessage('voteNextLevel')
+  handleVoteNextLevel(@ConnectedSocket() client: Socket): void {
+    this.logger.log(`Vote for next level received from client ${client.id}`);
+    this.partyHandler.handleVoteNextLevel(client as any);
+  }
+
+  @SubscribeMessage('exitDungeon')
+  handleExitDungeon(@ConnectedSocket() client: Socket): void {
+    this.logger.log(`Exit dungeon request received from client ${client.id}`);
+    this.partyHandler.handleExitDungeonVote(client as any);
   }
 }

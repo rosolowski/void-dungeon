@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Socket } from 'socket.io';
+import { Socket, Server } from 'socket.io';
 import { BaseHandler } from './base.handler';
 import { Game } from '../engine/game';
 import { GameService } from '../game.service';
@@ -7,7 +7,6 @@ import { CharacterService } from '../character.service';
 import { Character } from '../class/Character';
 import { AttackLog } from '../engine/battle-manager';
 import { GameInstance } from '../class/GameInstance';
-import { Server } from 'socket.io';
 import { InventoryService } from '../inventory.service';
 import { inventoryEntityToInventoryClass } from '../engine/utils';
 

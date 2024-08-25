@@ -2,11 +2,13 @@ import { Socket, io } from 'socket.io-client';
 import { characterId, jwt } from '$lib/store/auth';
 import { handleMoveCorrection, player } from '$lib/store/player';
 import {
+	characters,
 	handlePositionUpdate,
 	inititalize,
 	removeCharacter,
 	spawnCharacter
 } from '$lib/store/characters';
+import PartyInviteWindow from '$lib/components/windows/PartyInviteWindow.svelte';
 
 import type { Character } from '$lib/class/Character';
 import type { GameInstance } from '$lib/class/GameInstance';
@@ -29,6 +31,8 @@ import { dialogueState, progressDialogue } from '$lib/store/dialogue';
 import { entityTracker } from '$lib/store/entity-tracker';
 import type { Item } from '$lib/class/Item';
 import { notifications } from '$lib/store/notifications';
+import { isInParty, party } from '$lib/store/party';
+import { windows } from '$lib/store/windows';
 
 type direction = 'up' | 'down' | 'left' | 'right';
 
@@ -131,6 +135,97 @@ export function initializeServerConnection() {
 	client.on('lootShards', ({ shardsGained }: { shardsGained: number }) => {
 		notifications.notifyShardsLooted(shardsGained);
 	});
+
+	client.on(
+		'partyUpdate',
+		(data: {
+			id: number;
+			members: number[];
+			voting: null | 'nextLevel' | 'quit';
+			votes: number[];
+		}) => {
+			if (DEBUG_WS) console.log('partyUpdate', data);
+			const charactersMap = get(characters);
+			const partyMembers = data.members.map((memberId) => ({
+				id: memberId,
+				name: charactersMap.get(memberId)?.name || 'Unknown'
+			}));
+			party.setParty({
+				...data,
+				members: partyMembers
+			});
+		}
+	);
+
+	client.on('partyInvite', (data) => {
+		if (DEBUG_WS) console.log('partyInvite', data);
+		windows.openWindow({
+			id: `party-invite-${data.inviterId}`,
+			title: 'Party Invitation',
+			component: PartyInviteWindow,
+			props: {
+				inviterId: data.inviterId,
+				inviterName: data.inviterName
+			}
+		});
+	});
+
+	client.on('partyInviteRejected', (inviteeName) => {
+		if (DEBUG_WS) console.log('partyInviteRejected', inviteeName);
+	});
+
+	client.on('nextLevelVoteStarted', (data) => {
+		if (DEBUG_WS) console.log('nextLevelVoteStarted', data);
+		party.startVoting('nextLevel');
+	});
+
+	client.on('voteUpdate', (data: { votes: number[] }) => {
+		if (DEBUG_WS) console.log('voteUpdate', data);
+		party.endVoting();
+		data.votes.forEach((voterId) => party.addVote(voterId));
+	});
+
+	client.on('nextLevelVoteCancelled', (data) => {
+		if (DEBUG_WS) console.log('voteUpdate', data);
+		party.endVoting();
+	});
+}
+
+export function inviteToParty(inviteeId: number) {
+	const client = get(socket);
+	if (!client) return;
+
+	client.emit('inviteToParty', { inviteeId });
+}
+
+export function respondToPartyInvite(accepted: boolean, inviterId: number) {
+	const client = get(socket);
+	if (!client) return;
+
+	client.emit('respondToPartyInvite', { accepted, inviterId });
+}
+
+export function leaveParty() {
+	const client = get(socket);
+	if (!client) return;
+
+	party.reset();
+
+	client.emit('leaveParty');
+}
+
+export function voteNextLevel() {
+	const client = get(socket);
+	if (!client) return;
+
+	client.emit('voteNextLevel');
+}
+
+export function exitDungeon() {
+	const client = get(socket);
+	if (!client) return;
+
+	client.emit('exitDungeon');
 }
 
 export function disconnectFromServer() {
@@ -179,7 +274,7 @@ export function movePlayer(dir: direction) {
 			};
 
 			if (currentLocation.terrain[newY][newX] === Tile.STAIRS) {
-				location.set(null);
+				if (!get(isInParty)) location.set(null);
 			}
 
 			client.emit('move', { x: newX, y: newY });

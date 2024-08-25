@@ -7,6 +7,7 @@
 	import { renderer } from '$lib/store/renderer';
 	import EntityTracker from '$lib/components/viewport/EntityTracker.svelte';
 	import Dialogue from '$lib/components/viewport/Dialogue.svelte';
+	import Party from '$lib/components/game/Party.svelte';
 
 	let viewportWidth: number;
 	let viewportHeight: number;
@@ -30,6 +31,7 @@
 >
 	<InputHandler />
 	<EntityTracker />
+	<Party />
 
 	{#if $player}
 		<GameHud />
@@ -38,7 +40,6 @@
 
 	{#if $player && $location}
 		<World {viewportWidth} {viewportHeight} />
-		<!-- <Battle /> -->
 	{/if}
 </div>
 
