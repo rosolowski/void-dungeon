@@ -19,6 +19,7 @@ export class InstanceManager {
   private initializeCityInstance(): void {
     const cityInstance = new GameInstance(
       CITY_INSTANCE_ID,
+      0,
       'city',
       CITY_LOCATION,
       new Map<number, Character>(),
@@ -51,13 +52,14 @@ export class InstanceManager {
     this.instances.set(CITY_INSTANCE_ID, cityInstance);
   }
 
-  addGameInstance(): GameInstance {
+  addGameInstance(depth: number): GameInstance {
     const newInstanceId = this.nextFreeInstance++;
     const { location, entities } = this.generateNewLocation();
     const entityMap = new Map(entities.map((entity) => [entity.id, entity]));
 
     const newInstance = new GameInstance(
       newInstanceId,
+      depth,
       `instance:${newInstanceId}`,
       location,
       new Map<number, Character>(),

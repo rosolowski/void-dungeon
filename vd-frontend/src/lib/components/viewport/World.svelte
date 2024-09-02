@@ -10,11 +10,10 @@
 	import Entity from './Entity.svelte';
 	import { fightNumbers } from '$lib/store/viewport-effects';
 	import FightNumber from './FightNumber.svelte';
+	import ChatMessageManager from './ChatMessageManager.svelte';
 
 	export let viewportWidth: number;
 	export let viewportHeight: number;
-
-	$: characterValues = [...$characters];
 
 	$: px = $player!.pos.x;
 	$: py = $player!.pos.y;
@@ -46,7 +45,7 @@
 			{/each}
 		{/each}
 	</div>
-	{#each characterValues as [id, character] (id)}
+	{#each [...$characters] as [id, character] (id)}
 		{#if canRenderTile[character.pos.y][character.pos.x]}
 			<Character {character} />
 		{/if}
@@ -60,6 +59,7 @@
 		<FightNumber {fightNumber} />
 	{/each}
 	<Player />
+	<ChatMessageManager />
 </div>
 
 <style>

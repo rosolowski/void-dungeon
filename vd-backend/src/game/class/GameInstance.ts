@@ -5,6 +5,7 @@ import { Location } from './Location';
 export class GameInstance {
   constructor(
     public id: number,
+    public depth: number,
     public room: string,
     public location: Location,
     public characters: Map<number, Character>,
@@ -14,6 +15,7 @@ export class GameInstance {
   serialize() {
     return {
       room: this.room,
+      depth: this.depth,
       location: this.location,
       characters: Array.from(this.characters.values()),
       entities: Array.from(this.entities.values()),

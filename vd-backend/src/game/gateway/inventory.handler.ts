@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
-import { BaseHandler } from './base.handler';
+import { Server } from 'socket.io';
+import { BaseHandler, GameSocket } from './base.handler';
 import { InventoryService } from '../inventory.service';
 import { GameService } from '../game.service';
 import { CharacterService } from '../character.service';
@@ -26,7 +26,10 @@ export class InventoryHandler extends BaseHandler {
     this.server = server;
   }
 
-  async handleAddItem(itemData: Partial<Item>, client: Socket): Promise<void> {
+  async handleAddItem(
+    itemData: Partial<Item>,
+    client: GameSocket,
+  ): Promise<void> {
     if (!this.validateClient(client)) return;
     try {
       const characterId = client.data?.character?.id;
@@ -39,7 +42,7 @@ export class InventoryHandler extends BaseHandler {
 
   async handleEquipItem(
     data: { fromSlotId: number; equipmentSlot: ItemType },
-    client: Socket,
+    client: GameSocket,
   ): Promise<void> {
     if (!this.validateClient(client)) return;
     try {
@@ -57,7 +60,7 @@ export class InventoryHandler extends BaseHandler {
 
   async handleUnequipItem(
     data: { equipmentSlot: ItemType },
-    client: Socket,
+    client: GameSocket,
   ): Promise<void> {
     if (!this.validateClient(client)) return;
     try {
@@ -71,7 +74,7 @@ export class InventoryHandler extends BaseHandler {
 
   async handleUnequipItemToSlot(
     data: { equipmentSlot: ItemType; targetSlotId: number },
-    client: Socket,
+    client: GameSocket,
   ): Promise<void> {
     if (!this.validateClient(client)) return;
     try {
@@ -89,7 +92,7 @@ export class InventoryHandler extends BaseHandler {
 
   async handleMoveItem(
     data: { fromSlotId: number; targetSlotId: number },
-    client: Socket,
+    client: GameSocket,
   ): Promise<void> {
     if (!this.validateClient(client)) return;
     try {
@@ -107,7 +110,7 @@ export class InventoryHandler extends BaseHandler {
 
   async handleSellItem(
     data: { slotIndex: number },
-    client: Socket,
+    client: GameSocket,
   ): Promise<void> {
     if (!this.validateClient(client)) return;
     try {
@@ -128,7 +131,7 @@ export class InventoryHandler extends BaseHandler {
 
   async handleDismantleAllItems(
     data: { rarity: string },
-    client: Socket,
+    client: GameSocket,
   ): Promise<void> {
     if (!this.validateClient(client)) return;
     try {
@@ -153,7 +156,7 @@ export class InventoryHandler extends BaseHandler {
 
   async handleDismantleItem(
     data: { slotIndex: number },
-    client: Socket,
+    client: GameSocket,
   ): Promise<void> {
     if (!this.validateClient(client)) return;
     try {
@@ -170,27 +173,29 @@ export class InventoryHandler extends BaseHandler {
     }
   }
 
-  private async updateClientInventoryAndStats(client: Socket): Promise<void> {
+  private async updateClientInventoryAndStats(
+    client: GameSocket,
+  ): Promise<void> {
     await this.emitUpdatedInventoryFromDb(client);
     await this.emitCharacterStatsFromDb(client);
   }
 
   private async handleInventoryError(
-    client: Socket,
+    client: GameSocket,
     error: Error,
   ): Promise<void> {
     await this.emitUpdatedInventoryFromDb(client);
     this.handleError(client, 'Inventory error', error);
   }
 
-  private async emitUpdatedInventoryFromDb(client: Socket): Promise<void> {
+  private async emitUpdatedInventoryFromDb(client: GameSocket): Promise<void> {
     const characterId = client.data?.character?.id;
     const inventoryEntity = await this.gameService.getInventory(characterId);
     const inventory = inventoryEntityToInventoryClass(inventoryEntity);
     client.emit('getInventory', inventory.serialize());
   }
 
-  private async emitCharacterStatsFromDb(client: Socket): Promise<void> {
+  private async emitCharacterStatsFromDb(client: GameSocket): Promise<void> {
     const characterId = client.data?.character?.id;
     const { stats } = await this.characterService.getCharacter(characterId);
     client.data.character.stats = stats;

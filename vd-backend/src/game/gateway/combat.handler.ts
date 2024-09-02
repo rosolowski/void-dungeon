@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Socket, Server } from 'socket.io';
-import { BaseHandler } from './base.handler';
+import { Server } from 'socket.io';
+import { BaseHandler, GameSocket } from './base.handler';
 import { Game } from '../engine/game';
 import { GameService } from '../game.service';
 import { CharacterService } from '../character.service';
@@ -30,7 +30,7 @@ export class CombatHandler extends BaseHandler {
 
   async handleAttackEntity(
     data: { entityId: number },
-    client: Socket,
+    client: GameSocket,
   ): Promise<void> {
     if (!this.validateClient(client)) return;
 
@@ -58,7 +58,7 @@ export class CombatHandler extends BaseHandler {
   }
 
   private async handleAttackResult(
-    client: Socket,
+    client: GameSocket,
     character: Character,
     attackLog: AttackLog,
     instance: GameInstance,
@@ -76,7 +76,7 @@ export class CombatHandler extends BaseHandler {
   }
 
   private async handleCharacterDeath(
-    client: Socket,
+    client: GameSocket,
     character: Character,
   ): Promise<void> {
     const oldInstance = this.game.disconnectCharacterFromInstance(character);
@@ -96,7 +96,7 @@ export class CombatHandler extends BaseHandler {
   }
 
   private async handleEntityDeath(
-    client: Socket,
+    client: GameSocket,
     character: Character,
   ): Promise<void> {
     const droppedItem = await this.inventoryService.generateAndAddItem(
@@ -110,7 +110,7 @@ export class CombatHandler extends BaseHandler {
     }
   }
 
-  private async emitUpdatedInventoryFromDb(client: Socket): Promise<void> {
+  private async emitUpdatedInventoryFromDb(client: GameSocket): Promise<void> {
     const characterId = client.data?.character?.id;
     const inventoryEntity = await this.gameService.getInventory(characterId);
     const inventory = inventoryEntityToInventoryClass(inventoryEntity);
@@ -118,7 +118,7 @@ export class CombatHandler extends BaseHandler {
   }
 
   private emitEntityAttack(
-    client: Socket,
+    client: GameSocket,
     instance: GameInstance,
     attackLog: AttackLog,
   ): void {
@@ -128,7 +128,7 @@ export class CombatHandler extends BaseHandler {
 
   private emitCharacterLeaveInstance(
     instance: GameInstance,
-    client: Socket,
+    client: GameSocket,
   ): void {
     client.to(instance.room).emit('removeCharacter', client.data.character.id);
     client.leave(instance.room);
@@ -136,7 +136,7 @@ export class CombatHandler extends BaseHandler {
 
   private emitCharacterJoinInstance(
     instance: GameInstance,
-    client: Socket,
+    client: GameSocket,
   ): void {
     client.join(instance.room);
     client.emit('getPlayerCharacter', client.data.character);

@@ -29,6 +29,10 @@ export class Game {
     return this.partyManager;
   }
 
+  public getInstanceManager(): InstanceManager {
+    return this.instanceManager;
+  }
+
   public addConnection(characterId: number, socket: Socket): void {
     this.connectionsMap.set(characterId, socket);
   }
@@ -59,8 +63,8 @@ export class Game {
     return instance;
   }
 
-  generateNewInstance(): GameInstance {
-    return this.instanceManager.addGameInstance();
+  generateNewInstance(depth: number): GameInstance {
+    return this.instanceManager.addGameInstance(depth);
   }
 
   addCharacterToCity(character: Character): GameInstance {

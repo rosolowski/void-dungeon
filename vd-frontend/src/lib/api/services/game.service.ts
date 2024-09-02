@@ -33,6 +33,7 @@ import type { Item } from '$lib/class/Item';
 import { notifications } from '$lib/store/notifications';
 import { isInParty, party } from '$lib/store/party';
 import { windows } from '$lib/store/windows';
+import { chat } from '$lib/store/chat';
 
 type direction = 'up' | 'down' | 'left' | 'right';
 
@@ -62,10 +63,12 @@ export function initializeServerConnection() {
 	client.on('getInstance', (data: GameInstance) => {
 		console.log(data);
 		if (DEBUG_WS) console.log('getInstance', data);
+		console.log('dungeon depth:', data.depth);
 		location.set(data.location);
 		inititalize(data.characters);
 		inititalizeEntities(data.entities);
 		entityTracker.set(null);
+		chat.clear();
 	});
 
 	client.on('getInventory', (data: SerializedInventoryDto) => {
@@ -189,6 +192,17 @@ export function initializeServerConnection() {
 		if (DEBUG_WS) console.log('voteUpdate', data);
 		party.endVoting();
 	});
+
+	client.on('chatInstanceMessage', (data) => {
+		chat.addMessage(data);
+	});
+}
+
+export function sendInstanceMessage(message: string) {
+	const client = get(socket);
+	if (!client) return;
+
+	client.emit('sendInstanceMessage', message);
 }
 
 export function inviteToParty(inviteeId: number) {

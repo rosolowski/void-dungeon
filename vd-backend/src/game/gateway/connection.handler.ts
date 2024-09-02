@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
-import { BaseHandler } from './base.handler';
+import { Server } from 'socket.io';
+import { BaseHandler, GameSocket } from './base.handler';
 import { GameService } from '../game.service';
 import { Game } from '../engine/game';
 import {
@@ -23,7 +23,7 @@ export class ConnectionHandler extends BaseHandler {
     this.server = server;
   }
 
-  async handleConnection(client: Socket): Promise<void> {
+  async handleConnection(client: GameSocket): Promise<void> {
     try {
       const { token, characterId } = this.extractConnectionInfo(client);
       if (!this.validateConnectionInfo(token, characterId)) {
@@ -37,7 +37,7 @@ export class ConnectionHandler extends BaseHandler {
     }
   }
 
-  handleDisconnect(client: Socket): void {
+  handleDisconnect(client: GameSocket): void {
     if (!client.data.character) return;
 
     const instance = this.game.disconnectCharacterFromInstance(
@@ -48,7 +48,7 @@ export class ConnectionHandler extends BaseHandler {
     this.game.removeConnection(client.data.character.id);
   }
 
-  private extractConnectionInfo(client: Socket): {
+  private extractConnectionInfo(client: GameSocket): {
     token: string | null;
     characterId: string | null;
   } {
@@ -81,7 +81,7 @@ export class ConnectionHandler extends BaseHandler {
   }
 
   private async setupClientConnection(
-    client: Socket,
+    client: GameSocket,
     token: string,
     characterId: string,
   ): Promise<void> {
@@ -102,7 +102,7 @@ export class ConnectionHandler extends BaseHandler {
 
   private emitCharacterLeaveInstance(
     instance: GameInstance,
-    client: Socket,
+    client: GameSocket,
   ): void {
     client.to(instance.room).emit('removeCharacter', client.data.character.id);
     client.leave(instance.room);
@@ -110,7 +110,7 @@ export class ConnectionHandler extends BaseHandler {
 
   private emitCharacterJoinInstance(
     instance: GameInstance,
-    client: Socket,
+    client: GameSocket,
   ): void {
     client.join(instance.room);
     client.emit('getPlayerCharacter', client.data.character);
@@ -118,7 +118,7 @@ export class ConnectionHandler extends BaseHandler {
     client.to(instance.room).emit('spawnCharacter', client.data.character);
   }
 
-  private async emitUpdatedInventoryFromDb(client: Socket): Promise<void> {
+  private async emitUpdatedInventoryFromDb(client: GameSocket): Promise<void> {
     const characterId = client.data?.character?.id;
     const inventoryEntity = await this.gameService.getInventory(characterId);
     const inventory = inventoryEntityToInventoryClass(inventoryEntity);

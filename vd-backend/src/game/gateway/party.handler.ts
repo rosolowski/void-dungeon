@@ -1,17 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { BaseHandler } from './base.handler';
+import { BaseHandler, GameSocket } from './base.handler';
 import { Game } from '../engine/game';
 import { Character } from '../class/Character';
 import { PartyManager } from '../engine/party-manager';
 import { Party, Voting } from '../class/Party';
-
-interface GameSocket extends Socket {
-  data: {
-    character?: Character;
-    partyId?: number;
-  };
-}
 
 type PartyInviteData = {
   inviterId: number;
@@ -177,7 +170,13 @@ export class PartyHandler extends BaseHandler {
   }
 
   private moveToNextLevel(characterIds: number[]): void {
-    const newInstance = this.game.generateNewInstance();
+    const character = this.game.getCharacterById(characterIds[0]);
+    const currentInstance = this.game
+      .getInstanceManager()
+      .getInstanceFromCharacter(character);
+    const newInstance = this.game.generateNewInstance(
+      currentInstance.depth + 1,
+    );
 
     characterIds.forEach((characterId) => {
       const character = this.game.getCharacterById(characterId);

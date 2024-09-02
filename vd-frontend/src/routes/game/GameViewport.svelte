@@ -8,6 +8,7 @@
 	import EntityTracker from '$lib/components/viewport/EntityTracker.svelte';
 	import Dialogue from '$lib/components/viewport/Dialogue.svelte';
 	import Party from '$lib/components/game/Party.svelte';
+	import Chat from '$lib/components/game/Chat.svelte';
 
 	let viewportWidth: number;
 	let viewportHeight: number;
@@ -32,6 +33,7 @@
 	<InputHandler />
 	<EntityTracker />
 	<Party />
+	<Chat />
 
 	{#if $player}
 		<GameHud />

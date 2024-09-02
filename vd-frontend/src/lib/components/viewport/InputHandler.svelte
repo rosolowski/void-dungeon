@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { movePlayer } from '$lib/api/services/game.service';
 	import { renderer } from '$lib/store/renderer';
+	import { chat } from '$lib/store/chat';
 	import { throttle } from '$lib/util/utils';
 
 	type directions = 'up' | 'down' | 'left' | 'right';
@@ -13,12 +14,14 @@
 	}
 
 	function startDirection(key: number, dir: directions) {
+		if ($chat.isActive) return;
 		direction = dir;
 		if (!isMoving()) movePlayerLoop();
 		keys[key] = 1;
 	}
 
-	function onKeyDown(e: any) {
+	function onKeyDown(e: KeyboardEvent) {
+		if ($chat.isActive) return;
 		switch (e.keyCode) {
 			case 38:
 			case 87:
@@ -39,7 +42,8 @@
 		}
 	}
 
-	function onKeyUp(e: any) {
+	function onKeyUp(e: KeyboardEvent) {
+		if ($chat.isActive) return;
 		switch (e.keyCode) {
 			case 38:
 			case 87:

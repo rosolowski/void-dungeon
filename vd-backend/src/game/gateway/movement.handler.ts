@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
-import { BaseHandler } from './base.handler';
+import { Server } from 'socket.io';
+import { BaseHandler, GameSocket } from './base.handler';
 import { Game } from '../engine/game';
 import { MoveCharacterDto } from '../dto/game.dto';
 import { Character } from '../class/Character';
@@ -21,7 +21,7 @@ export class MovementHandler extends BaseHandler {
     this.server = server;
   }
 
-  handleMove(data: MoveCharacterDto, client: Socket): void {
+  handleMove(data: MoveCharacterDto, client: GameSocket): void {
     if (!this.validateClient(client)) return;
 
     try {
@@ -39,7 +39,7 @@ export class MovementHandler extends BaseHandler {
     }
   }
 
-  private handleStairsMovement(character: Character, client: Socket): void {
+  private handleStairsMovement(character: Character, client: GameSocket): void {
     const party = this.game.getPartyFromCharacter(character);
 
     if (!party || party.members.length === 1) {
@@ -51,12 +51,12 @@ export class MovementHandler extends BaseHandler {
 
   private moveCharacterToNewInstance(
     character: Character,
-    client: Socket,
+    client: GameSocket,
   ): void {
     const oldInstance = this.game.disconnectCharacterFromInstance(character);
     this.emitCharacterLeaveInstance(oldInstance, client);
 
-    const newInstance = this.game.generateNewInstance();
+    const newInstance = this.game.generateNewInstance(oldInstance.depth + 1);
     const { x, y } = newInstance.location.spawnCoords;
     character.setPos(x, y);
     character.pos.instanceId = newInstance.id;
@@ -65,7 +65,7 @@ export class MovementHandler extends BaseHandler {
     this.emitCharacterJoinInstance(newInstance, client);
   }
 
-  private initiatePartyVoting(party: Party, client: Socket): void {
+  private initiatePartyVoting(party: Party, client: GameSocket): void {
     if (party.voting === 'nextLevel') {
       client.emit('voteAlreadyInProgress');
       return;
@@ -96,7 +96,13 @@ export class MovementHandler extends BaseHandler {
   }
 
   private movePartyToNextLevel(party: Party): void {
-    const newInstance = this.game.generateNewInstance();
+    const character = this.game.getCharacterById(party.members[0]);
+    const currentInstance = this.game
+      .getInstanceManager()
+      .getInstanceFromCharacter(character);
+    const newInstance = this.game.generateNewInstance(
+      currentInstance.depth + 1,
+    );
 
     party.members.forEach((memberId) => {
       const character = this.game.getCharacterById(memberId);
@@ -132,7 +138,7 @@ export class MovementHandler extends BaseHandler {
     this.server.to(`party:${party.id}`).emit('nextLevelVoteCancelled');
   }
 
-  public handleVoteForNextLevel(client: Socket): void {
+  public handleVoteForNextLevel(client: GameSocket): void {
     const character = client.data.character as Character;
     const party = this.game.getPartyFromCharacter(character);
 
@@ -156,7 +162,7 @@ export class MovementHandler extends BaseHandler {
   }
 
   private emitCharacterMove(
-    client: Socket,
+    client: GameSocket,
     moveData: { success: boolean; room: string; newX: number; newY: number },
   ): void {
     const { success, room, newX, newY } = moveData;
@@ -173,7 +179,7 @@ export class MovementHandler extends BaseHandler {
 
   private emitCharacterLeaveInstance(
     instance: GameInstance,
-    client: Socket,
+    client: GameSocket,
   ): void {
     client.to(instance.room).emit('removeCharacter', client.data.character.id);
     client.leave(instance.room);
@@ -181,7 +187,7 @@ export class MovementHandler extends BaseHandler {
 
   private emitCharacterJoinInstance(
     instance: GameInstance,
-    client: Socket,
+    client: GameSocket,
   ): void {
     client.join(instance.room);
     client.emit('getPlayerCharacter', client.data.character);
