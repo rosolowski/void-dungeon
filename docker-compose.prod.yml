@@ -5,6 +5,8 @@ services:
     build:
       context: ./vd-frontend
       dockerfile: Dockerfile.prod
+      args:
+        - VITE_API_HOST=${VITE_API_HOST}
     ports:
       - "3000:3000"
     env_file:
