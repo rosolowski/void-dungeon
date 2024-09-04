@@ -51,7 +51,7 @@ services:
       - vd-backend
     restart: unless-stopped
 
-certbot:
+  certbot:
     image: certbot/certbot
     volumes:
       - ./certbot/conf:/etc/letsencrypt
