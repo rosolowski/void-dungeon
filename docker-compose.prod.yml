@@ -2,11 +2,11 @@ services:
   vd-frontend:
     build:
       context: ./vd-frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     expose:
       - "3000"
     env_file:
-      - .env.prod
+      - .env
     environment:
       - NODE_ENV=production
     depends_on:
@@ -16,11 +16,11 @@ services:
   vd-backend:
     build:
       context: ./vd-backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     expose:
       - "3000"
     env_file:
-      - .env.prod
+      - .env
     environment:
       - NODE_ENV=production
     depends_on:
@@ -29,8 +29,6 @@ services:
 
   vd-db:
     image: postgres:latest
-    env_file:
-      - .env.prod
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USERNAME}
