@@ -8,6 +8,6 @@ RUN npm ci
 
 COPY . .
 
-RUN npm run build
+EXPOSE 5173
 
-CMD npm rebuild esbuild && npm run dev -- --host
+CMD ["npm", "run", "dev", "--", "--host"]

@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  vd-frontend:
+    build:
+      context: ./vd-frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./vd-frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - vd-backend
+
+  vd-backend:
+    build:
+      context: ./vd-backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./vd-backend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - vd-db
+
+  vd-db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+
+volumes:
+  postgres_data_dev:

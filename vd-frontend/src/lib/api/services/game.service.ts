@@ -39,12 +39,14 @@ type direction = 'up' | 'down' | 'left' | 'right';
 
 const DEBUG_WS = true;
 
+const VITE_API_HOST = import.meta.env.VITE_API_HOST;
+
 export function initializeServerConnection() {
 	let client = get(socket);
 
 	if (!client) {
 		socket.set(
-			io(`http://localhost:3000?characterId=${get(characterId)}`, {
+			io(`${VITE_API_HOST}?characterId=${get(characterId)}`, {
 				auth: { token: `Bearer ${get(jwt)}` }
 			})
 		);
