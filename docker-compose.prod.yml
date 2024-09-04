@@ -1,12 +1,12 @@
-version: '3.8'
-
 services:
   vd-frontend:
     build:
       context: ./vd-frontend
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     expose:
       - "3000"
+    env_file:
+      - .env.prod
     environment:
       - NODE_ENV=production
     depends_on:
@@ -16,9 +16,11 @@ services:
   vd-backend:
     build:
       context: ./vd-backend
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     expose:
-      - "4000"
+      - "3000"
+    env_file:
+      - .env.prod
     environment:
       - NODE_ENV=production
     depends_on:
@@ -27,12 +29,14 @@ services:
 
   vd-db:
     image: postgres:latest
+    env_file:
+      - .env.prod
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
-      - postgres_data_prod:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
   nginx:
@@ -54,7 +58,7 @@ services:
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    command: certonly --webroot --webroot-path=/var/www/certbot --email your-email@example.com --agree-tos --no-eff-email -d vdgame.pl
 
 volumes:
-  postgres_data_prod:
+  postgres_data:
