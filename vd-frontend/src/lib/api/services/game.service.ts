@@ -39,15 +39,18 @@ type direction = 'up' | 'down' | 'left' | 'right';
 
 const DEBUG_WS = true;
 
-const VITE_API_HOST = import.meta.env.VITE_API_HOST;
+const VITE_SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 
 export function initializeServerConnection() {
 	let client = get(socket);
 
 	if (!client) {
 		socket.set(
-			io(`${VITE_API_HOST}?characterId=${get(characterId)}`, {
-				auth: { token: `Bearer ${get(jwt)}` }
+			io(`${VITE_SOCKET_HOST}`, {
+				path: '/socket.io/',
+				transports: ['websocket'],
+				auth: { token: `Bearer ${get(jwt)}` },
+				query: { characterId: get(characterId) }
 			})
 		);
 		client = get(socket) as Socket;
