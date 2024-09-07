@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile.prod
       args:
         - VITE_API_HOST=${VITE_API_HOST}
+        - VITE_SOCKET_HOST=${VITE_SOCKET_HOST}
     ports:
       - "3000:3000"
     env_file:
