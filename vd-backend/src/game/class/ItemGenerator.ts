@@ -187,8 +187,8 @@ const modifiers: Modifier[] = [
     name: "Berserker's",
     description: 'empowers attacks at the cost of defense',
     apply: (item: Item) => {
-      item.stats.damage *= 1.2;
-      item.stats.armor *= 0.8;
+      item.stats.damage = Math.round(item.stats.damage * 2);
+      item.stats.armor = Math.round(item.stats.armor * 0.5);
     },
     rarity: ItemRarity.Uncommon,
   },
@@ -196,9 +196,9 @@ const modifiers: Modifier[] = [
     name: 'Enchanted',
     description: 'imbued with elemental energies',
     apply: (item: Item) => {
-      item.stats.fireDamage *= 1.2;
-      item.stats.coldDamage *= 1.2;
-      item.stats.lightDamage *= 1.2;
+      item.stats.fireDamage = Math.round((item.stats.fireDamage + 5) * 1.5);
+      item.stats.coldDamage = Math.round(item.stats.coldDamage * 1.2);
+      item.stats.lightDamage = Math.round(item.stats.lightDamage * 1.2);
     },
     rarity: ItemRarity.Rare,
   },
@@ -206,9 +206,9 @@ const modifiers: Modifier[] = [
     name: 'Celestial',
     description: 'blessed by the heavens',
     apply: (item: Item) => {
-      item.stats.maxHp *= 1.1;
-      item.stats.maxMana *= 1.1;
-      item.stats.lightDamage *= 1.3;
+      item.stats.maxHp = Math.round(item.stats.maxHp * 2);
+      item.stats.maxMana = Math.round(item.stats.maxMana * 2);
+      item.stats.lightDamage = Math.round(item.stats.lightDamage * 2);
     },
     rarity: ItemRarity.Epic,
   },
@@ -216,8 +216,10 @@ const modifiers: Modifier[] = [
     name: 'Void-touched',
     description: 'infused with the power of the void',
     apply: (item: Item) => {
-      item.stats.voidDamage = (item.stats.voidDamage || 0) + 10;
-      item.stats.voidChance = (item.stats.voidChance || 0) + 0.1;
+      item.stats.voidDamage = Math.round((item.stats.voidDamage || 0) + 10);
+      item.stats.voidChance = parseFloat(
+        (item.stats.voidChance + 5).toFixed(2),
+      );
     },
     rarity: ItemRarity.Legendary,
   },
@@ -225,8 +227,10 @@ const modifiers: Modifier[] = [
     name: 'Swift',
     description: 'infused with unparalleled speed',
     apply: (item: Item) => {
-      item.stats.attackSpeed *= 1.3;
-      item.stats.evasion *= 1.2;
+      item.stats.attackSpeed = parseFloat(
+        (item.stats.attackSpeed * 1.5).toFixed(2),
+      );
+      item.stats.evasion = parseFloat((item.stats.evasion * 1.5).toFixed(2));
     },
     rarity: ItemRarity.Rare,
   },
@@ -234,13 +238,13 @@ const modifiers: Modifier[] = [
     name: "Archmage's",
     description: 'amplified with magical prowess',
     apply: (item: Item) => {
-      item.stats.maxMana *= 1.5;
-      item.stats.fireDamage += 0.2;
-      item.stats.fireDamage *= 1.2;
-      item.stats.coldDamage += 0.2;
-      item.stats.coldDamage *= 1.2;
-      item.stats.lightDamage += 0.2;
-      item.stats.lightDamage *= 1.2;
+      item.stats.maxMana = Math.round(item.stats.maxMana * 1.5);
+      item.stats.fireDamage = Math.round(item.stats.fireDamage + 20);
+      item.stats.fireDamage = Math.round(item.stats.fireDamage * 1.2);
+      item.stats.coldDamage = Math.round(item.stats.coldDamage + 20);
+      item.stats.coldDamage = Math.round(item.stats.coldDamage * 1.2);
+      item.stats.lightDamage = Math.round(item.stats.lightDamage + 20);
+      item.stats.lightDamage = Math.round(item.stats.lightDamage * 1.2);
     },
     rarity: ItemRarity.Epic,
   },
@@ -248,9 +252,9 @@ const modifiers: Modifier[] = [
     name: 'Ethereal',
     description: 'phasing in and out of reality',
     apply: (item: Item) => {
-      item.stats.evasion += 0.1;
-      item.stats.evasion *= 1.4;
-      item.stats.voidDamage = (item.stats.voidDamage || 0) + 15;
+      item.stats.evasion = parseFloat((item.stats.evasion + 0.1).toFixed(2));
+      item.stats.evasion = parseFloat((item.stats.evasion * 1.4).toFixed(2));
+      item.stats.voidDamage = Math.round((item.stats.voidDamage || 0) + 15);
     },
     rarity: ItemRarity.Legendary,
   },
@@ -258,8 +262,10 @@ const modifiers: Modifier[] = [
     name: 'Venomous',
     description: 'coated with deadly toxins',
     apply: (item: Item) => {
-      item.stats.poisonDamage *= 1.5;
-      item.stats.poisonChance += 2;
+      item.stats.poisonDamage = Math.round(item.stats.poisonDamage * 1.5);
+      item.stats.poisonChance = parseFloat(
+        (item.stats.poisonChance + 0.02).toFixed(2),
+      );
     },
     rarity: ItemRarity.Rare,
   },
@@ -397,11 +403,40 @@ export class ItemGenerator {
           rarityMultiplier,
         );
         const adjustedValue = scaledValue * config.valueMultiplier;
-        newStats[key] = this.randomize(adjustedValue, variation);
+        newStats[key] = this.finalizeStatValue(
+          key,
+          this.randomize(adjustedValue, variation),
+        );
       }
     }
 
     return newStats;
+  }
+
+  private static finalizeStatValue(
+    statKey: keyof Stats,
+    value: number,
+  ): number {
+    const decimalStats = [
+      'evasion',
+      'attackSpeed',
+      'critMultiplier',
+      'critChance',
+      'poisonChance',
+      'fireChance',
+      'coldChance',
+      'lightChance',
+      'voidChance',
+      'extraCurrencyChance',
+      'extraDropChance',
+      'dropRarityBoost',
+    ];
+
+    if (decimalStats.includes(statKey)) {
+      return parseFloat(value.toFixed(2));
+    } else {
+      return Math.round(value);
+    }
   }
 
   private static scaleStatValue(

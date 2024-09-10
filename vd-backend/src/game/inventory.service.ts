@@ -306,7 +306,6 @@ export class InventoryService {
     character: CharacterClass,
     enemyLevel: number,
   ): Promise<ItemEntity | null> {
-    // Calculate drop chance
     const baseDropChance = 0.1; // 10% base drop chance
     const dropChance = baseDropChance + (character.stats.extraDropChance || 0);
 
@@ -327,20 +326,13 @@ export class InventoryService {
       }
     }
 
-    const roundedStats = Object.fromEntries(
-      Object.entries(itemClass.stats).map(([key, value]) => [
-        key,
-        Math.round(value as number),
-      ]),
-    );
-
     // Convert ItemClass to ItemEntity
     const itemEntity = this.itemRepository.create({
       name: itemClass.name,
       description: itemClass.description,
       type: itemClass.type,
       rarity: itemClass.rarity,
-      stats: this.statsRepository.create(roundedStats),
+      stats: this.statsRepository.create(itemClass.stats),
     });
 
     // Try to add item to inventory
@@ -450,7 +442,7 @@ export class InventoryService {
     }
 
     const item = slot.item;
-    const sellPrice = Math.floor(this.calculateItemPrice(item) * 0.5); // 50% of buy price
+    const sellPrice = Math.floor(this.calculateItemPrice(item) * 0.5);
 
     slot.item = null;
     await this.slotRepository.save(slot);

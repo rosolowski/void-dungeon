@@ -1,4 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+export class DecimalColumnTransformer {
+  to(data: number): number {
+    return data;
+  }
+  from(data: string): number {
+    return parseFloat(data);
+  }
+}
 
 @Entity()
 export class Stats {
@@ -20,19 +29,39 @@ export class Stats {
   @Column({ default: 2 })
   armor: number;
 
-  @Column({ default: 0 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 0,
+    transformer: new DecimalColumnTransformer(),
+  })
   evasion: number;
 
   @Column({ default: 5 })
   damage: number;
 
-  @Column({ default: 1 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 1,
+    transformer: new DecimalColumnTransformer(),
+  })
   attackSpeed: number;
 
-  @Column({ default: 1 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 1,
+    transformer: new DecimalColumnTransformer(),
+  })
   critMultiplier: number;
 
-  @Column({ default: 2 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 0.02,
+    transformer: new DecimalColumnTransformer(),
+  })
   critChance: number;
 
   @Column({ default: 0 })
@@ -50,19 +79,44 @@ export class Stats {
   @Column({ default: 0 })
   voidDamage: number;
 
-  @Column({ default: 0 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 0,
+    transformer: new DecimalColumnTransformer(),
+  })
   poisonChance: number;
 
-  @Column({ default: 0 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 0,
+    transformer: new DecimalColumnTransformer(),
+  })
   fireChance: number;
 
-  @Column({ default: 0 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 0,
+    transformer: new DecimalColumnTransformer(),
+  })
   coldChance: number;
 
-  @Column({ default: 0 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 0,
+    transformer: new DecimalColumnTransformer(),
+  })
   lightChance: number;
 
-  @Column({ default: 0 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 0,
+    transformer: new DecimalColumnTransformer(),
+  })
   voidChance: number;
 
   @Column({ default: 0 })
@@ -80,12 +134,27 @@ export class Stats {
   @Column({ default: 0 })
   voidStatus: number;
 
-  @Column({ default: 0 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 0,
+    transformer: new DecimalColumnTransformer(),
+  })
   extraCurrencyChance: number;
 
-  @Column({ default: 0 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 0,
+    transformer: new DecimalColumnTransformer(),
+  })
   extraDropChance: number;
 
-  @Column({ default: 0 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 0,
+    transformer: new DecimalColumnTransformer(),
+  })
   dropRarityBoost: number;
 }

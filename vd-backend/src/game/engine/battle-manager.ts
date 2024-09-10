@@ -104,43 +104,39 @@ function calculateTempCombatStats(entity: Entity): TempCombatStats {
   if (statusEffects.cold > 0) {
     tempStats.attackSpeed = Math.max(
       tempStats.attackSpeed * (1 - statusEffects.cold * 0.1),
-      0.5,
+      0.5, // Minimum 50% of original attack speed
     );
   }
 
   if (statusEffects.light > 0) {
     tempStats.evasion = Math.min(
       tempStats.evasion + statusEffects.light * 2,
-      75,
+      75, // Maximum 75% evasion
     );
   }
 
   if (statusEffects.void > 0) {
-    const reductionFactor = 1 - statusEffects.void * 0.05;
-    tempStats.armor *= reductionFactor;
-    tempStats.damage *= reductionFactor;
-    tempStats.attackSpeed *= reductionFactor;
-    tempStats.critChance *= reductionFactor;
+    const reductionFactor = 1 - statusEffects.void * 0.05; // 5% reduction per stack
+    tempStats.armor = Math.round(tempStats.armor * reductionFactor);
+    tempStats.damage = Math.round(tempStats.damage * reductionFactor);
+    tempStats.attackSpeed = tempStats.attackSpeed * reductionFactor;
+    tempStats.critChance = Math.round(tempStats.critChance * reductionFactor);
   }
 
   return tempStats;
 }
-
 function calculateAttackCount(attackSpeed: number): number {
-  let attackCount = 1;
-  attackCount += Math.floor(attackSpeed - 1);
-  const fractionalPart = attackSpeed % 1;
-  if (Math.random() < fractionalPart) {
-    attackCount += 1;
-  }
-  return attackCount;
+  const baseAttacks = Math.floor(attackSpeed);
+  const extraAttackChance = attackSpeed % 1;
+  const extraAttack = Math.random() < extraAttackChance ? 1 : 0;
+  return baseAttacks + extraAttack;
 }
 
 function simulateSingleAttack(
   attackerStats: TempCombatStats,
   defenderStats: TempCombatStats,
 ): SingleAttackLog {
-  if (Math.random() * 100 < defenderStats.evasion) {
+  if (Math.random() < defenderStats.evasion / 100) {
     return {
       damageDone: 0,
       effectsApplied: { poison: 0, fire: 0, cold: 0, light: 0, void: 0 },
@@ -152,18 +148,15 @@ function simulateSingleAttack(
   let damage = attackerStats.damage;
   let isCritical = false;
 
-  if (Math.random() * 100 < attackerStats.critChance) {
-    damage *= attackerStats.critMultiplier;
+  if (Math.random() < attackerStats.critChance / 100) {
+    damage = Math.floor(damage * attackerStats.critMultiplier);
     isCritical = true;
   }
 
   const entityBlock = Math.floor(Math.random() * defenderStats.armor);
   const damageAfterArmor = Math.max(damage - entityBlock, 0);
 
-  const effectsApplied = applyNewStatusEffects(
-    attackerStats,
-    //defenderStats
-  );
+  const effectsApplied = applyNewStatusEffects(attackerStats);
 
   return {
     damageDone: damageAfterArmor,
@@ -183,10 +176,7 @@ function getCurrentStatusEffects(entity: Entity): StatusEffects {
   };
 }
 
-function applyNewStatusEffects(
-  attackerStats: TempCombatStats,
-  // defenderStats: TempCombatStats,
-): StatusEffects {
+function applyNewStatusEffects(attackerStats: TempCombatStats): StatusEffects {
   const effects: StatusEffects = {
     poison: 0,
     fire: 0,
@@ -195,32 +185,25 @@ function applyNewStatusEffects(
     void: 0,
   };
 
-  if (Math.random() * 100 < attackerStats.poisonChance) {
+  if (Math.random() < attackerStats.poisonChance / 100) {
     effects.poison = Math.max(1, Math.round(attackerStats.poisonDamage));
   }
 
-  if (Math.random() * 100 < attackerStats.fireChance) {
+  if (Math.random() < attackerStats.fireChance / 100) {
     effects.fire = Math.max(1, Math.round(attackerStats.fireDamage));
   }
 
-  if (Math.random() * 100 < attackerStats.coldChance) {
+  if (Math.random() < attackerStats.coldChance / 100) {
     effects.cold = Math.max(1, Math.round(attackerStats.coldDamage));
   }
 
-  if (Math.random() * 100 < attackerStats.lightChance) {
+  if (Math.random() < attackerStats.lightChance / 100) {
     effects.light = Math.max(1, Math.round(attackerStats.lightDamage));
   }
 
-  if (Math.random() * 100 < attackerStats.voidChance) {
+  if (Math.random() < attackerStats.voidChance / 100) {
     effects.void = Math.max(1, Math.round(attackerStats.voidDamage));
   }
-
-  // Round all effects to ensure integer values
-  Object.keys(effects).forEach((key) => {
-    effects[key as keyof StatusEffects] = Math.round(
-      effects[key as keyof StatusEffects],
-    );
-  });
 
   return effects;
 }
@@ -272,5 +255,5 @@ export function calculateAverageElementalChance(
     stats.coldChance +
     stats.lightChance +
     stats.voidChance;
-  return totalChance / 5;
+  return Math.round(totalChance / 5);
 }

@@ -114,8 +114,8 @@
 	}
 
 	function formatComparison(value: number): string {
-		if (value > 0) return `<span style="color: green;">(+${value})</span>`;
-		if (value < 0) return `<span style="color: red;">(${value})</span>`;
+		if (value > 0) return `<span style="color: green;">(+${value.toFixed(2)})</span>`;
+		if (value < 0) return `<span style="color: red;">(${value.toFixed(2)})</span>`;
 		return '';
 	}
 

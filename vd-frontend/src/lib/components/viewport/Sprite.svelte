@@ -32,6 +32,14 @@
 		background-image: url('$lib/assets/entities/monsters/vampire.gif');
 	}
 
+	.s-wolf {
+		background-image: url('$lib/assets/entities/monsters/wolf.gif');
+	}
+
+	.s-skeleton {
+		background-image: url('$lib/assets/entities/monsters/skeleton.gif');
+	}
+
 	.s-the-merchant {
 		background-image: url('$lib/assets/entities/npc/merchant.gif');
 	}

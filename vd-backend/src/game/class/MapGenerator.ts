@@ -86,24 +86,43 @@ export class MapGenerator {
         )
           continue;
 
-        const entityType = this.chooseEntityType();
-        const entityLevel = this.calculateEntityLevel(level);
-
-        const entity = EntityGenerator.createEntity(
-          entityIndex++,
-          entityType,
-          entityLevel,
-          {
-            x: pos.x,
-            y: pos.y,
-            instanceId,
-          },
-        );
+        const entity = EntityGenerator.createEntity(entityIndex++, level, {
+          x: pos.x,
+          y: pos.y,
+          instanceId,
+        });
 
         this.entities.push(entity);
         this.entityOccupied[pos.y][pos.x] = true;
       }
     });
+
+    // Spawn chests
+    this.spawnChests(level, instanceId, entityIndex);
+  }
+
+  private spawnChests(level: number, instanceId: number, startIndex: number) {
+    const numChests = Math.floor(Math.random() * 3) + 1; // 1 to 3 chests per floor
+    for (let i = 0; i < numChests; i++) {
+      const randomRoom =
+        this.rooms[Math.floor(Math.random() * this.rooms.length)];
+      const pos = this.findRandomFloorInRoom(randomRoom);
+      if (!pos) continue;
+
+      const chest = EntityGenerator.createEntity(
+        startIndex + i,
+        level,
+        {
+          x: pos.x,
+          y: pos.y,
+          instanceId,
+        },
+        'chest',
+      );
+
+      this.entities.push(chest);
+      this.entityOccupied[pos.y][pos.x] = true;
+    }
   }
 
   generateTerrainAndEntities(level: number, instanceId: number) {
@@ -133,10 +152,8 @@ export class MapGenerator {
     }
 
     this.connectRooms();
-
     this.setSpawn();
     this.setExit();
-
     this.spawnEntities(level, instanceId);
   }
 

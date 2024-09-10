@@ -59,24 +59,39 @@ export class CharacterService {
       return;
     }
 
-    const statsToUpdate = character.stats;
+    const statsToUpdate = { ...characterEntity.stats };
+
+    const integerStats = ['hp', 'maxHp', 'mana', 'maxMana'];
 
     Object.keys(item.stats).forEach((statKey) => {
-      if (statKey === 'id' || statKey === 'hp' || statKey === 'mana') return;
+      if (statKey === 'id') return;
 
-      if (statKey in characterEntity.stats) {
-        statsToUpdate[statKey] =
-          characterEntity.stats[statKey] + item.stats[statKey] * operation;
+      if (statKey in statsToUpdate) {
+        const currentValue = parseFloat(statsToUpdate[statKey]);
+        const itemValue = parseFloat(item.stats[statKey]);
+        const newValue = currentValue + itemValue * operation;
+
+        if (integerStats.includes(statKey)) {
+          statsToUpdate[statKey] = Math.round(newValue);
+        } else {
+          statsToUpdate[statKey] = parseFloat(newValue.toFixed(2));
+        }
       } else {
         console.warn(`Stat ${statKey} not found in character stats`);
       }
     });
 
-    characterEntity.stats = { ...characterEntity.stats, ...statsToUpdate };
+    characterEntity.stats = statsToUpdate;
 
-    if (characterEntity.stats.hp > characterEntity.stats.maxHp) {
-      characterEntity.stats.hp = characterEntity.stats.maxHp;
-    }
+    // Ensure HP and Mana don't exceed their maximum values
+    characterEntity.stats.hp = Math.min(
+      characterEntity.stats.hp,
+      characterEntity.stats.maxHp,
+    );
+    characterEntity.stats.mana = Math.min(
+      characterEntity.stats.mana,
+      characterEntity.stats.maxMana,
+    );
 
     await this.charactersRepository.save(characterEntity);
   }
