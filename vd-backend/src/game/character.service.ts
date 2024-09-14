@@ -49,17 +49,9 @@ export class CharacterService {
     equip: boolean,
   ) {
     const operation = equip ? 1 : -1;
-    const characterEntity = await this.charactersRepository.findOne({
-      where: { id: character.id },
-      relations: ['stats'],
-    });
 
-    if (!characterEntity) {
-      console.error('Character not found.');
-      return;
-    }
-
-    const statsToUpdate = { ...characterEntity.stats };
+    // Use the stats from the CharacterClass instance
+    const statsToUpdate = { ...character.stats };
     const currentHp = statsToUpdate.hp;
     const currentMana = statsToUpdate.mana;
 
@@ -94,8 +86,11 @@ export class CharacterService {
       }
     });
 
-    characterEntity.stats = statsToUpdate;
-    await this.charactersRepository.save(characterEntity);
+    // Update the CharacterClass instance
+    character.stats = statsToUpdate;
+
+    // Sync the updated stats to the database
+    await this.syncStatsToDatabase(character);
   }
 
   updateStatsOnEquip(character: CharacterClass, item: ItemEntity) {
