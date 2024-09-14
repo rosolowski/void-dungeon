@@ -60,6 +60,8 @@ export class CharacterService {
     }
 
     const statsToUpdate = { ...characterEntity.stats };
+    const currentHp = statsToUpdate.hp;
+    const currentMana = statsToUpdate.mana;
 
     const integerStats = ['hp', 'maxHp', 'mana', 'maxMana'];
 
@@ -81,18 +83,18 @@ export class CharacterService {
       }
     });
 
+    // Keep the current HP and mana, but ensure they don't exceed new maximums
+    statsToUpdate.hp = Math.min(currentHp, statsToUpdate.maxHp);
+    statsToUpdate.mana = Math.min(currentMana, statsToUpdate.maxMana);
+
+    // Ensure no stat goes below 0
+    Object.keys(statsToUpdate).forEach((key) => {
+      if (typeof statsToUpdate[key] === 'number') {
+        statsToUpdate[key] = Math.max(statsToUpdate[key], 0);
+      }
+    });
+
     characterEntity.stats = statsToUpdate;
-
-    // Ensure HP and Mana don't exceed their maximum values
-    characterEntity.stats.hp = Math.min(
-      characterEntity.stats.hp,
-      characterEntity.stats.maxHp,
-    );
-    characterEntity.stats.mana = Math.min(
-      characterEntity.stats.mana,
-      characterEntity.stats.maxMana,
-    );
-
     await this.charactersRepository.save(characterEntity);
   }
 

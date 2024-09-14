@@ -1,19 +1,19 @@
 export class Stats {
   constructor(
-    public hp: number = 10,
-    public maxHp: number = 10,
-    public mana: number = 30,
-    public maxMana: number = 30,
+    public hp: number = 0,
+    public maxHp: number = 0,
+    public mana: number = 0,
+    public maxMana: number = 0,
 
     // defense
-    public armor: number = 2,
+    public armor: number = 0,
     public evasion: number = 0,
 
     // attack
-    public damage: number = 5,
-    public attackSpeed: number = 1,
-    public critMultiplier: number = 1,
-    public critChance: number = 2,
+    public damage: number = 0,
+    public attackSpeed: number = 0,
+    public critMultiplier: number = 0,
+    public critChance: number = 0,
 
     // attak - status
     public poisonDamage: number = 0,

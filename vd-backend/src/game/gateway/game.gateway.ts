@@ -18,6 +18,7 @@ import { ItemType } from '../class/Item';
 import { PartyHandler } from './party.handler';
 import { GameSocket } from './base.handler';
 import { ChatHandler } from './chat.handler';
+import { NpcHandler } from './npc.handler';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class GameGateway
@@ -33,6 +34,7 @@ export class GameGateway
     private readonly inventoryHandler: InventoryHandler,
     private readonly partyHandler: PartyHandler,
     private readonly chatHandler: ChatHandler,
+    private readonly npcHandler: NpcHandler,
   ) {}
 
   onModuleInit() {
@@ -42,6 +44,7 @@ export class GameGateway
     this.inventoryHandler.setServer(this.server);
     this.partyHandler.setServer(this.server);
     this.chatHandler.setServer(this.server);
+    this.npcHandler.setServer(this.server);
   }
 
   async handleConnection(client: GameSocket): Promise<void> {
@@ -126,6 +129,17 @@ export class GameGateway
   ): Promise<void> {
     this.logger.log(`Sell item request received from client ${client.id}`);
     await this.inventoryHandler.handleSellItem(data, client);
+  }
+
+  @SubscribeMessage('npcInteraction')
+  async npcInteraction(
+    @MessageBody() data: { actionId: number },
+    @ConnectedSocket() client: GameSocket,
+  ): Promise<void> {
+    this.logger.log(
+      `Npc interaction request received from client ${client.id}`,
+    );
+    this.npcHandler.handleNpcInteraction(client, data.actionId);
   }
 
   @SubscribeMessage('dismantleItem')

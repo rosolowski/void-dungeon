@@ -54,7 +54,7 @@ export class InstanceManager {
 
   addGameInstance(depth: number): GameInstance {
     const newInstanceId = this.nextFreeInstance++;
-    const { location, entities } = this.generateNewLocation();
+    const { location, entities } = this.generateNewLocation(depth);
     const entityMap = new Map(entities.map((entity) => [entity.id, entity]));
 
     const newInstance = new GameInstance(
@@ -70,9 +70,12 @@ export class InstanceManager {
     return newInstance;
   }
 
-  private generateNewLocation(): { location: Location; entities: Entity[] } {
+  private generateNewLocation(depth: number): {
+    location: Location;
+    entities: Entity[];
+  } {
     const generator = new MapGenerator(80, 50);
-    generator.generateTerrainAndEntities(1, this.nextFreeInstance);
+    generator.generateTerrainAndEntities(depth, this.nextFreeInstance);
 
     const location = new Location();
     location.terrain = generator.getTerrain();

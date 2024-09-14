@@ -38,16 +38,20 @@ export class CombatHandler extends BaseHandler {
 
     try {
       const character: Character = client.data.character;
-      const { success, instance, attackLog } = this.game.attackEntity(
-        character,
-        data.entityId,
-      );
+      const { success, instance, attackLog, entityType } =
+        this.game.attackEntity(character, data.entityId);
 
       console.log('success', success);
 
       if (success && instance && attackLog) {
         this.emitEntityAttack(client, instance, attackLog);
-        await this.handleAttackResult(client, character, attackLog, instance);
+        await this.handleAttackResult(
+          client,
+          character,
+          attackLog,
+          instance,
+          entityType,
+        );
       } else {
         console.log('success false (else)');
         throw new Error('Invalid attack attempt');
@@ -62,6 +66,7 @@ export class CombatHandler extends BaseHandler {
     character: Character,
     attackLog: AttackLog,
     instance: GameInstance,
+    entityType: string,
   ): Promise<void> {
     if (attackLog.characterDied) {
       await this.handleCharacterDeath(client, character);
@@ -69,10 +74,49 @@ export class CombatHandler extends BaseHandler {
 
     if (attackLog.entityDied) {
       this.game.removeEntity(instance, attackLog.entityId);
-      await this.handleEntityDeath(client, character);
+      if (entityType === 'chest') {
+        await this.handleChestOpening(client, character);
+      } else {
+        await this.handleEntityDeath(client, character, instance.depth);
+      }
     }
 
     client.emit('updateStats', character.stats);
+  }
+
+  private async handleChestOpening(
+    client: GameSocket,
+    character: Character,
+  ): Promise<void> {
+    const droppedItems =
+      await this.inventoryService.generateAndAddGuaranteedItems(
+        character,
+        character.level,
+        3,
+      );
+
+    console.log('Chest opened, items dropped:', droppedItems.length);
+    if (droppedItems.length > 0) {
+      for (const item of droppedItems) {
+        client.emit('itemDropped', item);
+      }
+      await this.emitUpdatedInventoryFromDb(client);
+    }
+  }
+
+  private async handleEntityDeath(
+    client: GameSocket,
+    character: Character,
+    enemyLevel: number,
+  ): Promise<void> {
+    const droppedItem = await this.inventoryService.generateAndAddItem(
+      character,
+      enemyLevel,
+    );
+    if (droppedItem) {
+      client.emit('itemDropped', droppedItem);
+      await this.emitUpdatedInventoryFromDb(client);
+    }
   }
 
   private async handleCharacterDeath(
@@ -93,21 +137,6 @@ export class CombatHandler extends BaseHandler {
 
     this.game.connectCharacterToInstance(character);
     this.emitCharacterJoinInstance(cityInstance, client);
-  }
-
-  private async handleEntityDeath(
-    client: GameSocket,
-    character: Character,
-  ): Promise<void> {
-    const droppedItem = await this.inventoryService.generateAndAddItem(
-      character,
-      character.level,
-    );
-    console.log('item dropped');
-    if (droppedItem) {
-      client.emit('itemDropped', droppedItem);
-      await this.emitUpdatedInventoryFromDb(client);
-    }
   }
 
   private async emitUpdatedInventoryFromDb(client: GameSocket): Promise<void> {

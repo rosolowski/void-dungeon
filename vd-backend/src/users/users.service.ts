@@ -80,6 +80,37 @@ export class UsersService {
       throw new Error(`User with ID ${userId} not found`);
     }
 
+    const defaultStats = {
+      hp: 10,
+      maxHp: 10,
+      mana: 30,
+      maxMana: 30,
+      armor: 2,
+      evasion: 0,
+      damage: 5,
+      attackSpeed: 1,
+      critMultiplier: 1,
+      critChance: 0.02,
+      poisonDamage: 0,
+      fireDamage: 0,
+      coldDamage: 0,
+      lightDamage: 0,
+      voidDamage: 0,
+      poisonChance: 0,
+      fireChance: 0,
+      coldChance: 0,
+      lightChance: 0,
+      voidChance: 0,
+      poisonStatus: 0,
+      fireStatus: 0,
+      coldStatus: 0,
+      lightStatus: 0,
+      voidStatus: 0,
+      extraCurrencyChance: 0,
+      extraDropChance: 0,
+      dropRarityBoost: 0,
+    };
+
     // create avatar
     const newAvatar = this.characterAvatarsRepository.create({
       ...characterData.avatar,
@@ -87,7 +118,7 @@ export class UsersService {
     await this.characterAvatarsRepository.save(newAvatar);
 
     // create character stats
-    const newStats = this.statsRepository.create();
+    const newStats = this.statsRepository.create(defaultStats);
     await this.statsRepository.save(newStats);
 
     // create character base stats

@@ -64,7 +64,7 @@ const statConfigurations: Record<
     armor: { probability: 0.1, valueMultiplier: 1 },
     evasion: { probability: 0.3, valueMultiplier: 1.1 },
     damage: { probability: 0.2, valueMultiplier: 0.8 },
-    attackSpeed: { probability: 0.2, valueMultiplier: 0.9 },
+    attackSpeed: { probability: 0.05, valueMultiplier: 0.9 },
     critMultiplier: { probability: 0.2, valueMultiplier: 1 },
     critChance: { probability: 0.2, valueMultiplier: 1 },
     poisonDamage: { probability: 0.1, valueMultiplier: 1 },
@@ -87,9 +87,9 @@ const statConfigurations: Record<
     armor: { probability: 0.9, valueMultiplier: 1.5 },
     evasion: { probability: 0.7, valueMultiplier: 1.2 },
     damage: { probability: 0.2, valueMultiplier: 0.7 },
-    attackSpeed: { probability: 0.1, valueMultiplier: 0.8 },
-    critMultiplier: { probability: 0.2, valueMultiplier: 0.9 },
-    critChance: { probability: 0.2, valueMultiplier: 0.9 },
+    attackSpeed: { probability: 0.05, valueMultiplier: 0.8 },
+    critMultiplier: { probability: 0.05, valueMultiplier: 0.9 },
+    critChance: { probability: 0.05, valueMultiplier: 0.9 },
     poisonDamage: { probability: 0.2, valueMultiplier: 0.9 },
     fireDamage: { probability: 0.2, valueMultiplier: 0.9 },
     coldDamage: { probability: 0.2, valueMultiplier: 0.9 },
@@ -110,7 +110,7 @@ const statConfigurations: Record<
     armor: { probability: 0.3, valueMultiplier: 1 },
     evasion: { probability: 0.6, valueMultiplier: 1.3 },
     damage: { probability: 0, valueMultiplier: 0.5 },
-    attackSpeed: { probability: 0.1, valueMultiplier: 1.1 },
+    attackSpeed: { probability: 0.05, valueMultiplier: 1.1 },
     critMultiplier: { probability: 0, valueMultiplier: 0.8 },
     critChance: { probability: 0.4, valueMultiplier: 1.2 },
     poisonDamage: { probability: 0, valueMultiplier: 0.8 },
@@ -128,18 +128,18 @@ const statConfigurations: Record<
     dropRarityBoost: { probability: 0.04, valueMultiplier: 1.2 },
   },
   [ItemType.Talisman]: {
-    maxHp: { probability: 0.1, valueMultiplier: 0.9 },
+    maxHp: { probability: 0.05, valueMultiplier: 0.9 },
     maxMana: { probability: 0.5, valueMultiplier: 1.3 },
     armor: { probability: 0, valueMultiplier: 0.7 },
     evasion: { probability: 0.7, valueMultiplier: 1.2 },
-    damage: { probability: 0.1, valueMultiplier: 0.8 },
+    damage: { probability: 0.05, valueMultiplier: 0.8 },
     attackSpeed: { probability: 0.35, valueMultiplier: 1.1 },
     critMultiplier: { probability: 0.4, valueMultiplier: 1.2 },
     critChance: { probability: 0.4, valueMultiplier: 1.2 },
-    poisonDamage: { probability: 0.1, valueMultiplier: 1.1 },
-    fireDamage: { probability: 0.1, valueMultiplier: 1.1 },
-    coldDamage: { probability: 0.1, valueMultiplier: 1.1 },
-    lightDamage: { probability: 0.1, valueMultiplier: 1.1 },
+    poisonDamage: { probability: 0.05, valueMultiplier: 1.1 },
+    fireDamage: { probability: 0.05, valueMultiplier: 1.1 },
+    coldDamage: { probability: 0.05, valueMultiplier: 1.1 },
+    lightDamage: { probability: 0.05, valueMultiplier: 1.1 },
     voidDamage: { probability: 0.1, valueMultiplier: 1.1 },
     poisonChance: { probability: 0.1, valueMultiplier: 1.1 },
     fireChance: { probability: 0.1, valueMultiplier: 1.1 },
@@ -156,8 +156,8 @@ const statConfigurations: Record<
     armor: { probability: 0.9, valueMultiplier: 1.3 },
     evasion: { probability: 0.2, valueMultiplier: 0.9 },
     damage: { probability: 0, valueMultiplier: 0.7 },
-    attackSpeed: { probability: 0.1, valueMultiplier: 0.9 },
-    critMultiplier: { probability: 0.1, valueMultiplier: 1 },
+    attackSpeed: { probability: 0, valueMultiplier: 0.9 },
+    critMultiplier: { probability: 0, valueMultiplier: 1 },
     critChance: { probability: 0, valueMultiplier: 0.8 },
     poisonDamage: { probability: 0, valueMultiplier: 0.9 },
     fireDamage: { probability: 0, valueMultiplier: 0.9 },
@@ -330,6 +330,37 @@ const rarityAdjectives: Record<ItemRarity, string[]> = {
   [ItemRarity.Legendary]: ['Godly', 'Divine', 'Celestial', 'Transcendent'],
 };
 
+const baseStatTotals: Record<keyof Stats, number> = {
+  hp: 0, // Not used for items
+  maxHp: 30,
+  mana: 0, // Not used for items
+  maxMana: 50,
+  armor: 10,
+  evasion: 0.15,
+  damage: 12,
+  attackSpeed: 0.1, // This is additional attack speed, 1 is the base
+  critMultiplier: 0.5, // This is additional crit multiplier, 1 is the base
+  critChance: 0.1,
+  poisonDamage: 3,
+  fireDamage: 3,
+  coldDamage: 3,
+  lightDamage: 3,
+  voidDamage: 3,
+  poisonChance: 0.05,
+  fireChance: 0.05,
+  coldChance: 0.05,
+  lightChance: 0.05,
+  voidChance: 0.05,
+  poisonStatus: 0, // Not used for items
+  fireStatus: 0, // Not used for items
+  coldStatus: 0, // Not used for items
+  lightStatus: 0, // Not used for items
+  voidStatus: 0, // Not used for items
+  extraCurrencyChance: 0.05,
+  extraDropChance: 0.05,
+  dropRarityBoost: 0.05,
+};
+
 export class ItemGenerator {
   static itemIdCounter: number = 0;
 
@@ -383,34 +414,35 @@ export class ItemGenerator {
     rarity: ItemRarity,
     type: ItemType,
   ): Stats {
-    const baseStats = new Stats();
+    const newStats: Partial<Stats> = {};
     const rarityMultiplier = this.getRarityMultiplier(rarity);
     const variation = 0.2;
 
-    const newStats = new Stats();
-    for (const stat in baseStats) {
+    for (const stat in baseStatTotals) {
       const key = stat as keyof Stats;
       const config = statConfigurations[type][key];
-      if (!config) {
-        newStats[key] = baseStats[key];
-        continue;
-      }
-      if (Math.random() < config.probability) {
-        const baseValue = baseStats[key] as number;
+      if (!config) continue;
+
+      if (config.probability > 0 && Math.random() < config.probability) {
+        const baseValue = baseStatTotals[key] / 6; // Divide by 6 for per-item value
         const scaledValue = this.scaleStatValue(
           baseValue,
           level,
           rarityMultiplier,
         );
         const adjustedValue = scaledValue * config.valueMultiplier;
-        newStats[key] = this.finalizeStatValue(
+        const finalValue = this.finalizeStatValue(
           key,
           this.randomize(adjustedValue, variation),
         );
+
+        newStats[key] = finalValue;
+      } else {
+        newStats[key] = 0;
       }
     }
 
-    return newStats;
+    return newStats as Stats;
   }
 
   private static finalizeStatValue(
@@ -444,7 +476,7 @@ export class ItemGenerator {
     level: number,
     rarityMultiplier: number,
   ): number {
-    return base * Math.pow(level, 1.2) * rarityMultiplier;
+    return base * Math.pow(level, 0.7) * rarityMultiplier;
   }
 
   private static randomize(value: number, variation: number): number {

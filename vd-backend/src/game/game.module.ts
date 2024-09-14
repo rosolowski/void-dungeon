@@ -21,6 +21,7 @@ import { CombatHandler } from './gateway/combat.handler';
 import { InventoryHandler } from './gateway/inventory.handler';
 import { PartyHandler } from './gateway/party.handler';
 import { ChatHandler } from './gateway/chat.handler';
+import { NpcHandler } from './gateway/npc.handler';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ChatHandler } from './gateway/chat.handler';
     InventoryHandler,
     PartyHandler,
     ChatHandler,
+    NpcHandler,
   ],
   exports: [],
   controllers: [GameController],

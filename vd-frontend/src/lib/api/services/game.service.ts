@@ -41,6 +41,10 @@ const DEBUG_WS = true;
 
 const VITE_SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 
+export enum NpcAction {
+	DoctorHeal = 1
+}
+
 export function initializeServerConnection() {
 	let client = get(socket);
 
@@ -203,6 +207,13 @@ export function initializeServerConnection() {
 	});
 }
 
+export function requestHealPlayer() {
+	const client = get(socket);
+	if (!client) return;
+
+	client.emit('npcInteraction', { actionId: NpcAction.DoctorHeal });
+}
+
 export function sendInstanceMessage(message: string) {
 	const client = get(socket);
 	if (!client) return;
@@ -305,6 +316,10 @@ export function movePlayer(dir: direction) {
 
 		if (entity && entity.type == 'monster') {
 			console.log('trying to attack: ', { entityId: entity.id });
+			const client = get(socket);
+			client?.emit('attackEntity', { entityId: entity.id });
+		} else if (entity && entity.type == 'chest') {
+			console.log('trying to open chest: ', { entityId: entity.id });
 			const client = get(socket);
 			client?.emit('attackEntity', { entityId: entity.id });
 		} else if (entity && entity.type == 'npc' && entity.id === 0) {

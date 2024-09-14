@@ -11,6 +11,7 @@ import { CharacterService } from './character.service';
 import { Character as CharacterClass } from './class/Character';
 import { ItemGenerator } from './class/ItemGenerator';
 import { Stats as StatsEntity } from './entities/stats.entity';
+import { Stats } from './class/Stats';
 
 @Injectable()
 export class InventoryService {
@@ -302,18 +303,55 @@ export class InventoryService {
     return { slotIndex: emptySlot.index, item };
   }
 
-  async generateAndAddItem(
+  async addGeneratedItemToInventory(
+    character: CharacterClass,
+    itemClass: ItemClass,
+  ): Promise<ItemEntity | null> {
+    // Convert ItemClass to ItemEntity
+    const itemEntity = this.itemRepository.create({
+      name: itemClass.name,
+      description: itemClass.description,
+      type: itemClass.type,
+      rarity: itemClass.rarity,
+    });
+
+    // Create stats entity with explicitly set values
+    const statsEntity = this.statsRepository.create();
+
+    // Set all stats to 0 by default
+    Object.keys(statsEntity).forEach((key) => {
+      if (key !== 'id') {
+        // Skip the id field
+        statsEntity[key as keyof Stats] = 0;
+      }
+    });
+
+    // Only set the stats that are present in itemClass.stats
+    Object.entries(itemClass.stats).forEach(([key, value]) => {
+      if (key !== 'id' && value !== undefined && value !== null) {
+        statsEntity[key as keyof Stats] = value;
+      }
+    });
+
+    // Assign the stats to the item
+    itemEntity.stats = statsEntity;
+
+    // Try to add item to inventory
+    try {
+      const { item: addedItem } = await this.addItem(character.id, itemEntity);
+      return addedItem;
+    } catch (error) {
+      if (error.message === 'No empty slots available in inventory.') {
+        return null; // Inventory is full, item is not added
+      }
+      throw error;
+    }
+  }
+
+  async generateItem(
     character: CharacterClass,
     enemyLevel: number,
-  ): Promise<ItemEntity | null> {
-    const baseDropChance = 0.1; // 10% base drop chance
-    const dropChance = baseDropChance + (character.stats.extraDropChance || 0);
-
-    if (Math.random() > dropChance) {
-      return null; // No item dropped
-    }
-
-    // Generate item
+  ): Promise<ItemClass> {
     const itemClass: ItemClass = ItemGenerator.generateItem(enemyLevel);
 
     // Apply rarity boost
@@ -326,25 +364,44 @@ export class InventoryService {
       }
     }
 
-    // Convert ItemClass to ItemEntity
-    const itemEntity = this.itemRepository.create({
-      name: itemClass.name,
-      description: itemClass.description,
-      type: itemClass.type,
-      rarity: itemClass.rarity,
-      stats: this.statsRepository.create(itemClass.stats),
-    });
+    return itemClass;
+  }
 
-    // Try to add item to inventory
-    try {
-      const { item: addedItem } = await this.addItem(character.id, itemEntity);
-      return addedItem;
-    } catch (error) {
-      if (error.message === 'No empty slots available in inventory.') {
-        return null; // Inventory is full, item is not added
-      }
-      throw error;
+  async generateAndAddItem(
+    character: CharacterClass,
+    enemyLevel: number,
+  ): Promise<ItemEntity | null> {
+    const baseDropChance = 0.1; // 10% base drop chance
+    const dropChance =
+      baseDropChance + (character.stats.extraDropChance / 100 || 0);
+
+    if (Math.random() > dropChance) {
+      return null; // No item dropped
     }
+
+    const itemClass = await this.generateItem(character, enemyLevel);
+    return this.addGeneratedItemToInventory(character, itemClass);
+  }
+
+  async generateAndAddGuaranteedItems(
+    character: CharacterClass,
+    enemyLevel: number,
+    count: number,
+  ): Promise<ItemEntity[]> {
+    const items: ItemEntity[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const itemClass = await this.generateItem(character, enemyLevel);
+      const addedItem = await this.addGeneratedItemToInventory(
+        character,
+        itemClass,
+      );
+      if (addedItem) {
+        items.push(addedItem);
+      }
+    }
+
+    return items;
   }
 
   async deleteItem(characterId: number, itemId: number): Promise<void> {
@@ -393,8 +450,8 @@ export class InventoryService {
     basePrice += stats.hp + stats.maxHp + stats.mana + stats.maxMana;
     basePrice += stats.armor * 5 + stats.evasion * 5;
     basePrice += stats.damage * 10;
-    basePrice += (stats.attackSpeed - 1) * 50;
-    basePrice += (stats.critMultiplier - 1) * 100 + stats.critChance * 20;
+    basePrice += stats.attackSpeed * 50;
+    basePrice += stats.critMultiplier * 100 + stats.critChance * 20;
     basePrice +=
       stats.poisonDamage +
       stats.fireDamage +

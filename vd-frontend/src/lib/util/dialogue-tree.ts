@@ -1,3 +1,4 @@
+import { requestHealPlayer } from '$lib/api/services/game.service';
 import MerchantWindow from '$lib/components/windows/MerchantWindow.svelte';
 import type { DialogueLine } from '$lib/store/dialogue';
 import { windows } from '$lib/store/windows';
@@ -13,7 +14,9 @@ function openMerchantWindow() {
 
 function openDoctorWindow() {}
 
-function healPlayer() {}
+function healPlayer() {
+	requestHealPlayer();
+}
 
 export const dialogueTree: Record<number, DialogueLine> = {
 	// Merchant

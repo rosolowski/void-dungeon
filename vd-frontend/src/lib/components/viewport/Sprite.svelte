@@ -40,6 +40,18 @@
 		background-image: url('$lib/assets/entities/monsters/skeleton.gif');
 	}
 
+	.s-orc {
+		background-image: url('$lib/assets/entities/monsters/orc.gif');
+	}
+
+	.s-living-armor {
+		background-image: url('$lib/assets/entities/monsters/living-armor.gif');
+	}
+
+	.s-treasure-chest {
+		background-image: url('$lib/assets/entities/other/treasure-chest.png');
+	}
+
 	.s-the-merchant {
 		background-image: url('$lib/assets/entities/npc/merchant.gif');
 	}

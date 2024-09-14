@@ -14,19 +14,19 @@ export class Stats {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ default: 10 })
+  @Column({ default: 0 })
   hp: number;
 
-  @Column({ default: 10 })
+  @Column({ default: 0 })
   maxHp: number;
 
-  @Column({ default: 30 })
+  @Column({ default: 0 })
   mana: number;
 
-  @Column({ default: 30 })
+  @Column({ default: 0 })
   maxMana: number;
 
-  @Column({ default: 2 })
+  @Column({ default: 0 })
   armor: number;
 
   @Column('decimal', {
@@ -37,13 +37,13 @@ export class Stats {
   })
   evasion: number;
 
-  @Column({ default: 5 })
+  @Column({ default: 0 })
   damage: number;
 
   @Column('decimal', {
     precision: 5,
     scale: 2,
-    default: 1,
+    default: 0,
     transformer: new DecimalColumnTransformer(),
   })
   attackSpeed: number;
@@ -51,7 +51,7 @@ export class Stats {
   @Column('decimal', {
     precision: 5,
     scale: 2,
-    default: 1,
+    default: 0,
     transformer: new DecimalColumnTransformer(),
   })
   critMultiplier: number;
@@ -59,7 +59,7 @@ export class Stats {
   @Column('decimal', {
     precision: 5,
     scale: 2,
-    default: 0.02,
+    default: 0,
     transformer: new DecimalColumnTransformer(),
   })
   critChance: number;

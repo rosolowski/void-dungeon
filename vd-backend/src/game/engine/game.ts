@@ -84,7 +84,12 @@ export class Game {
   attackEntity(
     character: Character,
     entityId: number,
-  ): { success: boolean; instance?: GameInstance; attackLog?: AttackLog } {
+  ): {
+    success: boolean;
+    instance?: GameInstance;
+    attackLog?: AttackLog;
+    entityType?: string;
+  } {
     const instance = this.instanceManager.getInstanceFromCharacter(character);
     if (!instance) return { success: false };
 
@@ -94,9 +99,22 @@ export class Game {
     const isValidAttack = this.isValidAttackPosition(character, entity);
     if (!isValidAttack) return { success: false };
 
-    const attackLog = simulateAttack(character, entity);
+    let attackLog: AttackLog;
 
-    return { success: true, instance, attackLog };
+    if (entity.type === 'chest') {
+      attackLog = {
+        characterAttacks: [],
+        entityAttacks: [],
+        entityDied: true,
+        characterDied: false,
+        entityId: entity.id,
+        characterId: character.id,
+      };
+    } else {
+      attackLog = simulateAttack(character, entity);
+    }
+
+    return { success: true, instance, attackLog, entityType: entity.type };
   }
 
   private isValidAttackPosition(character: Character, entity: Entity): boolean {

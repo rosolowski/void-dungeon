@@ -62,8 +62,8 @@
 		basePrice += stats.hp + stats.maxHp + stats.mana + stats.maxMana;
 		basePrice += stats.armor * 5 + stats.evasion * 5;
 		basePrice += stats.damage * 10;
-		basePrice += (stats.attackSpeed - 1) * 50;
-		basePrice += (stats.critMultiplier - 1) * 100 + stats.critChance * 20;
+		basePrice += stats.attackSpeed * 50;
+		basePrice += stats.critMultiplier * 100 + stats.critChance * 20;
 		basePrice +=
 			stats.poisonDamage +
 			stats.fireDamage +
@@ -102,21 +102,61 @@
 	}
 
 	function getComparisonStats(item: Item, equippedItem: Item | null): Partial<Stats> {
-		if (!equippedItem) return {};
-
 		const comparisonStats: Partial<Stats> = {};
-		(Object.keys(item.stats) as Array<keyof Stats>).forEach((key) => {
-			if (typeof item.stats[key] === 'number' && typeof equippedItem.stats[key] === 'number') {
-				comparisonStats[key] = item.stats[key] - equippedItem.stats[key];
-			}
+		const allStats = new Set([
+			...Object.keys(item.stats),
+			...(equippedItem ? Object.keys(equippedItem.stats) : [])
+		]);
+
+		allStats.forEach((key) => {
+			const itemValue = (item.stats as any)[key] || 0;
+			const equippedValue = equippedItem ? (equippedItem.stats as any)[key] || 0 : 0;
+			comparisonStats[key as keyof Stats] = itemValue - equippedValue;
 		});
+
 		return comparisonStats;
 	}
 
-	function formatComparison(value: number): string {
+	function formatComparison(value: number | undefined): string {
+		if (value === undefined) return '';
 		if (value > 0) return `<span style="color: green;">(+${value.toFixed(2)})</span>`;
 		if (value < 0) return `<span style="color: red;">(${value.toFixed(2)})</span>`;
 		return '';
+	}
+
+	function calculatePowerLevel(stats: Partial<Stats>): number {
+		let powerLevel = 1;
+		const weights = {
+			damage: 10,
+			attackSpeed: 200,
+			critChance: 300,
+			critMultiplier: 100,
+			armor: 5,
+			evasion: 50,
+			maxHp: 1,
+			maxMana: 1,
+			poisonDamage: 1,
+			fireDamage: 1,
+			coldDamage: 1,
+			lightDamage: 1,
+			voidDamage: 1,
+			poisonChance: 10,
+			fireChance: 10,
+			coldChance: 10,
+			lightChance: 10,
+			voidChance: 10,
+			extraCurrencyChance: 200,
+			extraDropChance: 200,
+			dropRarityBoost: 200
+		};
+
+		Object.entries(stats).forEach(([key, value]) => {
+			if (key in weights && typeof value === 'number') {
+				powerLevel += value * weights[key as keyof typeof weights];
+			}
+		});
+
+		return Math.max(1, Math.round(powerLevel));
 	}
 
 	function getTooltipContent(item: Item): string {
@@ -127,6 +167,11 @@
 			: null;
 		const comparisonStats = getComparisonStats(item, equippedItem);
 
+		const itemPowerLevel = calculatePowerLevel(item.stats);
+		const equippedPowerLevel = equippedItem ? calculatePowerLevel(equippedItem.stats) : 0;
+		const powerLevelDiff = itemPowerLevel - equippedPowerLevel;
+		const powerLevelColor = powerLevelDiff > 0 ? 'green' : powerLevelDiff < 0 ? 'red' : 'white';
+
 		let content = `
 			<div class="item-name" style="color: var(--primary);">${item.name}</div>
 			<div class="item-rarity" style="color: ${rarityColor};">${item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)}</div>
@@ -135,21 +180,32 @@
 			<div class="item-stats">
 		`;
 
-		(Object.keys(item.stats) as Array<keyof Stats>).forEach((key) => {
-			const value = item.stats[key];
-			if (value !== undefined && value !== null && value !== 0 && key !== 'hp' && key !== 'mana') {
+		Object.keys(comparisonStats).forEach((key) => {
+			const value = item.stats[key as keyof Stats];
+			const equippedValue = equippedItem ? equippedItem.stats[key as keyof Stats] : undefined;
+			const comparisonValue = comparisonStats[key as keyof Stats];
+
+			// Only show the stat if it's present in either the inspected item or the equipped item
+			if (value || equippedValue) {
 				const statName = formatStatName(key);
 				const statColor = getStatColor(key);
-				const comparisonValue = comparisonStats[key];
-				const comparisonText =
-					comparisonValue !== undefined ? formatComparison(comparisonValue) : '';
-				content += `<div class="stat" style="color: ${statColor};">${statName}: ${value} ${comparisonText}</div>`;
+				let displayValue: string | number = value !== undefined && value !== null ? value : 'N/A';
+				const comparisonText = formatComparison(comparisonValue);
+
+				let statClass = 'stat';
+				if (!value) {
+					statClass += ' missing-stat';
+					displayValue = 0;
+				}
+
+				content += `<div class="${statClass}" style="color: ${statColor};">${statName}: ${displayValue} ${comparisonText}</div>`;
 			}
 		});
 
 		content += `
 			</div>
 			<p class="item-price">${calculateItemPrice(item)} GOLD</p>
+			<div class="power-level" style="color: ${powerLevelColor};">POWER: ${itemPowerLevel} ${powerLevelDiff !== 0 ? `(${powerLevelDiff >= 0 ? '+' : ''}${powerLevelDiff})` : ''}</div>
 		`;
 
 		return content;
@@ -198,10 +254,20 @@
 		font-size: 12px;
 	}
 
+	:global(.missing-stat) {
+		opacity: 0.5;
+	}
+
 	:global(.item-price) {
 		font-size: 14px;
 		color: gold;
 		margin-top: 30px;
 		font-weight: bold;
+	}
+
+	:global(.power-level) {
+		font-size: 16px;
+		font-weight: bold;
+		margin-bottom: 10px;
 	}
 </style>
