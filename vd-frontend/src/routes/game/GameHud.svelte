@@ -28,6 +28,12 @@
 		<div class="status-container">
 			<div class="title">{$player?.name || 'unkown'} | lvl {$player?.level || '1'}</div>
 			<div class="bars">
+				<div class="exp bar">
+					<div
+						class="fill"
+						style:width={(($player?.exp || 1) / ($player?.maxExp || 1)) * 100 + '%'}
+					></div>
+				</div>
 				<div class="hp bar">
 					<div
 						class="fill"
@@ -93,6 +99,9 @@
 		}
 		.hp .fill {
 			background-color: var(--hp);
+		}
+		.exp .fill {
+			background-color: var(--exp);
 		}
 
 		.skills {

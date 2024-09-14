@@ -16,7 +16,7 @@ import type { MoveResponseDto } from '../dto/game.dto';
 import type { SerializedInventoryDto } from '../dto/inventory.dto';
 import { get } from 'svelte/store';
 import { initializeInventory } from '$lib/store/inventory';
-import { location } from '$lib/store/location';
+import { dungeonLevel, location } from '$lib/store/location';
 import { socket } from '$lib/store/ws';
 import { goto } from '$app/navigation';
 import type { Stats } from '$lib/class/Stats';
@@ -77,6 +77,7 @@ export function initializeServerConnection() {
 		inititalize(data.characters);
 		inititalizeEntities(data.entities);
 		entityTracker.set(null);
+		dungeonLevel.set(data.depth);
 		chat.clear();
 	});
 

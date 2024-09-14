@@ -128,7 +128,7 @@ export class CombatHandler extends BaseHandler {
     characterLevel: number,
     enemyLevel: number,
   ): number {
-    const baseExp = 1;
+    const baseExp = 10 + enemyLevel * 5;
     const levelDifference = enemyLevel - characterLevel;
     const multiplier = Math.max(0.1, 1 + levelDifference * 0.1);
     return Math.max(Math.round(baseExp * multiplier), 1);

@@ -9,6 +9,7 @@
 	import Dialogue from '$lib/components/viewport/Dialogue.svelte';
 	import Party from '$lib/components/game/Party.svelte';
 	import Chat from '$lib/components/game/Chat.svelte';
+	import DungeonLevel from '$lib/components/viewport/DungeonLevel.svelte';
 
 	let viewportWidth: number;
 	let viewportHeight: number;
@@ -34,6 +35,7 @@
 	<EntityTracker />
 	<Party />
 	<Chat />
+	<DungeonLevel />
 
 	{#if $player}
 		<GameHud />

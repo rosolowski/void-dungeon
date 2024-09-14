@@ -29,7 +29,7 @@ export class EntityGenerator {
       'monster',
       position,
       template.type,
-      level,
+      template.entityLevel,
       stats,
     );
   }

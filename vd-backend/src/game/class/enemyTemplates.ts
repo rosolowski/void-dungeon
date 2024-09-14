@@ -5,6 +5,7 @@ export interface EntityTemplate {
   baseStats: Partial<Stats>;
   minLevel: number;
   maxLevel: number;
+  entityLevel: number;
 }
 
 export const enemyTemplates: EntityTemplate[] = [
@@ -26,6 +27,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 1,
     maxLevel: 8,
+    entityLevel: 1,
   },
   {
     type: 'Goblin',
@@ -44,6 +46,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 1,
     maxLevel: 10,
+    entityLevel: 4,
   },
   {
     type: 'Skeleton',
@@ -61,6 +64,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 1,
     maxLevel: 12,
+    entityLevel: 12,
   },
   {
     type: 'Wolf',
@@ -78,6 +82,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 2,
     maxLevel: 11,
+    entityLevel: 20,
   },
   {
     type: 'Orc',
@@ -95,6 +100,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 5,
     maxLevel: 15,
+    entityLevel: 30,
   },
   {
     type: 'Living Armor',
@@ -112,6 +118,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 6,
     maxLevel: 16,
+    entityLevel: 45,
   },
   {
     type: 'Skeleton Warrior',
@@ -129,6 +136,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 7,
     maxLevel: 18,
+    entityLevel: 50,
   },
   {
     type: 'Dark Elf Scout',
@@ -146,6 +154,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 8,
     maxLevel: 19,
+    entityLevel: 80,
   },
   {
     type: 'Orc Warrior',
@@ -163,6 +172,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 9,
     maxLevel: 20,
+    entityLevel: 125,
   },
   {
     type: 'Harpy',
@@ -180,6 +190,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 10,
     maxLevel: 21,
+    entityLevel: 156,
   },
   {
     type: 'Ghoul',
@@ -199,6 +210,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 11,
     maxLevel: 22,
+    entityLevel: 251,
   },
   {
     type: 'Minotaur',
@@ -216,6 +228,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 12,
     maxLevel: 23,
+    entityLevel: 370,
   },
   {
     type: 'Orc Shaman',
@@ -235,6 +248,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 13,
     maxLevel: 24,
+    entityLevel: 390,
   },
   {
     type: 'Werewolf',
@@ -252,6 +266,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 14,
     maxLevel: 25,
+    entityLevel: 410,
   },
   {
     type: 'Troll',
@@ -269,6 +284,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 15,
     maxLevel: 26,
+    entityLevel: 430,
   },
   {
     type: 'Golem',
@@ -286,6 +302,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 16,
     maxLevel: 27,
+    entityLevel: 550,
   },
   {
     type: 'Vampire',
@@ -305,6 +322,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 17,
     maxLevel: 28,
+    entityLevel: 570,
   },
   {
     type: 'Chimera',
@@ -324,6 +342,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 18,
     maxLevel: 29,
+    entityLevel: 590,
   },
   {
     type: 'Orc Warlord',
@@ -341,6 +360,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 19,
     maxLevel: 30,
+    entityLevel: 210,
   },
   {
     type: 'Manticore',
@@ -360,6 +380,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 20,
     maxLevel: 31,
+    entityLevel: 230,
   },
   {
     type: 'Wraith',
@@ -379,6 +400,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 21,
     maxLevel: 32,
+    entityLevel: 250,
   },
   {
     type: 'Basilisk',
@@ -398,6 +420,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 22,
     maxLevel: 33,
+    entityLevel: 270,
   },
   {
     type: 'Ogre',
@@ -415,6 +438,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 23,
     maxLevel: 34,
+    entityLevel: 290,
   },
   {
     type: 'Necromancer',
@@ -434,6 +458,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 24,
     maxLevel: 35,
+    entityLevel: 310,
   },
   {
     type: 'Vampire Lord',
@@ -453,6 +478,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 25,
     maxLevel: 36,
+    entityLevel: 330,
   },
   {
     type: 'Frost Giant',
@@ -472,6 +498,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 26,
     maxLevel: 37,
+    entityLevel: 350,
   },
   {
     type: 'Lich',
@@ -493,6 +520,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 27,
     maxLevel: 38,
+    entityLevel: 370,
   },
   {
     type: 'Hydra',
@@ -512,6 +540,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 28,
     maxLevel: 39,
+    entityLevel: 390,
   },
   {
     type: 'Shadow Dragon',
@@ -531,6 +560,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 29,
     maxLevel: 40,
+    entityLevel: 410,
   },
   {
     type: 'Demon',
@@ -550,6 +580,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 30,
     maxLevel: 40,
+    entityLevel: 430,
   },
   {
     type: 'Behemoth',
@@ -567,6 +598,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 31,
     maxLevel: 40,
+    entityLevel: 450,
   },
   {
     type: 'Archmage',
@@ -590,6 +622,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 32,
     maxLevel: 40,
+    entityLevel: 470,
   },
   {
     type: 'Eldritch Horror',
@@ -611,6 +644,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 33,
     maxLevel: 40,
+    entityLevel: 490,
   },
   {
     type: 'Phoenix',
@@ -630,6 +664,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 34,
     maxLevel: 40,
+    entityLevel: 510,
   },
   {
     type: 'Ancient Treant',
@@ -649,6 +684,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 35,
     maxLevel: 40,
+    entityLevel: 530,
   },
   {
     type: 'Kraken',
@@ -668,6 +704,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 36,
     maxLevel: 40,
+    entityLevel: 550,
   },
   {
     type: 'Arch Demon',
@@ -689,6 +726,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 37,
     maxLevel: 40,
+    entityLevel: 570,
   },
   {
     type: 'Elder Dragon',
@@ -708,6 +746,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 38,
     maxLevel: 40,
+    entityLevel: 590,
   },
   {
     type: 'Cosmic Entity',
@@ -729,6 +768,7 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 39,
     maxLevel: 40,
+    entityLevel: 610,
   },
   {
     type: 'Primordial Titan',
@@ -752,5 +792,6 @@ export const enemyTemplates: EntityTemplate[] = [
     },
     minLevel: 40,
     maxLevel: 40,
+    entityLevel: 630,
   },
 ];
