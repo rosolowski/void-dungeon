@@ -6,6 +6,7 @@
 
 	let inputMessage = '';
 	let inputElement: HTMLInputElement;
+	let messagesContainer: HTMLDivElement;
 
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.key === 'Enter' && !$chat.isActive) {
@@ -22,7 +23,6 @@
 			sendInstanceMessage(inputMessage.trim());
 			inputMessage = '';
 			event.stopPropagation();
-			closeChat();
 		} else if (event.key === 'Enter' && !inputMessage.trim()) {
 			event.stopPropagation();
 			closeChat();
@@ -35,6 +35,16 @@
 
 	function setActive(active: boolean) {
 		chat.setActive(active);
+	}
+
+	function scrollToBottom() {
+		if (messagesContainer) {
+			messagesContainer.scrollTop = messagesContainer.scrollHeight;
+		}
+	}
+
+	$: if ($chat.messages.length > 0) {
+		setTimeout(scrollToBottom, 0);
 	}
 
 	onMount(() => {
@@ -50,7 +60,7 @@
 	<div class="chat-container" class:active={$chat.isActive}>
 		{#if $chat.isActive}
 			<button class="close-button" on:click={closeChat}>[x]</button>
-			<div class="messages">
+			<div class="messages" bind:this={messagesContainer}>
 				{#each $chat.messages as message}
 					<div class="message">
 						<strong>{message.from}:</strong>
@@ -70,6 +80,8 @@
 				<strong>{$chat.messages[$chat.messages.length - 1].from}:</strong>
 				{$chat.messages[$chat.messages.length - 1].message}
 			</div>
+		{:else}
+			<div class="last-message">Chat</div>
 		{/if}
 	</div>
 {/if}
@@ -84,17 +96,20 @@
 		width: 300px;
 		background-color: var(--background);
 		border: 1px solid var(--tetriary);
-		transition: all 0.3s ease;
+		transition: transform 0.3s ease;
 		z-index: var(--zi-chat);
 	}
 
 	.chat-container:not(.active) {
+		min-height: 20px;
 		opacity: 0.5;
 		pointer-events: none;
 	}
 
 	.chat-container.active {
 		height: 400px;
+		transform: translateY(-20px);
+		bottom: 0px;
 	}
 
 	.close-button {
@@ -109,6 +124,7 @@
 	.messages {
 		flex: 1;
 		overflow-y: auto;
+		overflow-x: hidden;
 		padding: 10px;
 	}
 

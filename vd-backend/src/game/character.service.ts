@@ -22,6 +22,71 @@ export class CharacterService {
     });
   }
 
+  async addExperience(
+    character: CharacterClass,
+    expAmount: number,
+  ): Promise<{ leveledUp: boolean; newLevel?: number }> {
+    character.exp += expAmount;
+    let leveledUp = false;
+    let newLevel;
+
+    while (character.exp >= character.maxExp) {
+      await this.levelUp(character);
+      leveledUp = true;
+      newLevel = character.level;
+    }
+
+    await this.syncCharacterToDatabase(character);
+
+    return { leveledUp, newLevel };
+  }
+
+  private async levelUp(character: CharacterClass): Promise<void> {
+    character.level++;
+    character.exp -= character.maxExp;
+    character.maxExp = this.calculateNextLevelExp(character.level);
+
+    // Increase stats based on level up
+    await this.increaseStatsOnLevelUp(character);
+  }
+
+  private calculateNextLevelExp(level: number): number {
+    return Math.floor(5 * Math.pow(level, 1.5));
+  }
+
+  private async increaseStatsOnLevelUp(
+    character: CharacterClass,
+  ): Promise<void> {
+    character.stats.maxHp += 5;
+    character.stats.maxMana += 2;
+    character.stats.damage += 2;
+    character.stats.armor += 1;
+
+    character.stats.hp = character.stats.maxHp;
+    character.stats.mana = character.stats.maxMana;
+
+    await this.syncStatsToDatabase(character);
+  }
+
+  async syncCharacterToDatabase(character: CharacterClass): Promise<void> {
+    const characterEntity = await this.charactersRepository.findOne({
+      where: { id: character.id },
+      relations: ['stats'],
+    });
+
+    if (!characterEntity) {
+      console.error('Character not found in database.');
+      return;
+    }
+
+    characterEntity.level = character.level;
+    characterEntity.exp = character.exp;
+    characterEntity.maxExp = character.maxExp;
+
+    await this.charactersRepository.save(characterEntity);
+    await this.syncStatsToDatabase(character);
+  }
+
   async syncStatsToDatabase(character: CharacterClass) {
     const characterEntity = await this.charactersRepository.findOne({
       where: { id: character.id },

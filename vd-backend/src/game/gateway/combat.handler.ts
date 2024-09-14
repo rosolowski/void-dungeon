@@ -117,6 +117,21 @@ export class CombatHandler extends BaseHandler {
       client.emit('itemDropped', droppedItem);
       await this.emitUpdatedInventoryFromDb(client);
     }
+
+    const expGained = this.calculateExperienceGain(character.level, enemyLevel);
+    await this.characterService.addExperience(character, expGained);
+
+    client.emit('getPlayerCharacter', character);
+  }
+
+  private calculateExperienceGain(
+    characterLevel: number,
+    enemyLevel: number,
+  ): number {
+    const baseExp = 1;
+    const levelDifference = enemyLevel - characterLevel;
+    const multiplier = Math.max(0.1, 1 + levelDifference * 0.1);
+    return Math.max(Math.round(baseExp * multiplier), 1);
   }
 
   private async handleCharacterDeath(

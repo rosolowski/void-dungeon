@@ -371,7 +371,7 @@ export class InventoryService {
     character: CharacterClass,
     enemyLevel: number,
   ): Promise<ItemEntity | null> {
-    const baseDropChance = 0.1; // 10% base drop chance
+    const baseDropChance = 0.02; // 2% base drop chance
     const dropChance =
       baseDropChance + (character.stats.extraDropChance / 100 || 0);
 
