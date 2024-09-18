@@ -118,9 +118,18 @@
 		gap: 15px;
 		.remove {
 			color: var(--hp);
+
+			&:hover {
+				color: var(--background);
+			}
 		}
 		.play {
 			color: var(--poison);
+
+			&:hover {
+				color: var(--background);
+				background: var(--poison);
+			}
 		}
 	}
 </style>

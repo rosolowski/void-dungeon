@@ -26,6 +26,7 @@
 			left var(--primaryEasingFunction) var(--primarySpeed),
 			width var(--primaryEasingFunction) var(--primarySpeed),
 			height var(--primaryEasingFunction) var(--primarySpeed);
+		will-change: width, height;
 
 		&.type-1 {
 			background-image: url('$lib/assets/tiles/t1.png');

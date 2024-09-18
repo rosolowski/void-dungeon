@@ -1,30 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { BaseHandler, GameSocket } from './base.handler';
 import { Game } from '../engine/game';
 import { Character } from '../class/Character';
 import { PartyManager } from '../engine/party-manager';
-import { Party, Voting } from '../class/Party';
-
-type PartyInviteData = {
-  inviterId: number;
-  inviterName: string;
-};
-
-type PartyUpdateData = {
-  id: number;
-  members: number[];
-  voting: Voting;
-  votes: number[];
-};
+import { Party, VoteType } from '../class/Party';
+import { DungeonProgressService } from '../dungeon-progress.service';
+import { VotingManager } from '../engine/voting-manager';
+import { GameInstance } from '../class/GameInstance';
+import { Tile } from '../engine/utils';
 
 @Injectable()
 export class PartyHandler extends BaseHandler {
   private readonly game: Game;
   private readonly partyManager: PartyManager;
+  private votingManager: VotingManager;
   private server: Server;
 
-  constructor() {
+  constructor(private readonly dungeonProgressService: DungeonProgressService) {
     super();
     this.game = Game.getInstance();
     this.partyManager = this.game.getPartyManager();
@@ -32,29 +25,19 @@ export class PartyHandler extends BaseHandler {
 
   public setServer(server: Server) {
     this.server = server;
-  }
-
-  handleDisconnection(client: GameSocket): void {
-    const character = this.getCharacter(client);
-    if (!character) return;
-
-    const party = this.partyManager.getPartyFromCharacter(character.id);
-    if (party) {
-      this.leaveParty(character.id, party);
-    }
+    this.votingManager = new VotingManager(server);
   }
 
   handleInvite(inviterClient: GameSocket, inviteeId: number): void {
     const inviter = this.getCharacter(inviterClient);
-    if (!inviter) return;
-
     const inviteeClient = this.game.getConnection(inviteeId);
-    if (!inviteeClient) {
+
+    if (!inviter || !inviteeClient) {
       this.emitError(inviterClient, 'Invited player not found');
       return;
     }
 
-    this.emitPartyInvite(inviteeClient, {
+    inviteeClient.emit('partyInvite', {
       inviterId: inviter.id,
       inviterName: inviter.name,
     });
@@ -66,35 +49,18 @@ export class PartyHandler extends BaseHandler {
     inviterId: number,
   ): void {
     const invitee = this.getCharacter(client);
-    if (!invitee) return;
+    const inviterClient = this.game.getConnection(inviterId) as GameSocket;
+    const inviter = this.getCharacter(inviterClient);
 
-    const inviterClient = this.game.getConnection(inviterId);
-    if (!inviterClient) {
+    if (!invitee || !inviter) {
       this.emitError(client, 'Inviter not found');
       return;
     }
 
-    const inviter = this.getCharacter(inviterClient as GameSocket);
-    if (!inviter) return;
-
     if (accepted) {
-      let inviterParty = this.partyManager.getPartyFromCharacter(inviter.id);
-      if (!inviterParty) {
-        const newParty = this.partyManager.createParty([inviter.id]);
-        this.setClientParty(client, newParty.id);
-        inviterClient.join(`party:${newParty.id}`);
-        inviterParty = newParty;
-      }
-
-      this.leaveCurrentParty(invitee.id);
-      this.joinParty(invitee.id, inviterParty);
-
-      this.setClientParty(client, inviterParty.id);
-      client.join(`party:${inviterParty.id}`);
-
-      this.emitPartyUpdate(inviterParty);
+      this.addMemberToParty(invitee, inviter, client, inviterClient);
     } else {
-      this.emitPartyInviteRejected(inviterClient as GameSocket, invitee.name);
+      this.emitPartyInviteRejected(inviterClient, invitee.name);
     }
   }
 
@@ -103,11 +69,162 @@ export class PartyHandler extends BaseHandler {
     if (!character) return;
 
     const party = this.partyManager.getPartyFromCharacter(character.id);
-    if (!party) return;
+    if (party) {
+      this.removeMemberFromParty(character.id, party, client);
+    }
+  }
 
+  initiateVote(
+    client: GameSocket,
+    voteType: VoteType,
+    dungeonLevel?: number,
+  ): void {
+    const character = this.getCharacter(client);
+    if (!character) return;
+
+    if (
+      voteType === 'nextLevel' &&
+      !this.canCharacterVoteNextLevel(character)
+    ) {
+      return;
+    }
+
+    const party = this.partyManager.getPartyFromCharacter(character.id);
+    if (!party) {
+      this.handleSoloAction(character, client, voteType, dungeonLevel);
+      return;
+    }
+
+    if (party.voting !== null) {
+      client.emit('voteAlreadyInProgress');
+      return;
+    }
+
+    this.votingManager.initiateVoting(
+      party,
+      voteType,
+      character.id,
+      dungeonLevel,
+    );
+  }
+
+  canCharacterVoteNextLevel(character: Character): boolean {
+    const { x, y } = character.pos;
+    const instance = this.game
+      .getInstanceManager()
+      .getInstanceFromCharacter(character);
+    if (!instance) return false;
+
+    const tile = instance.location.terrain[y][x];
+
+    return tile === Tile.STAIRS;
+  }
+
+  handleVote(client: GameSocket): void {
+    const character = this.getCharacter(client);
+    if (!character) return;
+
+    const party = this.partyManager.getPartyFromCharacter(character.id);
+    if (!party || party.voting === null) {
+      client.emit('invalidVote');
+      return;
+    }
+
+    const votingType = party.voting;
+    const votingData = { ...party.votingData };
+
+    console.log('handleVote votingData', votingData);
+
+    const vote = this.votingManager.vote(party, character.id);
+
+    console.log('handleVote vote', vote);
+
+    if (vote.success && vote.finished) {
+      const dungeonLevel = votingData?.level ?? null;
+      this.handlePartyAction(party, votingType, dungeonLevel);
+    }
+  }
+
+  private handleSoloAction(
+    character: Character,
+    client: GameSocket,
+    actionType: VoteType,
+    dungeonLevel?: number,
+  ): void {
+    switch (actionType) {
+      case 'enterDungeon':
+        if (dungeonLevel !== undefined) {
+          this.enterDungeonSolo(character, client, dungeonLevel);
+        }
+        break;
+      case 'nextLevel':
+        this.moveToNextLevel([character.id]);
+        break;
+      case 'exitDungeon':
+        this.exitDungeon([character.id]);
+        break;
+    }
+  }
+
+  private handlePartyAction(
+    party: Party,
+    actionType: VoteType,
+    dungeonLevel?: number,
+  ): void {
+    console.log(
+      'party.handler.ts : handlePartyAction : actionType',
+      actionType,
+    );
+    console.log(
+      'party.handler.ts : handlePartyAction : dungeonLevel',
+      dungeonLevel,
+    );
+    switch (actionType) {
+      case 'enterDungeon':
+        if (dungeonLevel !== undefined) {
+          this.enterDungeonParty(party.members, dungeonLevel);
+        }
+        break;
+      case 'nextLevel':
+        this.moveToNextLevel(party.members);
+        break;
+      case 'exitDungeon':
+        this.exitDungeon(party.members);
+        break;
+    }
+  }
+
+  private addMemberToParty(
+    invitee: Character,
+    inviter: Character,
+    inviteeClient: GameSocket,
+    inviterClient: GameSocket,
+  ): void {
+    let party = this.partyManager.getPartyFromCharacter(inviter.id);
+    if (!party) {
+      party = this.partyManager.createParty([inviter.id]);
+      inviterClient.join(`party:${party.id}`);
+    }
+
+    this.leaveCurrentParty(invitee.id);
+    party.members.push(invitee.id);
+
+    inviteeClient.data.partyId = party.id;
+    inviteeClient.join(`party:${party.id}`);
+
+    this.emitPartyUpdate(party);
+  }
+
+  private removeMemberFromParty(
+    characterId: number,
+    party: Party,
+    client: GameSocket,
+  ): void {
     client.leave(`party:${party.id}`);
-    this.removeClientParty(client);
-    this.leaveParty(character.id, party);
+    delete client.data.partyId;
+
+    party.members = party.members.filter((id) => id !== characterId);
+    party.votes = party.votes.filter((id) => id !== characterId);
 
     if (party.members.length > 0) {
       this.emitPartyUpdate(party);
@@ -116,60 +233,20 @@ export class PartyHandler extends BaseHandler {
     }
   }
 
-  handleVoteNextLevel(client: GameSocket): void {
-    const character = this.getCharacter(client);
-    if (!character) return;
-
-    const party = this.partyManager.getPartyFromCharacter(character.id);
-    if (!party) {
-      this.moveToNextLevel([character.id]);
-      return;
-    }
-
-    if (party.voting !== 'nextLevel') {
-      party.voting = 'nextLevel';
-      party.votes = [character.id];
-    } else if (!party.votes.includes(character.id)) {
-      party.votes.push(character.id);
-    }
-
-    if (party.votes.length === party.members.length) {
-      this.moveToNextLevel(party.members);
-      party.voting = null;
-      party.votes = [];
-    }
-
-    this.emitPartyUpdate(party);
-  }
-
   private leaveCurrentParty(characterId: number): void {
     const currentParty = this.partyManager.getPartyFromCharacter(characterId);
     if (currentParty) {
-      this.leaveParty(characterId, currentParty);
+      currentParty.members = currentParty.members.filter(
+        (id) => id !== characterId,
+      );
+      currentParty.votes = currentParty.votes.filter(
+        (id) => id !== characterId,
+      );
+      this.emitPartyUpdate(currentParty);
     }
   }
 
-  private leaveParty(characterId: number, party: Party): void {
-    party.members = party.members.filter((id) => id !== characterId);
-    party.votes = party.votes.filter((id) => id !== characterId);
-
-    if (
-      party.votes.length === party.members.length &&
-      party.voting === 'nextLevel'
-    ) {
-      this.moveToNextLevel(party.members);
-      party.voting = null;
-      party.votes = [];
-    }
-
-    this.emitPartyUpdate(party);
-  }
-
-  private joinParty(characterId: number, party: Party): void {
-    party.members.push(characterId);
-  }
-
-  private moveToNextLevel(characterIds: number[]): void {
+  private async moveToNextLevel(characterIds: number[]): Promise<void> {
     const character = this.game.getCharacterById(characterIds[0]);
     const currentInstance = this.game
       .getInstanceManager()
@@ -178,9 +255,9 @@ export class PartyHandler extends BaseHandler {
       currentInstance.depth + 1,
     );
 
-    characterIds.forEach((characterId) => {
+    for (const characterId of characterIds) {
       const character = this.game.getCharacterById(characterId);
-      if (!character) return;
+      if (!character) continue;
 
       const oldInstance = this.game.disconnectCharacterFromInstance(character);
       const { x, y } = newInstance.location.spawnCoords;
@@ -188,28 +265,139 @@ export class PartyHandler extends BaseHandler {
       character.pos.instanceId = newInstance.id;
       this.game.connectCharacterToInstance(character);
 
-      const client = this.game.getConnection(characterId);
-      if (client) {
-        client.leave(oldInstance.room);
-        client.join(newInstance.room);
-        client.emit('getPlayerCharacter', character);
-        client.emit('getInstance', newInstance.serialize());
-        client.to(newInstance.room).emit('spawnCharacter', character);
+      const socket = this.game.getConnection(characterId);
+      if (socket) {
+        const updatedProgress =
+          await this.dungeonProgressService.updateMaxReachedLevel(
+            character.id,
+            newInstance.depth,
+          );
+        if (updatedProgress) {
+          socket.emit('dungeonProgressUpdate', updatedProgress);
+        }
+
+        if (oldInstance.entities.size === 0) {
+          const updatedProgress =
+            await this.dungeonProgressService.incrementDungeonCompleted(
+              character.id,
+            );
+          if (updatedProgress) {
+            socket.emit('dungeonProgressUpdate', updatedProgress);
+          }
+        }
+
+        socket.leave(oldInstance.room);
+        socket.join(newInstance.room);
+        socket.emit('getPlayerCharacter', character);
+        socket.emit('getInstance', newInstance.serialize());
       }
-    });
+    }
 
     this.server
       .to(newInstance.room)
       .emit('partyMovedToNextLevel', newInstance.id);
   }
 
-  private serializeParty(party: Party): PartyUpdateData {
-    return {
-      id: party.id,
-      members: party.members,
-      voting: party.voting,
-      votes: party.votes,
-    };
+  private async enterDungeonSolo(
+    character: Character,
+    client: GameSocket,
+    level: number,
+  ): Promise<void> {
+    const maxReachedLevel = (
+      await this.dungeonProgressService.getDungeonProgress(character.id)
+    ).maxReachedLevel;
+
+    if (level > maxReachedLevel) {
+      this.emitError(
+        client,
+        'Cannot enter a level higher than your max reached level',
+      );
+      return;
+    }
+
+    const oldInstance = this.game.disconnectCharacterFromInstance(character);
+    this.emitCharacterLeaveInstance(oldInstance, client);
+
+    const newInstance = this.game.generateNewInstance(level);
+    const { x, y } = newInstance.location.spawnCoords;
+    character.setPos(x, y);
+    character.pos.instanceId = newInstance.id;
+
+    const updatedProgress =
+      await this.dungeonProgressService.updateMaxReachedLevel(
+        character.id,
+        level,
+      );
+    if (updatedProgress) {
+      client.emit('dungeonProgressUpdate', updatedProgress);
+    }
+
+    this.game.connectCharacterToInstance(character);
+    this.emitCharacterJoinInstance(newInstance, client);
+  }
+
+  private async enterDungeonParty(
+    characterIds: number[],
+    level: number,
+  ): Promise<void> {
+    console.log('entering party', characterIds, level);
+    const newInstance = this.game.generateNewInstance(level);
+
+    for (const characterId of characterIds) {
+      const character = this.game.getCharacterById(characterId);
+      if (!character) continue;
+
+      const oldInstance = this.game.disconnectCharacterFromInstance(character);
+      const { x, y } = newInstance.location.spawnCoords;
+      character.setPos(x, y);
+      character.pos.instanceId = newInstance.id;
+      this.game.connectCharacterToInstance(character);
+
+      const socket = this.game.getConnection(characterId);
+      if (socket) {
+        this.emitCharacterJoinInstance(newInstance, socket);
+        const updatedProgress =
+          await this.dungeonProgressService.updateMaxReachedLevel(
+            character.id,
+            newInstance.depth,
+          );
+        if (updatedProgress) {
+          socket.emit('dungeonProgressUpdate', updatedProgress);
+        }
+
+        socket.leave(oldInstance.room);
+        socket.join(newInstance.room);
+        socket.emit('getPlayerCharacter', character);
+        socket.emit('getInstance', newInstance.serialize());
+      }
+    }
+
+    this.server
+      .to(newInstance.room)
+      .emit('partyMovedToNextLevel', newInstance.id);
+  }
+
+  private exitDungeon(characterIds: number[]): void {
+    const cityInstance = this.game.getCityInstance();
+
+    for (const characterId of characterIds) {
+      const character = this.game.getCharacterById(characterId);
+      if (!character) continue;
+
+      const oldInstance = this.game.disconnectCharacterFromInstance(character);
+      this.game.addCharacterToCity(character);
+
+      const client = this.game.getConnection(characterId);
+      if (client) {
+        client.leave(oldInstance.room);
+        client.join(cityInstance.room);
+        client.emit('getPlayerCharacter', character);
+        client.emit('getInstance', cityInstance.serialize());
+        client.to(cityInstance.room).emit('spawnCharacter', character);
+      }
+    }
+
+    this.server.to(cityInstance.room).emit('partyExitedDungeon', characterIds);
   }
 
   private getCharacter(client: GameSocket): Character | undefined {
@@ -220,20 +408,8 @@ export class PartyHandler extends BaseHandler {
     return client.data.character;
   }
 
-  private setClientParty(client: GameSocket, partyId: number): void {
-    client.data.partyId = partyId;
-  }
-
-  private removeClientParty(client: GameSocket): void {
-    delete client.data.partyId;
-  }
-
   private emitError(client: GameSocket, message: string): void {
     client.emit('partyError', message);
-  }
-
-  private emitPartyInvite(client: Socket, data: PartyInviteData): void {
-    client.emit('partyInvite', data);
   }
 
   private emitPartyInviteRejected(
@@ -249,52 +425,34 @@ export class PartyHandler extends BaseHandler {
       .emit('partyUpdate', this.serializeParty(party));
   }
 
-  handleExitDungeonVote(client: GameSocket): void {
-    const character = this.getCharacter(client);
-    if (!character) return;
-
-    const party = this.partyManager.getPartyFromCharacter(character.id);
-    if (!party) {
-      this.exitDungeon([character.id]);
-      return;
-    }
-
-    if (party.voting !== 'quit') {
-      party.voting = 'quit';
-      party.votes = [character.id];
-    } else if (!party.votes.includes(character.id)) {
-      party.votes.push(character.id);
-    }
-
-    if (party.votes.length === party.members.length) {
-      this.exitDungeon(party.members);
-      party.voting = null;
-      party.votes = [];
-    }
-
-    this.emitPartyUpdate(party);
+  private emitCharacterLeaveInstance(
+    instance: GameInstance,
+    client: GameSocket,
+  ): void {
+    client.to(instance.room).emit('removeCharacter', client.data.character.id);
+    client.leave(instance.room);
   }
 
-  private exitDungeon(characterIds: number[]): void {
-    const cityInstance = this.game.getCityInstance();
+  private emitCharacterJoinInstance(
+    instance: GameInstance,
+    client: GameSocket,
+  ): void {
+    client.join(instance.room);
+    client.emit('getPlayerCharacter', client.data.character);
+    client.emit('getInstance', instance.serialize());
+    client.to(instance.room).emit('spawnCharacter', client.data.character);
+  }
 
-    characterIds.forEach((characterId) => {
-      const character = this.game.getCharacterById(characterId);
-      if (!character) return;
-
-      const oldInstance = this.game.disconnectCharacterFromInstance(character);
-      this.game.addCharacterToCity(character);
-
-      const client = this.game.getConnection(characterId);
-      if (client) {
-        client.leave(oldInstance.room);
-        client.join(cityInstance.room);
-        client.emit('getPlayerCharacter', character);
-        client.emit('getInstance', cityInstance.serialize());
-        client.to(cityInstance.room).emit('spawnCharacter', character);
-      }
-    });
-
-    this.server.to(cityInstance.room).emit('partyExitedDungeon', characterIds);
+  private serializeParty(party: Party): any {
+    return {
+      id: party.id,
+      members: party.members,
+      voting: party.voting,
+      votes: party.votes,
+      votingLevel:
+        party.votingData && party.votingData.level
+          ? party.votingData.level
+          : null,
+    };
   }
 }

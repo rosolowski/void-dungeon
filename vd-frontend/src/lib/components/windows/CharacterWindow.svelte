@@ -6,6 +6,14 @@
 
 	$: stats = $player ? $player.stats : null;
 	$: equipment = $inventory ? $inventory.equipment : null;
+
+	function formatStat(value: number | undefined): string {
+		if (value === null || value === undefined) return '0';
+		if (Math.floor(value) === value) {
+			return value.toString();
+		}
+		return value.toFixed(2);
+	}
 </script>
 
 <div class="character-window">
@@ -142,19 +150,19 @@
 			<div class="category-values">
 				<div class="value">
 					<span class="stat-title">Damage:</span>
-					<span class="stat-value">{stats?.damage}</span>
+					<span class="stat-value">{formatStat(stats?.damage)}</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Attack Speed:</span>
-					<span class="stat-value">{stats?.attackSpeed}</span>
+					<span class="stat-value">{formatStat(stats?.attackSpeed)}</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Crit Multiplier:</span>
-					<span class="stat-value">{stats?.critMultiplier}</span>
+					<span class="stat-value">{formatStat(stats?.critMultiplier)}</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Crit Chance:</span>
-					<span class="stat-value">{stats?.critChance}%</span>
+					<span class="stat-value">{formatStat(stats?.critChance)}%</span>
 				</div>
 			</div>
 		</div>
@@ -164,11 +172,11 @@
 			<div class="category-values">
 				<div class="value">
 					<span class="stat-title">Armor:</span>
-					<span class="stat-value">{stats?.armor}</span>
+					<span class="stat-value">{formatStat(stats?.armor)}</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Evasion:</span>
-					<span class="stat-value">{stats?.evasion}%</span>
+					<span class="stat-value">{formatStat(stats?.evasion)}%</span>
 				</div>
 			</div>
 		</div>
@@ -178,45 +186,45 @@
 			<div class="category-values">
 				<div class="value">
 					<span class="stat-title">Poison Damage:</span>
-					<span class="stat-value poison">{stats?.poisonDamage}</span>
+					<span class="stat-value poison">{formatStat(stats?.poisonDamage)}</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Fire Damage:</span>
-					<span class="stat-value fire">{stats?.fireDamage}</span>
+					<span class="stat-value fire">{formatStat(stats?.fireDamage)}</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Cold Damage:</span>
-					<span class="stat-value cold">{stats?.coldDamage}</span>
+					<span class="stat-value cold">{formatStat(stats?.coldDamage)}</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Light Damage:</span>
-					<span class="stat-value light">{stats?.lightDamage}</span>
+					<span class="stat-value light">{formatStat(stats?.lightDamage)}</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Void Damage:</span>
-					<span class="stat-value void">{stats?.voidDamage}</span>
+					<span class="stat-value void">{formatStat(stats?.voidDamage)}</span>
 				</div>
 
 				<br />
 				<div class="value">
 					<span class="stat-title">Poison Chance:</span>
-					<span class="stat-value poison">{stats?.poisonChance}%</span>
+					<span class="stat-value poison">{formatStat(stats?.poisonChance)}%</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Fire Chance:</span>
-					<span class="stat-value fire">{stats?.fireChance}%</span>
+					<span class="stat-value fire">{formatStat(stats?.fireChance)}%</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Cold Chance:</span>
-					<span class="stat-value cold">{stats?.coldChance}%</span>
+					<span class="stat-value cold">{formatStat(stats?.coldChance)}%</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Light Chance:</span>
-					<span class="stat-value light">{stats?.lightChance}%</span>
+					<span class="stat-value light">{formatStat(stats?.lightChance)}%</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Void Chance:</span>
-					<span class="stat-value void">{stats?.voidChance}%</span>
+					<span class="stat-value void">{formatStat(stats?.voidChance)}%</span>
 				</div>
 			</div>
 		</div>
@@ -226,15 +234,15 @@
 			<div class="category-values">
 				<div class="value">
 					<span class="stat-title">Extra Currency Chance:</span>
-					<span class="stat-value">{stats?.extraCurrencyChance}%</span>
+					<span class="stat-value">{formatStat(stats?.extraCurrencyChance)}%</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Extra Drop Chance:</span>
-					<span class="stat-value">{stats?.extraDropChance}%</span>
+					<span class="stat-value">{formatStat(stats?.extraDropChance)}%</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Drop Rarity Boost:</span>
-					<span class="stat-value">{stats?.dropRarityBoost}</span>
+					<span class="stat-value">{formatStat(stats?.dropRarityBoost)}</span>
 				</div>
 			</div>
 		</div>

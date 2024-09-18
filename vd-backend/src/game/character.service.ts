@@ -3,6 +3,7 @@ import { Item as ItemEntity } from './entities/item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Character } from './entities/character.entity';
 import { Character as CharacterClass } from './class/Character';
+import { CharacterClass as CharacterClassType } from './class/Character';
 import { Repository } from 'typeorm';
 import { Stats } from './entities/stats.entity';
 
@@ -57,15 +58,86 @@ export class CharacterService {
   private async increaseStatsOnLevelUp(
     character: CharacterClass,
   ): Promise<void> {
-    character.stats.maxHp += 5;
-    character.stats.maxMana += 2;
-    character.stats.damage += 2;
-    character.stats.armor += 1;
+    const baseIncrease = {
+      maxHp: 2,
+      maxMana: 1,
+      damage: 1,
+      armor: 0,
+    };
+
+    const classSpecificIncrease = this.getClassSpecificStatIncrease(
+      character.charClass,
+    );
+
+    character.stats.maxHp +=
+      baseIncrease.maxHp + classSpecificIncrease.maxHp || 0;
+    character.stats.maxMana +=
+      baseIncrease.maxMana + classSpecificIncrease.maxMana || 0;
+    character.stats.damage +=
+      baseIncrease.damage + classSpecificIncrease.damage || 0;
+    character.stats.armor +=
+      baseIncrease.armor + classSpecificIncrease.armor || 0;
+
+    Object.entries(classSpecificIncrease).forEach(([stat, value]) => {
+      if (
+        stat in character.stats &&
+        stat !== 'maxHp' &&
+        stat !== 'maxMana' &&
+        stat !== 'damage' &&
+        stat !== 'armor'
+      ) {
+        character.stats[stat] += value;
+      }
+    });
 
     character.stats.hp = character.stats.maxHp;
     character.stats.mana = character.stats.maxMana;
 
     await this.syncStatsToDatabase(character);
+  }
+
+  private getClassSpecificStatIncrease(
+    charClass: CharacterClassType,
+  ): Partial<Stats> {
+    switch (charClass) {
+      case 'Blood Knight':
+        return {
+          maxHp: 3,
+          armor: 1,
+          damage: 1,
+        };
+      case 'Berserk':
+        return {
+          maxHp: 1,
+          damage: 2,
+          attackSpeed: 0.05,
+          critChance: 0.2,
+        };
+      case 'Toxin Rogue':
+        return {
+          evasion: 0.5,
+          poisonDamage: 2,
+          poisonChance: 0.2,
+          critChance: 0.3,
+        };
+      case 'Shadow Monk':
+        return {
+          maxMana: 2,
+          evasion: 0.1,
+          attackSpeed: 0.02,
+          critChance: 0.1,
+        };
+      case 'Battle Mage':
+        return {
+          maxMana: 3,
+          fireDamage: 3,
+          coldDamage: 2,
+          fireChance: 0.2,
+          coldChance: 0.2,
+        };
+      default:
+        return {};
+    }
   }
 
   async syncCharacterToDatabase(character: CharacterClass): Promise<void> {

@@ -7,6 +7,10 @@
 	import InventoryWindow from '$lib/components/windows/InventoryWindow.svelte';
 	import { disconnectFromServer, exitDungeon } from '$lib/api/services/game.service';
 	import { addTestItem } from '$lib/store/inventory';
+	import { dungeonLevel } from '$lib/store/location';
+	import { dungeonProgress } from '$lib/store/dungeon-progress';
+	import DungeonProgress from '$lib/components/game/DungeonProgress.svelte';
+	import DungeonProgressWindow from '$lib/components/windows/DungeonProgressWindow.svelte';
 
 	function openCharacterWindow() {
 		windows.openWindow({
@@ -22,6 +26,15 @@
 			id: 'inventoryWindow',
 			title: 'Inventory',
 			component: InventoryWindow,
+			props: {}
+		});
+		open = false;
+	}
+	function openProgressWindow() {
+		windows.openWindow({
+			id: 'progressWindow',
+			title: 'Progress',
+			component: DungeonProgressWindow,
 			props: {}
 		});
 		open = false;
@@ -61,14 +74,17 @@
 	</div>
 
 	<ul class="actions">
-		<li><button on:click={exitDungeon}>[EXIT DUNGEON]</button></li>
+		{#if $dungeonLevel}
+			<li><button on:click={exitDungeon}>[EXIT DUNGEON]</button></li>
+		{/if}
 		<li><button on:click={openCharacterWindow}>[CHARACTER]</button></li>
 		<li><button on:click={openInventoryWindow}>[INVENTORY]</button></li>
-		<li><button on:click={openSkillsWindow}>[SKILLS]</button></li>
+		<li><button on:click={openProgressWindow}>[PROGRESS]</button></li>
+		<!-- <li><button on:click={openSkillsWindow}>[SKILLS]</button></li>
 		<li><button on:click={openLeadboardWindow}>[LEADBOARD]</button></li>
-		<li><button>[GUILD]</button></li>
+		<li><button>[GUILD]</button></li> -->
 		<br />
-		<li><button class="logout-btn" on:click={logout}>[LOG OUT]</button></li>
+		<li><button class="logout-btn danger" on:click={logout}>[LOG OUT]</button></li>
 	</ul>
 </div>
 
@@ -121,10 +137,6 @@
 		li {
 			margin-bottom: 15px;
 		}
-	}
-
-	.logout-btn {
-		color: var(--hp);
 	}
 
 	// mobile

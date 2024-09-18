@@ -37,13 +37,13 @@ export class NpcHandler extends BaseHandler {
 
   private getCharacter(client: GameSocket): Character | undefined {
     if (!client.data.character) {
-      this.emitError(client, 'Character data not found');
+      this.handleError(
+        client,
+        'NPC Handler',
+        new Error('Character data not found'),
+      );
       return undefined;
     }
     return client.data.character;
-  }
-
-  private emitError(client: GameSocket, message: string): void {
-    client.emit('partyError', message);
   }
 }

@@ -46,7 +46,7 @@ export const dialogueTree: Record<number, DialogueLine> = {
 	},
 	102: {
 		text: 'Doctor: You should feel better now.',
-		options: [{ text: 'Thanks', nextId: 100 }]
+		options: [{ text: 'Thanks', nextId: null }]
 	},
 	103: {
 		text: 'Doctor: Take a look, you will need these.',

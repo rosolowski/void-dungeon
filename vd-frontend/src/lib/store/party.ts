@@ -1,7 +1,7 @@
 import { writable, derived } from 'svelte/store';
 import type { Writable, Readable } from 'svelte/store';
 
-export type Voting = null | 'nextLevel' | 'quit';
+export type VoteType = 'nextLevel' | 'exitDungeon' | 'enterDungeon';
 
 export interface PartyMember {
 	id: number;
@@ -11,15 +11,17 @@ export interface PartyMember {
 export interface PartyState {
 	id: number | null;
 	members: PartyMember[];
-	voting: Voting;
+	voting: VoteType | null;
 	votes: number[];
+	votingLevel: number | null;
 }
 
 const initialPartyState: PartyState = {
 	id: null,
 	members: [],
 	voting: null,
-	votes: []
+	votes: [],
+	votingLevel: null
 };
 
 function createPartyStore() {
@@ -38,22 +40,24 @@ function createPartyStore() {
 				...state,
 				members: state.members.filter((m) => m.id !== memberId)
 			})),
-		startVoting: (votingType: Voting) =>
+		startVoting: (votingType: VoteType, level?: number) =>
 			update((state) => ({
 				...state,
 				voting: votingType,
-				votes: []
+				votes: [],
+				votingLevel: votingType === 'enterDungeon' ? level || null : null
 			})),
-		addVote: (memberId: number) =>
+		updateVotes: (votes: number[]) =>
 			update((state) => ({
 				...state,
-				votes: [...state.votes, memberId]
+				votes
 			})),
 		endVoting: () =>
 			update((state) => ({
 				...state,
 				voting: null,
-				votes: []
+				votes: [],
+				votingLevel: null
 			})),
 		reset: () => set(initialPartyState)
 	};
@@ -68,3 +72,68 @@ export const voteProgress: Readable<{ current: number; total: number }> = derive
 	party,
 	($party) => ({ current: $party.votes.length, total: $party.members.length })
 );
+
+function createTimedStore(initialValue: boolean) {
+	const { subscribe, set }: Writable<boolean> = writable(initialValue);
+
+	return {
+		subscribe,
+		show: () => {
+			set(true);
+			setTimeout(() => set(false), 5000);
+		},
+		hide: () => set(false)
+	};
+}
+
+export const showVoteSuccess = createTimedStore(false);
+export const showVoteFail = createTimedStore(false);
+
+function createTimerStore(initialTime: number | null) {
+	const { subscribe, set, update } = writable<number | null>(initialTime);
+	let interval: number;
+
+	return {
+		subscribe,
+		start: () => {
+			set(initialTime);
+			if (interval) clearInterval(interval);
+			interval = setInterval(() => {
+				update((time) => {
+					if (time === null || time <= 0) {
+						clearInterval(interval);
+						return 0;
+					}
+					return time - 1;
+				});
+			}, 1000);
+		},
+		stop: () => {
+			clearInterval(interval);
+			set(null);
+		},
+		reset: (time: number) => {
+			clearInterval(interval);
+			set(time);
+			interval = setInterval(() => {
+				update((time) => {
+					if (time === null || time <= 0) {
+						clearInterval(interval);
+						return 0;
+					}
+					return time - 1;
+				});
+			}, 1000);
+		}
+	};
+}
+
+export const votingTimer = createTimerStore(15);
+
+export const startVotingTimer = () => {
+	votingTimer.start();
+};
+
+export const stopVotingTimer = () => {
+	votingTimer.stop();
+};

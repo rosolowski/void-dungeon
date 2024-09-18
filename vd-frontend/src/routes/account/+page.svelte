@@ -51,6 +51,7 @@
 <style>
 	main {
 		margin-top: 60px;
+		animation: fade-in-page 1s ease;
 	}
 
 	button {

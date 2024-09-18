@@ -133,7 +133,7 @@
 		border-bottom: 1px solid var(--tetriary);
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
+		align-items: stretch;
 
 		.title {
 			padding: 5px;
@@ -141,7 +141,6 @@
 
 		.close {
 			padding: 5px;
-			color: var(--secondary);
 			cursor: pointer;
 		}
 

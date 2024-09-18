@@ -9,6 +9,7 @@ import { ItemType } from '../class/Item';
 import { Character } from '../class/Character';
 import { inventoryEntityToInventoryClass } from '../engine/utils';
 import { CITY_INSTANCE_ID } from '../constants';
+import { DungeonProgressService } from '../dungeon-progress.service';
 
 @Injectable()
 export class InventoryHandler extends BaseHandler {
@@ -18,6 +19,7 @@ export class InventoryHandler extends BaseHandler {
     private readonly inventoryService: InventoryService,
     private readonly gameService: GameService,
     private readonly characterService: CharacterService,
+    private readonly dungeonProgressService: DungeonProgressService,
   ) {
     super();
   }
@@ -123,6 +125,14 @@ export class InventoryHandler extends BaseHandler {
         data.slotIndex,
       );
       await this.emitUpdatedInventoryFromDb(client);
+      const updatedProgress =
+        await this.dungeonProgressService.updateGoldCollected(
+          character.id,
+          goldGained,
+        );
+      if (updatedProgress) {
+        client.emit('dungeonProgressUpdate', updatedProgress);
+      }
       client.emit('lootGold', { goldGained });
     } catch (error) {
       this.handleError(client, 'Sell item error', error);

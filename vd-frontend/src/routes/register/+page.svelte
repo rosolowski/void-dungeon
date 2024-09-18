@@ -5,10 +5,10 @@
 	import { register } from '$lib/api/services/auth.service';
 	import { onMount } from 'svelte';
 
-	let loginValue: string;
-	let emailValue: string;
-	let passwordValue: string;
-	let rPasswordValue: string;
+	let loginValue: string = '';
+	let emailValue: string = '';
+	let passwordValue: string = '';
+	let rPasswordValue: string = '';
 
 	let errorMessages: string[] = [];
 	let successMessage: string = '';
@@ -19,7 +19,8 @@
 		}
 	});
 
-	async function registerHandler() {
+	async function handleSubmit(event: Event) {
+		event.preventDefault();
 		if (passwordValue !== rPasswordValue) {
 			errorMessages = ['Passwords do not match!'];
 			return;
@@ -38,7 +39,7 @@
 <Header />
 
 <main>
-	<h2>Login</h2>
+	<h2>Register</h2>
 	{#each errorMessages as errorMessage}
 		<p class="error-message">{errorMessage}</p>
 	{/each}
@@ -46,27 +47,59 @@
 		<p class="success-message">{successMessage}</p>
 	{/if}
 
-	<label for="login-input">E-mail:</label><br />
-	<input type="text" name="vd-email" id="email-input" bind:value={emailValue} />
-	<br />
-	<label for="login-input">Login:</label><br />
-	<input type="text" name="vd-login" id="login-input" bind:value={loginValue} />
-	<br />
-	<label for="password-input">Password:</label><br />
-	<input type="password" name="vd-password" id="password-input" bind:value={passwordValue} />
-	<br />
-	<label for="r-password-input">Repeat password:</label><br />
-	<input type="password" name="vd-r-password" id="r-password-input" bind:value={rPasswordValue} />
-	<br /><br />
-	<button on:click={registerHandler}>[register]</button>
+	<form on:submit={handleSubmit}>
+		<label for="email-input">E-mail:</label><br />
+		<input type="text" name="vd-email" id="email-input" bind:value={emailValue} required />
+		<br />
+		<label for="login-input">Login:</label><br />
+		<input type="text" name="vd-login" id="login-input" bind:value={loginValue} required />
+		<br />
+		<label for="password-input">Password:</label><br />
+		<input
+			type="password"
+			name="vd-password"
+			id="password-input"
+			bind:value={passwordValue}
+			required
+		/>
+		<br />
+		<label for="r-password-input">Repeat password:</label><br />
+		<input
+			type="password"
+			name="vd-r-password"
+			id="r-password-input"
+			bind:value={rPasswordValue}
+			required
+		/>
+		<br /><br />
+		<button type="submit">[register]</button>
+	</form>
 </main>
 
 <style lang="scss">
+	main {
+		animation: fade-in-page 1s ease;
+	}
+
 	.error-message {
-		color: red;
+		color: var(--special-red);
 	}
 
 	.success-message {
-		color: green;
+		color: var(--poison);
+	}
+
+	form {
+		margin-top: 20px;
+	}
+
+	input {
+		margin-bottom: 10px;
+		width: 100%;
+		max-width: 300px;
+	}
+
+	button {
+		font-family: var(--font-mono);
 	}
 </style>

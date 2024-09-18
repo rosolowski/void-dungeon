@@ -50,7 +50,6 @@
 		left: 0;
 		width: 100vw;
 		background-color: var(--background);
-		border-bottom: 1px solid var(--tetriary);
 		z-index: 1000;
 		height: 64px;
 	}

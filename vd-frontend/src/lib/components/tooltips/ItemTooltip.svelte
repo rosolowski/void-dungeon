@@ -131,20 +131,20 @@
 			attackSpeed: 200,
 			critChance: 300,
 			critMultiplier: 100,
-			armor: 5,
+			armor: 10,
 			evasion: 50,
 			maxHp: 1,
-			maxMana: 1,
-			poisonDamage: 1,
-			fireDamage: 1,
-			coldDamage: 1,
-			lightDamage: 1,
-			voidDamage: 1,
-			poisonChance: 10,
-			fireChance: 10,
-			coldChance: 10,
-			lightChance: 10,
-			voidChance: 10,
+			maxMana: 0,
+			poisonDamage: 5,
+			fireDamage: 5,
+			coldDamage: 5,
+			lightDamage: 5,
+			voidDamage: 5,
+			poisonChance: 200,
+			fireChance: 200,
+			coldChance: 200,
+			lightChance: 200,
+			voidChance: 200,
 			extraCurrencyChance: 200,
 			extraDropChance: 200,
 			dropRarityBoost: 200
@@ -156,7 +156,7 @@
 			}
 		});
 
-		return Math.max(1, Math.round(powerLevel));
+		return Math.max(1, Math.round(powerLevel / 10));
 	}
 
 	function getTooltipContent(item: Item): string {

@@ -31,7 +31,7 @@
 				<div class="exp bar">
 					<div
 						class="fill"
-						style:width={(($player?.exp || 1) / ($player?.maxExp || 1)) * 100 + '%'}
+						style:width={(($player?.exp || 0) / ($player?.maxExp || 1)) * 100 + '%'}
 					></div>
 				</div>
 				<div class="hp bar">
@@ -91,6 +91,7 @@
 
 			.fill {
 				height: 100%;
+				animation: bar 8s infinite ease;
 			}
 		}
 
@@ -199,6 +200,24 @@
 			box-shadow:
 				0 0 4px var(--secondary),
 				inset -8px 8px 48px -16px var(--secondary);
+		}
+	}
+
+	@keyframes bar {
+		0% {
+			box-shadow: inset -2px 2px 8px -4px var(--secondary);
+		}
+		25% {
+			box-shadow: inset 1px 1px 5px -4px var(--secondary);
+		}
+		50% {
+			box-shadow: inset 2px -2px 8px -4px var(--secondary);
+		}
+		75% {
+			box-shadow: inset 1px -1px 5px -4px var(--secondary);
+		}
+		100% {
+			box-shadow: inset -2px 2px 8px -4px var(--secondary);
 		}
 	}
 </style>

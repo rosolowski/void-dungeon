@@ -209,17 +209,17 @@ function applyNewStatusEffects(attackerStats: TempCombatStats): StatusEffects {
 }
 
 export function processOngoingEffects(entity: Entity): void {
+  // Apply ongoing damage from poison
+  if (entity.stats.poisonStatus > 0) {
+    entity.stats.hp -= entity.stats.poisonStatus;
+  }
+
   // Reduce status effects over time
   entity.stats.poisonStatus = Math.max(entity.stats.poisonStatus - 1, 0);
   entity.stats.fireStatus = Math.max(entity.stats.fireStatus - 1, 0);
   entity.stats.coldStatus = Math.max(entity.stats.coldStatus - 1, 0);
   entity.stats.lightStatus = Math.max(entity.stats.lightStatus - 1, 0);
   entity.stats.voidStatus = Math.max(entity.stats.voidStatus - 1, 0);
-
-  // Apply ongoing damage from poison
-  if (entity.stats.poisonStatus > 0) {
-    entity.stats.hp -= entity.stats.poisonStatus;
-  }
 }
 
 export function applyStatusEffects(

@@ -17,7 +17,7 @@
 					<ItemSlot slotType="merchant" slotIndex={0} />
 				</div>
 			</div>
-			<div class="title">BUY ITEMS</div>
+			<!-- <div class="title">BUY ITEMS</div>
 			If you're looking for more power, these might interest you...
 			<div class="slots">
 				<div class="buy">
@@ -32,7 +32,7 @@
 				<div class="buy">
 					<ItemSlot slotType="merchant" slotIndex={4} acceptableTypes={[]} />
 				</div>
-			</div>
+			</div> -->
 		</div>
 	</div>
 </div>

@@ -9,6 +9,7 @@ import { AttackLog } from '../engine/battle-manager';
 import { GameInstance } from '../class/GameInstance';
 import { InventoryService } from '../inventory.service';
 import { inventoryEntityToInventoryClass } from '../engine/utils';
+import { DungeonProgressService } from '../dungeon-progress.service';
 
 @Injectable()
 export class CombatHandler extends BaseHandler {
@@ -19,6 +20,7 @@ export class CombatHandler extends BaseHandler {
     private readonly gameService: GameService,
     private readonly characterService: CharacterService,
     private readonly inventoryService: InventoryService,
+    private readonly dungeonProgressService: DungeonProgressService,
   ) {
     super();
     this.game = Game.getInstance();
@@ -34,14 +36,10 @@ export class CombatHandler extends BaseHandler {
   ): Promise<void> {
     if (!this.validateClient(client)) return;
 
-    console.log('handleAttackEntity');
-
     try {
       const character: Character = client.data.character;
       const { success, instance, attackLog, entityType } =
         this.game.attackEntity(character, data.entityId);
-
-      console.log('success', success);
 
       if (success && instance && attackLog) {
         this.emitEntityAttack(client, instance, attackLog);
@@ -53,7 +51,6 @@ export class CombatHandler extends BaseHandler {
           entityType,
         );
       } else {
-        console.log('success false (else)');
         throw new Error('Invalid attack attempt');
       }
     } catch (error) {
@@ -113,13 +110,21 @@ export class CombatHandler extends BaseHandler {
       character,
       enemyLevel,
     );
+
     if (droppedItem) {
       client.emit('itemDropped', droppedItem);
       await this.emitUpdatedInventoryFromDb(client);
     }
 
     const expGained = this.calculateExperienceGain(character.level, enemyLevel);
+
     await this.characterService.addExperience(character, expGained);
+
+    const updatedProgress =
+      await this.dungeonProgressService.incrementEnemyKilled(character.id);
+    if (updatedProgress) {
+      client.emit('dungeonProgressUpdate', updatedProgress);
+    }
 
     client.emit('getPlayerCharacter', character);
   }

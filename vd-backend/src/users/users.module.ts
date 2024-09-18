@@ -10,6 +10,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { DungeonProgressService } from 'src/game/dungeon-progress.service';
+import { DungeonProgress } from 'src/game/entities/dungeon-progress.entity';
 
 @Module({
   imports: [
@@ -21,9 +23,10 @@ import { UsersService } from './users.service';
       Equipment,
       Inventory,
       Slot,
+      DungeonProgress,
     ]),
   ],
-  providers: [UsersService, JwtService],
+  providers: [UsersService, JwtService, DungeonProgressService],
   controllers: [UsersController],
   exports: [UsersService],
 })

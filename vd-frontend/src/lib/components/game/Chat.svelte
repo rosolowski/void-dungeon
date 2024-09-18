@@ -61,12 +61,16 @@
 		{#if $chat.isActive}
 			<button class="close-button" on:click={closeChat}>[x]</button>
 			<div class="messages" bind:this={messagesContainer}>
-				{#each $chat.messages as message}
-					<div class="message">
-						<strong>{message.from}:</strong>
-						{message.message}
-					</div>
-				{/each}
+				{#if $chat.messages.length > 0}
+					{#each $chat.messages as message}
+						<div class="message">
+							<strong>{message.from}:</strong>
+							{message.message}
+						</div>
+					{/each}
+				{:else}
+					<div class="message">Silence...</div>
+				{/if}
 			</div>
 			<input
 				bind:this={inputElement}
@@ -116,7 +120,6 @@
 		position: absolute;
 		top: 5px;
 		right: 5px;
-		background: none;
 		border: none;
 		cursor: pointer;
 	}

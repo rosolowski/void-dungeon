@@ -3,17 +3,12 @@
 	import { player } from '$lib/store/player';
 	import Sprite from './Sprite.svelte';
 
-	$: posX = ($player?.pos.x || 1) * $renderer.tileSize;
-	$: posY = ($player?.pos.y || 1) * $renderer.tileSize;
+	$: tileSize = $renderer.tileSize;
+	$: position = $player?.pos || { x: 1, y: 1 };
+	$: style = `left: ${position.x * tileSize}px; top: ${position.y * tileSize}px; width: ${tileSize}px; height: ${tileSize}px;`;
 </script>
 
-<div
-	class="player"
-	style:left={`${posX}px`}
-	style:top={`${posY}px`}
-	style:width={`${$renderer.tileSize}px`}
-	style:height={`${$renderer.tileSize}px`}
->
+<div class="player" {style}>
 	<Sprite spriteId="warrior" />
 </div>
 
@@ -26,5 +21,6 @@
 			left var(--primaryEasingFunction) var(--primarySpeed),
 			width var(--primaryEasingFunction) var(--primarySpeed),
 			height var(--primaryEasingFunction) var(--primarySpeed);
+		will-change: top, left, width, height;
 	}
 </style>

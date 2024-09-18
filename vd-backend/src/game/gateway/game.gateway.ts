@@ -19,6 +19,7 @@ import { PartyHandler } from './party.handler';
 import { GameSocket } from './base.handler';
 import { ChatHandler } from './chat.handler';
 import { NpcHandler } from './npc.handler';
+import { VoteType } from '../class/Party';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class GameGateway
@@ -55,8 +56,9 @@ export class GameGateway
   handleDisconnect(client: GameSocket): void {
     this.logger.log(`Client disconnected: ${client.id}`);
     this.connectionHandler.handleDisconnect(client);
-    this.partyHandler.handleDisconnection(client as any);
+    this.partyHandler.handleLeaveParty(client);
   }
+
   @SubscribeMessage('move')
   handleMove(
     @MessageBody() data: MoveCharacterDto,
@@ -144,17 +146,21 @@ export class GameGateway
 
   @SubscribeMessage('dismantleItem')
   async handleDismantleItem(
-    client: GameSocket,
-    data: { slotIndex: number },
+    @MessageBody() data: { slotIndex: number },
+    @ConnectedSocket() client: GameSocket,
   ): Promise<void> {
+    this.logger.log(`Dismantle item request received from client ${client.id}`);
     await this.inventoryHandler.handleDismantleItem(data, client);
   }
 
   @SubscribeMessage('dismantleAllItems')
   async handleDismantleAllItems(
-    client: GameSocket,
-    data: { rarity: string },
+    @MessageBody() data: { rarity: string },
+    @ConnectedSocket() client: GameSocket,
   ): Promise<void> {
+    this.logger.log(
+      `Dismantle all items request received from client ${client.id}`,
+    );
     await this.inventoryHandler.handleDismantleAllItems(data, client);
   }
 
@@ -164,7 +170,7 @@ export class GameGateway
     @ConnectedSocket() client: GameSocket,
   ): void {
     this.logger.log(`Party invite request received from client ${client.id}`);
-    this.partyHandler.handleInvite(client as any, data.inviteeId);
+    this.partyHandler.handleInvite(client, data.inviteeId);
   }
 
   @SubscribeMessage('respondToPartyInvite')
@@ -174,7 +180,7 @@ export class GameGateway
   ): void {
     this.logger.log(`Party invite response received from client ${client.id}`);
     this.partyHandler.handleInviteResponse(
-      client as any,
+      client,
       data.accepted,
       data.inviterId,
     );
@@ -183,27 +189,30 @@ export class GameGateway
   @SubscribeMessage('leaveParty')
   handleLeaveParty(@ConnectedSocket() client: GameSocket): void {
     this.logger.log(`Leave party request received from client ${client.id}`);
-    this.partyHandler.handleLeaveParty(client as any);
+    this.partyHandler.handleLeaveParty(client);
   }
 
-  @SubscribeMessage('voteNextLevel')
-  handleVoteNextLevel(@ConnectedSocket() client: GameSocket): void {
-    this.logger.log(`Vote for next level received from client ${client.id}`);
-    this.partyHandler.handleVoteNextLevel(client as any);
+  @SubscribeMessage('initiateVote')
+  handleInitiateVote(
+    @MessageBody() data: { type: VoteType; dungeonLevel?: number },
+    @ConnectedSocket() client: GameSocket,
+  ): void {
+    this.logger.log(`Initiate vote request received from client ${client.id}`);
+    this.partyHandler.initiateVote(client, data.type, data.dungeonLevel);
   }
 
-  @SubscribeMessage('exitDungeon')
-  handleExitDungeon(@ConnectedSocket() client: GameSocket): void {
-    this.logger.log(`Exit dungeon request received from client ${client.id}`);
-    this.partyHandler.handleExitDungeonVote(client as any);
+  @SubscribeMessage('vote')
+  handleVote(@ConnectedSocket() client: GameSocket): void {
+    this.logger.log(`Vote received from client ${client.id}`);
+    this.partyHandler.handleVote(client);
   }
 
   @SubscribeMessage('sendInstanceMessage')
   handleInstanceChatMessage(
     @ConnectedSocket() client: GameSocket,
-    @MessageBody() data,
+    @MessageBody() data: { message: string },
   ): void {
     this.logger.log(`Chat message from client ${client.id}`);
-    this.chatHandler.handleInstanceMessage(client, data);
+    this.chatHandler.handleInstanceMessage(client, data.message);
   }
 }

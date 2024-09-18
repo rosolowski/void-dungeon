@@ -194,7 +194,7 @@ export class Game {
     return { success, room, newX, newY, actionType };
   }
 
-  getPartyFromCharacter(character: Character) {
+  public getPartyFromCharacter(character: Character) {
     return this.partyManager.getPartyFromCharacter(character.id);
   }
 

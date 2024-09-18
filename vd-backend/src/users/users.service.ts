@@ -14,6 +14,11 @@ import { CharacterAvatar } from 'src/game/entities/character-avatar.entity';
 import { Equipment } from 'src/game/entities/equipment.entity';
 import { Inventory } from 'src/game/entities/inventory.entity';
 import { Slot } from 'src/game/entities/slot.entity';
+import {
+  CharacterClass,
+  isValidCharacterClass,
+} from 'src/game/class/Character';
+import { DungeonProgressService } from 'src/game/dungeon-progress.service';
 
 @Injectable()
 export class UsersService {
@@ -32,6 +37,7 @@ export class UsersService {
     private inventoryRepository: Repository<Inventory>,
     @InjectRepository(Slot)
     private slotRepository: Repository<Slot>,
+    private readonly dungeonProgressService: DungeonProgressService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -59,6 +65,76 @@ export class UsersService {
     return this.usersRepository.save(newUser);
   }
 
+  private getBaseStatsForClass(charClass: CharacterClass): Partial<Stats> {
+    switch (charClass) {
+      case 'Blood Knight':
+        return {
+          hp: 20,
+          maxHp: 20,
+          mana: 5,
+          maxMana: 5,
+          armor: 3,
+          damage: 6,
+          attackSpeed: 0.9,
+          critChance: 0.03,
+        };
+      case 'Berserk':
+        return {
+          hp: 12,
+          maxHp: 12,
+          mana: 15,
+          maxMana: 15,
+          armor: 1,
+          damage: 8,
+          attackSpeed: 1.5,
+          critChance: 5,
+        };
+      case 'Toxin Rogue':
+        return {
+          hp: 10,
+          maxHp: 10,
+          mana: 25,
+          maxMana: 25,
+          armor: 1,
+          damage: 4,
+          evasion: 5,
+          attackSpeed: 1,
+          critChance: 0.5,
+          poisonDamage: 2,
+          poisonChance: 5,
+        };
+      case 'Shadow Monk':
+        return {
+          hp: 12,
+          maxHp: 12,
+          mana: 30,
+          maxMana: 30,
+          armor: 2,
+          damage: 5,
+          attackSpeed: 1.3,
+          critChance: 1,
+          evasion: 5,
+        };
+      case 'Battle Mage':
+        return {
+          hp: 10,
+          maxHp: 10,
+          mana: 35,
+          maxMana: 35,
+          armor: 1,
+          damage: 4,
+          attackSpeed: 1,
+          critChance: 0.5,
+          fireDamage: 2,
+          coldDamage: 2,
+          fireChance: 5,
+          coldChance: 5,
+        };
+      default:
+        throw new Error('Invalid character class');
+    }
+  }
+
   async findOneByUsernameWithCharacters(
     username: string,
   ): Promise<User | null> {
@@ -80,36 +156,11 @@ export class UsersService {
       throw new Error(`User with ID ${userId} not found`);
     }
 
-    const defaultStats = {
-      hp: 10,
-      maxHp: 10,
-      mana: 30,
-      maxMana: 30,
-      armor: 2,
-      evasion: 0,
-      damage: 5,
-      attackSpeed: 1,
-      critMultiplier: 1,
-      critChance: 0.02,
-      poisonDamage: 0,
-      fireDamage: 0,
-      coldDamage: 0,
-      lightDamage: 0,
-      voidDamage: 0,
-      poisonChance: 0,
-      fireChance: 0,
-      coldChance: 0,
-      lightChance: 0,
-      voidChance: 0,
-      poisonStatus: 0,
-      fireStatus: 0,
-      coldStatus: 0,
-      lightStatus: 0,
-      voidStatus: 0,
-      extraCurrencyChance: 0,
-      extraDropChance: 0,
-      dropRarityBoost: 0,
-    };
+    if (!isValidCharacterClass(characterData.class)) {
+      throw new Error('Invalid character class');
+    }
+
+    const baseStats = this.getBaseStatsForClass(characterData.class);
 
     // create avatar
     const newAvatar = this.characterAvatarsRepository.create({
@@ -118,11 +169,11 @@ export class UsersService {
     await this.characterAvatarsRepository.save(newAvatar);
 
     // create character stats
-    const newStats = this.statsRepository.create(defaultStats);
+    const newStats = this.statsRepository.create(baseStats);
     await this.statsRepository.save(newStats);
 
     // create character base stats
-    const newBaseStats = this.statsRepository.create();
+    const newBaseStats = this.statsRepository.create(baseStats);
     await this.statsRepository.save(newBaseStats);
 
     // create equipment
@@ -158,7 +209,11 @@ export class UsersService {
       inventory: newInventory,
     });
 
-    return this.charactersRepository.save(character);
+    const savedCharacter = await this.charactersRepository.save(character);
+
+    await this.dungeonProgressService.createDungeonProgress(savedCharacter);
+
+    return savedCharacter;
   }
 
   async removeCharacterForUser(

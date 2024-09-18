@@ -8,13 +8,17 @@ import {
   inventoryEntityToInventoryClass,
 } from '../engine/utils';
 import { GameInstance } from '../class/GameInstance';
+import { DungeonProgressService } from '../dungeon-progress.service';
 
 @Injectable()
 export class ConnectionHandler extends BaseHandler {
   private readonly game: Game;
   private server: Server;
 
-  constructor(private readonly gameService: GameService) {
+  constructor(
+    private readonly gameService: GameService,
+    private readonly dungeonProgressService: DungeonProgressService,
+  ) {
     super();
     this.game = Game.getInstance();
   }
@@ -98,6 +102,18 @@ export class ConnectionHandler extends BaseHandler {
     );
     this.emitCharacterJoinInstance(instance, client);
     await this.emitUpdatedInventoryFromDb(client);
+    await this.emitDungeonProgress(client);
+  }
+
+  private async emitDungeonProgress(client: GameSocket): Promise<void> {
+    const characterId = client.data?.character?.id;
+    if (characterId) {
+      const dungeonProgress =
+        await this.dungeonProgressService.getDungeonProgress(characterId);
+      if (dungeonProgress) {
+        client.emit('dungeonProgressUpdate', dungeonProgress);
+      }
+    }
   }
 
   private emitCharacterLeaveInstance(

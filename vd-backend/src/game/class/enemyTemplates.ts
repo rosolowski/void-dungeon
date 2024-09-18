@@ -69,13 +69,13 @@ export const enemyTemplates: EntityTemplate[] = [
   {
     type: 'Wolf',
     baseStats: {
-      hp: 120,
-      maxHp: 120,
+      hp: 110,
+      maxHp: 110,
       mana: 0,
       maxMana: 0,
       armor: 1,
       evasion: 6,
-      damage: 14,
+      damage: 8,
       attackSpeed: 1.3,
       critMultiplier: 1.6,
       critChance: 7,
@@ -87,13 +87,13 @@ export const enemyTemplates: EntityTemplate[] = [
   {
     type: 'Orc',
     baseStats: {
-      hp: 250,
-      maxHp: 250,
+      hp: 180,
+      maxHp: 180,
       mana: 0,
       maxMana: 0,
       armor: 5,
       evasion: 1,
-      damage: 35,
+      damage: 20,
       attackSpeed: 1,
       critMultiplier: 1.6,
       critChance: 6,

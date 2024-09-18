@@ -48,12 +48,28 @@
 		background-image: url('$lib/assets/entities/monsters/living-armor.gif');
 	}
 
+	.s-skeleton-warrior {
+		background-image: url('$lib/assets/entities/monsters/skeleton-warrior.gif');
+	}
+
+	.s-orc-warrior {
+		background-image: url('$lib/assets/entities/monsters/orc-warrior.gif');
+	}
+
+	.s-dark-elf-scout {
+		background-image: url('$lib/assets/entities/monsters/dark-elf-scout.gif');
+	}
+
 	.s-treasure-chest {
 		background-image: url('$lib/assets/entities/other/treasure-chest.png');
 	}
 
 	.s-the-merchant {
 		background-image: url('$lib/assets/entities/npc/merchant.gif');
+	}
+
+	.s-the-portal {
+		background-image: url('$lib/assets/entities/npc/the-portal.gif');
 	}
 
 	.s-the-doctor {

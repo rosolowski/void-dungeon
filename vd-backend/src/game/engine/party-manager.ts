@@ -1,5 +1,7 @@
+import { Injectable } from '@nestjs/common';
 import { Party } from '../class/Party';
 
+@Injectable()
 export class PartyManager {
   private parties = new Map<number, Party>();
   private nextFreeParty: number = 1;
@@ -7,7 +9,7 @@ export class PartyManager {
   constructor() {}
 
   createParty(members: number[]): Party {
-    const party = new Party(this.nextFreeParty++, members, null, []);
+    const party = new Party(this.nextFreeParty++, members);
     this.parties.set(party.id, party);
     return party;
   }
@@ -16,7 +18,7 @@ export class PartyManager {
     this.parties.delete(id);
   }
 
-  getParty(id: number) {
+  getParty(id: number): Party | undefined {
     return this.parties.get(id);
   }
 

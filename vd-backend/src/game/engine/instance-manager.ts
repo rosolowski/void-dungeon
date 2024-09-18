@@ -42,11 +42,20 @@ export class InstanceManager {
       75,
       new Stats(),
     );
+    const portal = new Entity(
+      2,
+      'npc',
+      { x: 16, y: 13, instanceId: CITY_INSTANCE_ID },
+      'The Portal',
+      500,
+      new Stats(),
+    );
     cityInstance.entities.set(0, merchant);
     cityInstance.entities.set(1, doctor);
+    cityInstance.entities.set(2, portal);
     cityInstance.location.collisionMap = applyEntitiesToCollisionMap(
       cityInstance.location.collisionMap,
-      [merchant, doctor],
+      [merchant, doctor, portal],
     );
 
     this.instances.set(CITY_INSTANCE_ID, cityInstance);

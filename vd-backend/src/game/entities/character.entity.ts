@@ -11,6 +11,7 @@ import { CharacterAvatar } from './character-avatar.entity';
 import { Inventory } from './inventory.entity';
 import { Stats } from './stats.entity';
 import { User } from 'src/users/user.entity';
+import { DungeonProgress } from './dungeon-progress.entity';
 
 @Entity()
 export class Character {
@@ -57,4 +58,14 @@ export class Character {
   })
   @JoinColumn()
   inventory: Inventory;
+
+  @OneToOne(
+    () => DungeonProgress,
+    (dungeonProgress) => dungeonProgress.character,
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    },
+  )
+  dungeonProgress: DungeonProgress;
 }

@@ -31,11 +31,15 @@ import { dialogueState, progressDialogue } from '$lib/store/dialogue';
 import { entityTracker } from '$lib/store/entity-tracker';
 import type { Item } from '$lib/class/Item';
 import { notifications } from '$lib/store/notifications';
-import { isInParty, party } from '$lib/store/party';
+import { isInParty, party, showVoteFail, showVoteSuccess, votingTimer } from '$lib/store/party';
 import { windows } from '$lib/store/windows';
 import { chat } from '$lib/store/chat';
+import EnterDungeonWindow from '$lib/components/windows/EnterDungeonWindow.svelte';
+import { DungeonProgress } from '$lib/class/DungeonProgress';
+import { dungeonProgress } from '$lib/store/dungeon-progress';
 
 type direction = 'up' | 'down' | 'left' | 'right';
+type VoteType = 'enterDungeon' | 'nextLevel' | 'exitDungeon';
 
 const DEBUG_WS = true;
 
@@ -79,6 +83,7 @@ export function initializeServerConnection() {
 		entityTracker.set(null);
 		dungeonLevel.set(data.depth);
 		chat.clear();
+		windows.closeWindow('portal-window');
 	});
 
 	client.on('getInventory', (data: SerializedInventoryDto) => {
@@ -154,8 +159,9 @@ export function initializeServerConnection() {
 		(data: {
 			id: number;
 			members: number[];
-			voting: null | 'nextLevel' | 'quit';
+			voting: null | VoteType;
 			votes: number[];
+			votingLevel: number | null;
 		}) => {
 			if (DEBUG_WS) console.log('partyUpdate', data);
 			const charactersMap = get(characters);
@@ -187,25 +193,71 @@ export function initializeServerConnection() {
 		if (DEBUG_WS) console.log('partyInviteRejected', inviteeName);
 	});
 
-	client.on('nextLevelVoteStarted', (data) => {
-		if (DEBUG_WS) console.log('nextLevelVoteStarted', data);
-		party.startVoting('nextLevel');
-	});
+	client.on(
+		'voteStarted',
+		(data: { voteType: VoteType; initiator: number; dungeonLevel?: number; timeout: number }) => {
+			if (DEBUG_WS) console.log('voteStarted', data);
+			party.startVoting(data.voteType, data.dungeonLevel);
+			party.updateVotes([data.initiator]);
+			votingTimer.start();
+		}
+	);
 
 	client.on('voteUpdate', (data: { votes: number[] }) => {
 		if (DEBUG_WS) console.log('voteUpdate', data);
-		party.endVoting();
-		data.votes.forEach((voterId) => party.addVote(voterId));
+		party.updateVotes(data.votes);
 	});
 
-	client.on('nextLevelVoteCancelled', (data) => {
-		if (DEBUG_WS) console.log('voteUpdate', data);
+	client.on('voteSucceeded', (data: { voteType: VoteType; votingData: any }) => {
+		if (DEBUG_WS) console.log('voteSucceeded', data);
 		party.endVoting();
+		showVoteSuccess.show();
+		votingTimer.stop();
+		windows.closeWindow('portal-window');
+	});
+
+	client.on('voteCancelled', (data: { voteType: VoteType }) => {
+		if (DEBUG_WS) console.log('voteCancelled', data);
+		party.endVoting();
+		showVoteFail.show();
+		votingTimer.stop();
 	});
 
 	client.on('chatInstanceMessage', (data) => {
 		chat.addMessage(data);
 	});
+
+	client.on('dungeonProgressUpdate', (data) => {
+		if (DEBUG_WS) console.log('dungeonProgressUpdate', data);
+		const progress = DungeonProgress.fromJSON(data);
+		dungeonProgress.set(progress);
+	});
+}
+
+export function initiateVote(voteType: VoteType, dungeonLevel?: number) {
+	const client = get(socket);
+	if (!client) return;
+
+	client.emit('initiateVote', { type: voteType, dungeonLevel });
+}
+
+export function vote() {
+	const client = get(socket);
+	if (!client) return;
+
+	client.emit('vote');
+}
+
+export function enterDungeon(level: number) {
+	initiateVote('enterDungeon', level);
+}
+
+export function voteNextLevel() {
+	initiateVote('nextLevel');
+}
+
+export function exitDungeon() {
+	initiateVote('exitDungeon');
 }
 
 export function requestHealPlayer() {
@@ -245,26 +297,13 @@ export function leaveParty() {
 	client.emit('leaveParty');
 }
 
-export function voteNextLevel() {
-	const client = get(socket);
-	if (!client) return;
-
-	client.emit('voteNextLevel');
-}
-
-export function exitDungeon() {
-	const client = get(socket);
-	if (!client) return;
-
-	client.emit('exitDungeon');
-}
-
 export function disconnectFromServer() {
 	const client = get(socket);
 	if (!client) return;
 
 	client.disconnect();
 	socket.set(null);
+	dungeonProgress.reset();
 }
 
 export function movePlayer(dir: direction) {
@@ -306,6 +345,8 @@ export function movePlayer(dir: direction) {
 
 			if (currentLocation.terrain[newY][newX] === Tile.STAIRS) {
 				if (!get(isInParty)) location.set(null);
+
+				initiateVote('nextLevel');
 			}
 
 			client.emit('move', { x: newX, y: newY });
@@ -325,11 +366,18 @@ export function movePlayer(dir: direction) {
 			client?.emit('attackEntity', { entityId: entity.id });
 		} else if (entity && entity.type == 'npc' && entity.id === 0) {
 			console.log('talk with merchant');
-
 			progressDialogue(0);
 		} else if (entity && entity.type == 'npc' && entity.id === 1) {
 			console.log('talk with doctor');
 			progressDialogue(100);
+		} else if (entity && entity.type == 'npc' && entity.id === 2) {
+			console.log('open portal');
+			windows.openWindow({
+				id: 'portal-window',
+				title: 'The Portal',
+				component: EnterDungeonWindow,
+				props: {}
+			});
 		}
 	}
 }

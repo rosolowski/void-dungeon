@@ -2,6 +2,7 @@ import { Inventory as InventoryEntity } from '../entities/inventory.entity';
 
 import { Character as CharacterClass } from '../class/Character';
 import { Character as CharacterEntity } from '../entities/character.entity';
+import { CharacterClass as CharacterClassType } from '../class/Character';
 import { Equipment as EquipmentClass } from '../class/Equipment';
 // import { Equipment as EquipmentEntity } from '../entities/equipment.entity';
 import { Inventory as InventoryClass } from '../class/Inventory';
@@ -54,7 +55,7 @@ export function characterEntityToCharacterClass(
     characterEntity.name,
     characterEntity.level,
     characterEntity.stats,
-    characterEntity.charClass,
+    characterEntity.charClass as CharacterClassType,
     characterEntity.exp,
     characterEntity.maxExp,
     characterEntity.avatar,

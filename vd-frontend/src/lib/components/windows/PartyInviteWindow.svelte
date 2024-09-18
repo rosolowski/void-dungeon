@@ -25,8 +25,8 @@
 			<p>{inviterName} has invited you to join their party!</p>
 		</div>
 		<div class="main-panel-actions">
-			<button class="accept" on:click={handleAccept}>[accept]</button>
-			<button class="decline" on:click={handleDecline}>[decline]</button>
+			<button class="good" on:click={handleAccept}>[ACCEPT]</button>
+			<button class="danger" on:click={handleDecline}>[DECLINE]</button>
 		</div>
 	</div>
 </div>
@@ -49,13 +49,5 @@
 		display: flex;
 		justify-content: center;
 		gap: 20px;
-	}
-
-	.accept {
-		color: var(--poison);
-	}
-
-	.decline {
-		color: var(--hp);
 	}
 </style>

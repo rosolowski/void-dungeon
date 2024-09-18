@@ -60,7 +60,7 @@
 					<option value={rarity}>{rarity}</option>
 				{/each}
 			</select>
-			<button on:click={dismantleAll}>Dismantle {selectedRarity}</button>
+			<button class="danger" on:click={dismantleAll}>[Dismantle {selectedRarity}]</button>
 		</div>
 
 		<div class="slots">
@@ -117,8 +117,7 @@
 			align-items: center;
 			border-bottom: 1px solid var(--tetriary);
 
-			select,
-			button {
+			select {
 				padding: 5px;
 				background-color: var(--background);
 				color: var(--text);
@@ -130,11 +129,7 @@
 			}
 
 			button {
-				cursor: pointer;
-				&:hover {
-					background-color: var(--secondary);
-					color: var(--background);
-				}
+				padding: 6px;
 			}
 		}
 
