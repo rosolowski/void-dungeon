@@ -223,6 +223,11 @@ export function initializeServerConnection() {
 		votingTimer.stop();
 	});
 
+	client.on('leftParty', () => {
+		if (DEBUG_WS) console.log('leftParty');
+		party.leaveParty();
+	});
+
 	client.on('chatInstanceMessage', (data) => {
 		chat.addMessage(data);
 	});

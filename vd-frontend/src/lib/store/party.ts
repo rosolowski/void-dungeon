@@ -59,6 +59,7 @@ function createPartyStore() {
 				votes: [],
 				votingLevel: null
 			})),
+		leaveParty: () => set(initialPartyState),
 		reset: () => set(initialPartyState)
 	};
 }

@@ -90,7 +90,7 @@ export class PartyHandler extends BaseHandler {
     }
 
     const party = this.partyManager.getPartyFromCharacter(character.id);
-    if (!party) {
+    if (!party || party.members.length === 1) {
       this.handleSoloAction(character, client, voteType, dungeonLevel);
       return;
     }
@@ -226,11 +226,19 @@ export class PartyHandler extends BaseHandler {
     party.members = party.members.filter((id) => id !== characterId);
     party.votes = party.votes.filter((id) => id !== characterId);
 
-    if (party.members.length > 0) {
+    if (party.members.length === 1) {
+      const lastMemberId = party.members[0];
+      const lastMemberClient = this.game.getConnection(lastMemberId);
+      if (lastMemberClient) {
+        this.removeMemberFromParty(lastMemberId, party, lastMemberClient);
+      }
+    } else if (party.members.length > 0) {
       this.emitPartyUpdate(party);
     } else {
       this.partyManager.deleteParty(party.id);
     }
+
+    client.emit('leftParty');
   }
 
   private leaveCurrentParty(characterId: number): void {
