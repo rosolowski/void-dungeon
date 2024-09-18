@@ -45,7 +45,7 @@
 						removing = false;
 					}}>[Cancel]</button
 				>
-				<button class="remove" on:click={removeCharacterHandler}>[DELETE]</button>
+				<button class="danger" on:click={removeCharacterHandler}>[DELETE]</button>
 			</div>
 		</div>
 	</div>
@@ -61,12 +61,12 @@
 
 		<div class="actions">
 			<button
-				class="remove"
+				class="danger"
 				on:click={() => {
 					removing = true;
 				}}>[X]</button
 			>
-			<button class="play" on:click={playHandler}>[PLAY]</button>
+			<button class="good" on:click={playHandler}>[PLAY]</button>
 		</div>
 	</div>
 </div>
@@ -116,20 +116,5 @@
 		justify-content: center;
 		align-items: center;
 		gap: 15px;
-		.remove {
-			color: var(--hp);
-
-			&:hover {
-				color: var(--background);
-			}
-		}
-		.play {
-			color: var(--poison);
-
-			&:hover {
-				color: var(--background);
-				background: var(--poison);
-			}
-		}
 	}
 </style>

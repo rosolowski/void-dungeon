@@ -7,6 +7,8 @@
 	import EntityTooltip from '../tooltips/EntityTooltip.svelte';
 	import { progressDialogue } from '$lib/store/dialogue';
 	import { player } from '$lib/store/player';
+	import { windows } from '$lib/store/windows';
+	import EnterDungeonWindow from '../windows/EnterDungeonWindow.svelte';
 
 	export let entity: Entity;
 
@@ -38,6 +40,13 @@
 					progressDialogue(0);
 				} else if (entity.id === 1) {
 					progressDialogue(100);
+				} else if (entity.id === 2) {
+					windows.openWindow({
+						id: 'portal-window',
+						title: 'The Portal',
+						component: EnterDungeonWindow,
+						props: {}
+					});
 				}
 			}
 		}

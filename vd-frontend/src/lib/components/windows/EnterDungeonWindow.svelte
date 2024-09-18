@@ -28,10 +28,6 @@
 		selectedLevel = parseInt(target.value, 10);
 	}
 
-	function handleVote() {
-		vote();
-	}
-
 	onDestroy(() => {
 		if (votingTimeout) {
 			clearTimeout(votingTimeout);
@@ -77,10 +73,9 @@
 
 <style lang="scss">
 	.portal-window {
-		width: 300px;
 		height: auto;
 		color: var(--primary);
-		padding: 20px;
+		padding: 20px 40px;
 
 		.main-panel {
 			.title {

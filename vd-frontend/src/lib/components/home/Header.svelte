@@ -49,7 +49,7 @@
 		top: 0;
 		left: 0;
 		width: 100vw;
-		background-color: var(--background);
+		background-color: transparent;
 		z-index: 1000;
 		height: 64px;
 	}

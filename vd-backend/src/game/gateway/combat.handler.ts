@@ -92,10 +92,17 @@ export class CombatHandler extends BaseHandler {
         3,
       );
 
-    console.log('Chest opened, items dropped:', droppedItems.length);
     if (droppedItems.length > 0) {
       for (const item of droppedItems) {
         client.emit('itemDropped', item);
+      }
+      const updatedProgress =
+        await this.dungeonProgressService.incrementItemFoundWithAmount(
+          character.id,
+          3,
+        );
+      if (updatedProgress) {
+        client.emit('dungeonProgressUpdate', updatedProgress);
       }
       await this.emitUpdatedInventoryFromDb(client);
     }
@@ -114,6 +121,11 @@ export class CombatHandler extends BaseHandler {
     if (droppedItem) {
       client.emit('itemDropped', droppedItem);
       await this.emitUpdatedInventoryFromDb(client);
+      const updatedProgress =
+        await this.dungeonProgressService.incrementItemFound(character.id);
+      if (updatedProgress) {
+        client.emit('dungeonProgressUpdate', updatedProgress);
+      }
     }
 
     const expGained = this.calculateExperienceGain(character.level, enemyLevel);
@@ -148,6 +160,13 @@ export class CombatHandler extends BaseHandler {
 
     character.stats.hp = 1;
     character.stats.mana = character.stats.maxMana;
+
+    character.stats.coldStatus = 0;
+    character.stats.voidStatus = 0;
+    character.stats.lightStatus = 0;
+    character.stats.fireStatus = 0;
+    character.stats.poisonStatus = 0;
+
     const cityInstance = this.game.addCharacterToCity(character);
 
     await Promise.all([

@@ -11,7 +11,6 @@
 	let loaded = false;
 
 	onMount(async () => {
-		// check if jwt is still valid
 		try {
 			await getCharacters();
 		} catch (e) {
@@ -34,34 +33,47 @@
 
 <main class="game-homepage" class:loaded>
 	<div class="content">
-		<img src={logo} alt="Void Dungeon Logo" class="logo" />
-		<h1>Void Dungeon</h1>
-		<p class="tagline">Dive into the depths. Emerge a legend.</p>
-		<div class="cta-buttons">
+		<div class="logo-container">
+			<div class="glitch-container">
+				<img src={logo} alt="Void Dungeon Logo" class="logo glitch" />
+				<img src={logo} alt="Void Dungeon Logo" class="logo glitch" />
+				<img src={logo} alt="Void Dungeon Logo" class="logo glitch" />
+			</div>
+		</div>
+		<div class="text-content">
+			<p class="tagline">Welcome to</p>
+			<h1>Void Dungeon</h1>
+		</div>
+		<div class="cta-container">
 			{#if loggedIn}
-				<a href="/game" class="cta-button primary">Enter the Dungeon</a>
-				<a href="/account" class="cta-button secondary">My Account</a>
+				<button on:click={() => (window.location.href = '/dungeon')} class="cta-button primary">
+					[ENTER DUNGEON]
+				</button>
+				<button on:click={() => (window.location.href = '/account')} class="cta-button secondary">
+					[ACCOUNT]
+				</button>
 			{:else}
-				<a href="/register" class="cta-button primary">Start Your Adventure</a>
-				<a href="/login" class="cta-button secondary">Continue Journey</a>
+				<button on:click={() => (window.location.href = '/register')} class="cta-button primary">
+					[START ADVENTURE]
+				</button>
+				<button on:click={() => (window.location.href = '/login')} class="cta-button secondary">
+					[CONTINUE]
+				</button>
 			{/if}
 		</div>
 	</div>
-	<div class="background-overlay"></div>
 </main>
 
 <style lang="scss">
 	.game-homepage {
 		display: flex;
-		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		min-height: calc(100vh - 64px);
+		min-height: 100vh;
 		padding: 16px;
-		text-align: center;
 		position: relative;
 		overflow: hidden;
-
+		background-color: var(--background);
 		opacity: 0;
 		transition: opacity 1s ease;
 
@@ -71,60 +83,127 @@
 	}
 
 	.content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 		z-index: 1;
-		max-width: 600px;
+		max-width: 800px;
+		width: 100%;
+	}
+
+	.logo-container {
+		margin-bottom: 2rem;
+	}
+
+	.glitch-container {
+		position: relative;
+		width: 250px;
+		height: 250px;
 	}
 
 	.logo {
+		position: absolute;
+		top: 0;
+		left: 0;
 		width: 256px;
 		height: 256px;
-		margin-bottom: 16px;
+		object-fit: contain;
 		image-rendering: pixelated;
+
+		&.glitch {
+			&:nth-child(2) {
+				left: 2px;
+				animation: glitch 2s infinite;
+				animation-delay: 0.1s;
+				clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+				opacity: 0.5;
+			}
+
+			&:nth-child(3) {
+				left: -2px;
+				animation: glitch 2s infinite;
+				animation-delay: 0.4s;
+				clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
+				opacity: 0.5;
+			}
+		}
+	}
+
+	@keyframes glitch {
+		0% {
+			transform: translate(0);
+		}
+		20% {
+			transform: translate(-2px, 2px);
+		}
+		40% {
+			transform: translate(-2px, -2px);
+		}
+		60% {
+			transform: translate(2px, 2px);
+		}
+		80% {
+			transform: translate(2px, -2px);
+		}
+		100% {
+			transform: translate(0);
+		}
+	}
+
+	.text-content {
+		text-align: center;
+		margin-bottom: 3rem;
 	}
 
 	h1 {
 		font-family: var(--font-mono);
 		font-size: 3rem;
 		color: var(--special-red);
-		margin: 0 0 16px;
+		margin: 0 0 1rem;
+		text-transform: uppercase;
+		letter-spacing: 4px;
+		text-shadow: 0 0 10px var(--special-red);
 	}
 
 	.tagline {
 		font-size: 1.2rem;
 		color: var(--secondary);
-		margin-bottom: 32px;
+		margin: 0;
+		letter-spacing: 1px;
 	}
 
-	.cta-buttons {
+	.cta-container {
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: 1rem;
+		width: 100%;
+		max-width: 300px;
 	}
 
 	.cta-button {
-		display: inline-block;
-		padding: 12px 24px;
+		padding: 1rem;
 		font-family: var(--font-mono);
 		font-size: 1rem;
+		text-align: center;
 		text-decoration: none;
-		border: 2px solid;
-		transition: all var(--primarySpeed) var(--primaryEasingFunction);
+		text-transform: uppercase;
+		letter-spacing: 2px;
+		position: relative;
+		overflow: hidden;
 
 		&.primary {
 			background-color: var(--special-red);
 			color: var(--primary);
-			border-color: var(--special-red);
 
 			&:hover {
-				background-color: transparent;
-				color: var(--special-red);
+				background-color: var(--hp);
 			}
 		}
 
 		&.secondary {
 			background-color: transparent;
 			color: var(--secondary);
-			border-color: var(--secondary);
+			box-shadow: inset 0 0 0 2px var(--secondary);
 
 			&:hover {
 				background-color: var(--secondary);
@@ -133,19 +212,10 @@
 		}
 	}
 
-	.background-overlay {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: radial-gradient(circle, rgba(7, 0, 1, 0.5) 0%, rgba(7, 0, 1, 0.9) 100%);
-		z-index: 0;
-	}
-
 	@media (min-width: 768px) {
-		.cta-buttons {
+		.cta-container {
 			flex-direction: row;
+			max-width: 100%;
 			justify-content: center;
 		}
 	}

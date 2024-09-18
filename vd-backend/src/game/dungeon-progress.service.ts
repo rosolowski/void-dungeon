@@ -92,6 +92,20 @@ export class DungeonProgressService {
     return null;
   }
 
+  async incrementItemFoundWithAmount(
+    characterId: number,
+    amount: number,
+  ): Promise<DungeonProgress | null> {
+    const dungeonProgress = await this.dungeonProgressRepository.findOne({
+      where: { character: { id: characterId } },
+    });
+    if (dungeonProgress) {
+      dungeonProgress.totalItemsFound += amount;
+      return this.dungeonProgressRepository.save(dungeonProgress);
+    }
+    return null;
+  }
+
   async getDungeonProgress(
     characterId: number,
   ): Promise<DungeonProgress | null> {
