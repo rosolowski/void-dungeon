@@ -1,10 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
 import { Character } from './character.entity';
 
 @Entity()
@@ -27,7 +21,6 @@ export class DungeonProgress {
   @Column({ default: 0 })
   totalItemsFound: number;
 
-  @OneToOne(() => Character, (character) => character.dungeonProgress)
-  @JoinColumn()
+  @OneToOne(() => Character, (character) => character.inventory)
   character: Character;
 }

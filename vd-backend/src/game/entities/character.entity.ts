@@ -64,8 +64,8 @@ export class Character {
     (dungeonProgress) => dungeonProgress.character,
     {
       cascade: true,
-      onDelete: 'CASCADE',
     },
   )
+  @JoinColumn()
   dungeonProgress: DungeonProgress;
 }

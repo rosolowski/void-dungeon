@@ -3,7 +3,29 @@ import { get, writable } from 'svelte/store';
 import { Character } from '$lib/class/Character';
 import type { MoveResponseDto } from '$lib/api/dto/game.dto';
 
-export const player = writable<Character | null>(null);
+function createPlayerStore() {
+	const { subscribe, set, update } = writable<Character | null>(null);
+
+	return {
+		subscribe,
+		set: (value: Character | null) => {
+			const currentPlayer = get({ subscribe });
+			const newLevel = value?.level;
+			const oldLevel = currentPlayer?.level;
+
+			set(value);
+
+			if (newLevel && oldLevel && newLevel > oldLevel) {
+				levelUp.set(true);
+			}
+		},
+		update
+	};
+}
+
+export const player = createPlayerStore();
+
+export const levelUp = writable(false);
 
 export function handleMoveCorrection(data: MoveResponseDto) {
 	const currentPlayer = get(player);

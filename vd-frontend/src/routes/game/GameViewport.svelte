@@ -10,6 +10,7 @@
 	import Party from '$lib/components/game/Party.svelte';
 	import Chat from '$lib/components/game/Chat.svelte';
 	import DungeonLevel from '$lib/components/viewport/DungeonLevel.svelte';
+	import LevelUp from '$lib/components/game/LevelUp.svelte';
 
 	let viewportWidth: number;
 	let viewportHeight: number;
@@ -36,6 +37,7 @@
 	<Party />
 	<Chat />
 	<DungeonLevel />
+	<LevelUp />
 
 	{#if $player}
 		<GameHud />
