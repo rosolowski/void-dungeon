@@ -18,8 +18,6 @@
 
 <div class="character-window">
 	<div class="secondary-panel">
-		<img src="assets/class-art/class-warrior-art.png" alt="class-art" class="class-art" />
-		<div class="class-art-overlay"></div>
 		<div class="secondary-panel-content">
 			<div class="title">EQUIPMENT</div>
 			<div class="slots">
@@ -158,7 +156,7 @@
 				</div>
 				<div class="value">
 					<span class="stat-title">Crit Multiplier:</span>
-					<span class="stat-value">{formatStat(stats?.critMultiplier)}</span>
+					<span class="stat-value">x{formatStat(stats?.critMultiplier)}</span>
 				</div>
 				<div class="value">
 					<span class="stat-title">Crit Chance:</span>
@@ -260,22 +258,6 @@
 		position: relative;
 		width: 224px;
 		border-right: 1px solid var(--tetriary);
-
-		.class-art {
-			position: absolute;
-			width: 100%;
-			height: 80%;
-			object-fit: cover;
-			object-position: 60% 50%;
-			opacity: 0;
-		}
-
-		.class-art-overlay {
-			position: absolute;
-			width: 100%;
-			height: 100%;
-			background-image: linear-gradient(to right, var(--background), #07000100);
-		}
 
 		.secondary-panel-content {
 			position: absolute;

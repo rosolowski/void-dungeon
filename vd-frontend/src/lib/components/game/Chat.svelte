@@ -8,10 +8,16 @@
 	let inputElement: HTMLInputElement;
 	let messagesContainer: HTMLDivElement;
 
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Enter' && !$chat.isActive) {
+	function activateChat() {
+		if (!$chat.isActive) {
 			setActive(true);
 			setTimeout(() => inputElement?.focus(), 5);
+		}
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Enter' && !$chat.isActive) {
+			activateChat();
 		} else if (event.key === 'Escape' && $chat.isActive) {
 			closeChat();
 		}
@@ -80,12 +86,12 @@
 				placeholder="Type a message..."
 			/>
 		{:else if $chat.messages.length > 0}
-			<div class="last-message">
+			<div class="last-message" on:click={activateChat}>
 				<strong>{$chat.messages[$chat.messages.length - 1].from}:</strong>
 				{$chat.messages[$chat.messages.length - 1].message}
 			</div>
 		{:else}
-			<div class="last-message">Chat</div>
+			<div class="last-message" on:click={activateChat}>Chat</div>
 		{/if}
 	</div>
 {/if}
@@ -107,7 +113,8 @@
 	.chat-container:not(.active) {
 		min-height: 20px;
 		opacity: 0.5;
-		pointer-events: none;
+		user-select: none;
+		cursor: pointer;
 	}
 
 	.chat-container.active {

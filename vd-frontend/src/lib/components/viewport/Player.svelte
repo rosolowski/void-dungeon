@@ -9,13 +9,13 @@
 </script>
 
 <div class="player" {style}>
-	<Sprite spriteId="warrior" />
+	<Sprite spriteId={'char-' + $player?.charClass.replaceAll(' ', '-').toLowerCase() || 'warrior'} />
 </div>
 
 <style lang="scss">
 	.player {
 		position: absolute;
-		background-color: rgba(0, 128, 0, 0.25);
+		background-color: rgba(0, 128, 0, 0.1);
 		transition:
 			top var(--primaryEasingFunction) var(--primarySpeed),
 			left var(--primaryEasingFunction) var(--primarySpeed),

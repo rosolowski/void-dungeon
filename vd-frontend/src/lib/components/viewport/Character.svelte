@@ -2,9 +2,9 @@
 	import type { Character } from '$lib/class/Character';
 	import { renderer } from '$lib/store/renderer';
 	import CharacterTooltip from '../tooltips/CharacterTooltip.svelte';
-	import CharacterSprite from './CharacterSprite.svelte';
 	import { contextMenu } from '$lib/store/context-menu';
 	import { inviteToParty } from '$lib/api/services/game.service';
+	import Sprite from './Sprite.svelte';
 
 	export let character: Character;
 
@@ -51,7 +51,9 @@
 		style:height={`${$renderer.tileSize}px`}
 		on:contextmenu={onContextMenu}
 	>
-		<CharacterSprite />
+		<Sprite
+			spriteId={'char-' + character.charClass.replaceAll(' ', '-').toLowerCase() || 'warrior'}
+		/>
 	</div>
 </CharacterTooltip>
 

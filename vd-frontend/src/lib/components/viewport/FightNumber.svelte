@@ -45,23 +45,23 @@
 	}
 
 	.poison {
-		color: #8b008b;
+		color: var(--poison);
 	}
 
 	.fire {
-		color: #ff4500;
+		color: var(--fire);
 	}
 
 	.cold {
-		color: #1e90ff;
+		color: var(--cold);
 	}
 
 	.light {
-		color: #ffd700;
+		color: var(--light);
 	}
 
 	.void {
-		color: #800080;
+		color: var(--void);
 	}
 
 	@keyframes fightNumbers {

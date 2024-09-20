@@ -75,8 +75,9 @@ export class UsersService {
           maxMana: 5,
           armor: 3,
           damage: 6,
-          attackSpeed: 0.9,
+          attackSpeed: 1,
           critChance: 0.03,
+          critMultiplier: 1,
         };
       case 'Berserk':
         return {
@@ -88,6 +89,7 @@ export class UsersService {
           damage: 8,
           attackSpeed: 1.5,
           critChance: 5,
+          critMultiplier: 1,
         };
       case 'Toxin Rogue':
         return {
@@ -100,6 +102,7 @@ export class UsersService {
           evasion: 5,
           attackSpeed: 1,
           critChance: 0.5,
+          critMultiplier: 1,
           poisonDamage: 2,
           poisonChance: 5,
         };
@@ -113,6 +116,7 @@ export class UsersService {
           damage: 5,
           attackSpeed: 1.3,
           critChance: 1,
+          critMultiplier: 1,
           evasion: 5,
         };
       case 'Battle Mage':
@@ -125,6 +129,7 @@ export class UsersService {
           damage: 4,
           attackSpeed: 1,
           critChance: 0.5,
+          critMultiplier: 1,
           fireDamage: 2,
           coldDamage: 2,
           fireChance: 5,

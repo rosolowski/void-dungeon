@@ -37,7 +37,10 @@
 			{#if $dialogueState.currentLine.options.length > 0}
 				<div class="dialogue-options">
 					{#each $dialogueState.currentLine.options as option, i}
-						<button class="dialogue-option" on:click|stopPropagation={() => selectOption(i)}>
+						<button
+							class="dialogue-option {option.nextId === null ? 'exit' : ''}"
+							on:click|stopPropagation={() => selectOption(i)}
+						>
 							{i + 1}. {option.text}
 						</button>
 					{/each}
@@ -88,12 +91,20 @@
 		cursor: pointer;
 		text-align: left;
 
+		&.exit {
+			color: var(--hp);
+		}
+
 		&:hover {
 			background-color: var(--tetriary);
 		}
 
 		&:focus {
 			outline: none;
+		}
+
+		&:active {
+			scale: 0.99;
 		}
 	}
 

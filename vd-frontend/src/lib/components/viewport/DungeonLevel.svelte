@@ -1,11 +1,14 @@
 <script lang="ts">
+	import { dialogueState } from '$lib/store/dialogue';
 	import { dungeonLevel } from '$lib/store/location';
 </script>
 
-{#if $dungeonLevel}
-	<div class="dungeon-level">Dungeon | level {$dungeonLevel}</div>
-{:else}
-	<div class="dungeon-level">City</div>
+{#if $dialogueState.currentId === null}
+	{#if $dungeonLevel}
+		<div class="dungeon-level">Dungeon | level {$dungeonLevel}</div>
+	{:else}
+		<div class="dungeon-level">City</div>
+	{/if}
 {/if}
 
 <style>

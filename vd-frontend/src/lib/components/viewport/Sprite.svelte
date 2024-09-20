@@ -16,6 +16,26 @@
 		background-image: url('$lib/assets/char/warrior/idle.gif');
 	}
 
+	.s-char-blood-knight {
+		background-image: url('$lib/assets/char/classes/blood-knight.gif');
+	}
+
+	.s-char-berserk {
+		background-image: url('$lib/assets/char/classes/berserk.gif');
+	}
+
+	.s-char-battle-mage {
+		background-image: url('$lib/assets/char/classes/mage.gif');
+	}
+
+	.s-char-shadow-monk {
+		background-image: url('$lib/assets/char/classes/monk.gif');
+	}
+
+	.s-char-toxin-rogue {
+		background-image: url('$lib/assets/char/classes/rogue.gif');
+	}
+
 	.s-monster1 {
 		background-image: url('$lib/assets/entities/monsters/monster1.gif');
 	}

@@ -28,15 +28,15 @@
 
 	const classDescriptions: Record<ClassName, string> = {
 		'Blood Knight':
-			'Corrupted warriors who fuel their abilities with life essence. They sacrifice their own vitality to unleash devastating attacks and can create blood pools to sustain themselves and their allies.',
+			'Durable warriors who excel in sustained combat. They have higher health and armor, allowing them to withstand more damage while still dealing significant blows to their enemies.',
 		Berserk:
-			'Frenzied fighters consumed by battle rage. As they take and deal damage, their power grows, allowing them to unleash increasingly destructive attacks at the cost of self-control.',
+			'Frenzied fighters who prioritize raw damage output. They gain substantial increases in damage and attack speed with each level, and have a higher chance to land critical hits.',
 		'Toxin Rogue':
-			'Agile assassins who specialize in lethal poisons. They coat their blades with various toxins, inflicting debilitating effects on their enemies while dancing through the shadows.',
+			'Agile assassins specializing in poison and evasion. They are adept at dodging attacks and excel at applying poison to their weapons, increasing both poison damage and the chance to inflict it.',
 		'Shadow Monk':
-			'Ascetics who have mastered the art of shadow manipulation. They blend martial arts with dark energy, striking from unexpected angles and phasing through reality.',
+			'Versatile combatants balancing physical and magical abilities. They gain increased mana, slightly improved evasion, and faster attacks, with a moderate chance for critical strikes.',
 		'Battle Mage':
-			'Hardened spellcasters who have fused arcane knowledge with combat expertise. They enchant their weapons with destructive magic, seamlessly weaving spells and sword strikes.'
+			'Spellcasters who harness both fire and cold magic in combat. They have a large mana pool and deal significant elemental damage, with equal proficiency in both fire and cold spells.'
 	};
 
 	type AvatarFeature = {
@@ -134,6 +134,9 @@
 						{/each}
 					</select>
 					{#if characterClass}
+						<div
+							class="char-preview s-char-{characterClass.replaceAll(' ', '-').toLocaleLowerCase()}"
+						></div>
 						<div class="class-description">
 							<p>{classDescriptions[characterClass]}</p>
 						</div>
@@ -150,6 +153,35 @@
 </main>
 
 <style lang="scss">
+	.char-preview {
+		width: 96px;
+		height: 96px;
+		background-size: 100%;
+		image-rendering: pixelated;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	.s-char-blood-knight {
+		background-image: url('$lib/assets/char/classes/blood-knight.gif');
+	}
+
+	.s-char-berserk {
+		background-image: url('$lib/assets/char/classes/berserk.gif');
+	}
+
+	.s-char-battle-mage {
+		background-image: url('$lib/assets/char/classes/mage.gif');
+	}
+
+	.s-char-shadow-monk {
+		background-image: url('$lib/assets/char/classes/monk.gif');
+	}
+
+	.s-char-toxin-rogue {
+		background-image: url('$lib/assets/char/classes/rogue.gif');
+	}
+
 	main {
 		display: flex;
 		justify-content: center;
@@ -193,6 +225,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+		text-align: center;
 	}
 
 	.form-group {
