@@ -201,6 +201,6 @@ export class InventoryHandler extends BaseHandler {
     const characterId = client.data?.character?.id;
     const { stats } = await this.characterService.getCharacter(characterId);
     client.data.character.stats = stats;
-    client.emit('getStats', stats);
+    this.emitCharacterUpdate(client, client.data.character);
   }
 }

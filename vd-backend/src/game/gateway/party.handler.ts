@@ -308,10 +308,6 @@ export class PartyHandler extends BaseHandler {
         socket.emit('getInstance', newInstance.serialize());
       }
     }
-
-    this.server
-      .to(newInstance.room)
-      .emit('partyMovedToNextLevel', newInstance.id);
   }
 
   private async enterDungeonSolo(
@@ -399,10 +395,6 @@ export class PartyHandler extends BaseHandler {
         socket.emit('getInstance', newInstance.serialize());
       }
     }
-
-    this.server
-      .to(newInstance.room)
-      .emit('partyMovedToNextLevel', newInstance.id);
   }
 
   private exitDungeon(characterIds: number[]): void {

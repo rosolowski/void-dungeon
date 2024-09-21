@@ -165,7 +165,7 @@ export class CombatHandler extends BaseHandler {
     await this.characterService.addExperience(character, exp);
     const socket = this.game.getConnection(character.id);
     if (socket) {
-      socket.emit('getPlayerCharacter', character);
+      this.emitCharacterUpdate(socket, socket.data.character);
     }
   }
 

@@ -120,6 +120,11 @@ export function initializeServerConnection() {
 		handlePositionUpdate(data);
 	});
 
+	client.on('characterUpdate', (data) => {
+		if (DEBUG_WS) console.log(`characterMoved:`, data);
+		updateCharacter(data, false);
+	});
+
 	client.on('connect', () => {
 		if (DEBUG_WS) console.log(`connected to game server with id ${get(characterId)}`);
 	});

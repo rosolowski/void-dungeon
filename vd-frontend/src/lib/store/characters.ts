@@ -14,8 +14,6 @@ export function handlePositionUpdate(data: { characterId: number; x: number; y: 
 
 		if (!character) return currentCharacters;
 
-		// console.log(`updating char ${character.id}`);
-
 		character.pos.x = data.x;
 		character.pos.y = data.y;
 		return newCharacters;
