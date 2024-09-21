@@ -44,6 +44,7 @@ export class GameGateway
     this.combatHandler.setServer(this.server);
     this.inventoryHandler.setServer(this.server);
     this.partyHandler.setServer(this.server);
+    this.partyHandler.initializeVotingManager();
     this.chatHandler.setServer(this.server);
     this.npcHandler.setServer(this.server);
   }
@@ -212,7 +213,7 @@ export class GameGateway
     @ConnectedSocket() client: GameSocket,
     @MessageBody() data: { message: string },
   ): void {
-    this.logger.log(`Chat message from client ${client.id}`);
+    this.logger.log(`Chat message from client ${client.id}: ${data.message}`);
     this.chatHandler.handleInstanceMessage(client, data.message);
   }
 }

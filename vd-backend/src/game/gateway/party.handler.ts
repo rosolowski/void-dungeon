@@ -18,6 +18,10 @@ export class PartyHandler extends BaseHandler {
     this.partyManager = this.game.getPartyManager();
   }
 
+  initializeVotingManager(): void {
+    this.votingManager = new VotingManager(this.server);
+  }
+
   handleInvite(inviterClient: GameSocket, inviteeId: number): void {
     const inviter = this.getCharacter(inviterClient);
     const inviteeClient = this.game.getConnection(inviteeId);

@@ -23,6 +23,8 @@ export class ChatHandler extends BaseHandler {
       message,
     } as InstanceMessage;
 
+    console.log('Sending instance message:', outgoingMessage);
+
     socket.to(instance.room).emit('chatInstanceMessage', outgoingMessage);
   }
 }

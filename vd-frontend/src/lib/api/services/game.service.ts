@@ -236,6 +236,7 @@ export function initializeServerConnection() {
 	});
 
 	client.on('chatInstanceMessage', (data) => {
+		console.log('chatInstanceMessage', data);
 		chat.addMessage(data);
 	});
 
@@ -282,8 +283,7 @@ export function requestHealPlayer() {
 export function sendInstanceMessage(message: string) {
 	const client = get(socket);
 	if (!client) return;
-
-	client.emit('sendInstanceMessage', message);
+	client.emit('sendInstanceMessage', { message });
 }
 
 export function inviteToParty(inviteeId: number) {
