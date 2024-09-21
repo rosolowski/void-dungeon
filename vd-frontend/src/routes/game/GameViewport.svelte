@@ -16,15 +16,22 @@
 	let viewportWidth: number;
 	let viewportHeight: number;
 
-	function onWheel(event: WheelEvent) {
-		if (event.deltaY < 0) {
-			renderer.zoomIn();
-		} else if (event.deltaY > 0) {
-			renderer.zoomOut();
-		}
-	}
+	let zoomTimeout: ReturnType<typeof setTimeout> | null = null;
+	const throttleDuration = 50;
 
-	let battleView = false;
+	function onWheel(event: WheelEvent) {
+		if (zoomTimeout) return;
+
+		zoomTimeout = setTimeout(() => {
+			if (event.deltaY < 0) {
+				renderer.zoomIn();
+			} else if (event.deltaY > 0) {
+				renderer.zoomOut();
+			}
+
+			zoomTimeout = null;
+		}, throttleDuration);
+	}
 </script>
 
 <div

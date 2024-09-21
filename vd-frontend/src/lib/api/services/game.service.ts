@@ -20,11 +20,7 @@ import { dungeonLevel, location } from '$lib/store/location';
 import { socket } from '$lib/store/ws';
 import { goto } from '$app/navigation';
 import type { Stats } from '$lib/class/Stats';
-import {
-	entityOnPosition,
-	inititalizeEntities,
-	processAttackLogForEntity
-} from '$lib/store/entities';
+import { entities, entityOnPosition, inititalizeEntities } from '$lib/store/entities';
 import { Collision, Tile, type AttackLog, type SingleAttackLog } from '$lib/util/types';
 import { showDamageEffect, showDodgeEffect, showStatusEffects } from '$lib/store/viewport-effects';
 import { dialogueState, progressDialogue } from '$lib/store/dialogue';
@@ -37,6 +33,7 @@ import { chat } from '$lib/store/chat';
 import EnterDungeonWindow from '$lib/components/windows/EnterDungeonWindow.svelte';
 import { DungeonProgress } from '$lib/class/DungeonProgress';
 import { dungeonProgress } from '$lib/store/dungeon-progress';
+import type { Entity } from '$lib/class/Entity';
 
 type direction = 'up' | 'down' | 'left' | 'right';
 type VoteType = 'enterDungeon' | 'nextLevel' | 'exitDungeon';
@@ -77,13 +74,18 @@ export function initializeServerConnection() {
 		console.log(data);
 		if (DEBUG_WS) console.log('getInstance', data);
 		console.log('dungeon depth:', data.depth);
-		location.set(data.location);
+		location.set(null);
+		setTimeout(() => {
+			location.set(data.location);
+		}, 50);
 		inititalize(data.characters);
 		inititalizeEntities(data.entities);
 		entityTracker.set(null);
 		dungeonLevel.set(data.depth);
+		dialogueState.set({ currentId: null, currentLine: null });
 		chat.clear();
 		windows.closeWindow('portal-window');
+		windows.closeWindow('merchantWindow');
 	});
 
 	client.on('getInventory', (data: SerializedInventoryDto) => {
@@ -388,30 +390,30 @@ export function movePlayer(dir: direction) {
 }
 
 export function processAttackLog(attackLog: AttackLog) {
-	const { characterId, entityId, characterAttacks, entityAttacks, characterDied } = attackLog;
+	const {
+		characterFinal,
+		entityFinal,
+		characterAttacks,
+		entityAttacks,
+		characterDied,
+		entityDied
+	} = attackLog;
 
-	const currentPlayerIsAttacker = get(player)?.id === characterId;
-
-	// Process character's attacks
 	characterAttacks.forEach((attack) => {
-		processAttack(attack, entityId, 'entity');
+		processAttack(attack, entityFinal.id, 'entity');
 	});
 
-	// Process entity's attacks
 	entityAttacks.forEach((attack) => {
-		processAttack(attack, characterId, 'character');
+		processAttack(attack, characterFinal.id, 'character');
 	});
 
-	if (currentPlayerIsAttacker && !characterDied) {
-		// Update player stats
-		player.update((prev) => {
-			if (!prev) return prev;
-			prev.stats.hp = Math.max(prev.stats.hp - getTotalDamage(entityAttacks), 0);
-			return prev;
-		});
-	}
+	updateCharacter(characterFinal, characterDied);
 
-	processAttackLogForEntity(attackLog);
+	updateEntity(entityFinal, entityDied);
+
+	if (entityDied) {
+		updateCollisionMap(entityFinal);
+	}
 }
 
 function processAttack(
@@ -427,6 +429,43 @@ function processAttack(
 	}
 }
 
-function getTotalDamage(attacks: SingleAttackLog[]): number {
-	return attacks.reduce((total, attack) => total + attack.damageDone, 0);
+function updateCharacter(characterFinal: Character, died: boolean) {
+	const currentPlayer = get(player);
+	if (currentPlayer?.id === characterFinal.id) {
+		player.set(characterFinal);
+	} else {
+		characters.update((currentCharacters) => {
+			if (died) {
+				currentCharacters.delete(characterFinal.id);
+			} else {
+				currentCharacters.set(characterFinal.id, characterFinal);
+			}
+			return currentCharacters;
+		});
+	}
+}
+
+function updateEntity(entityFinal: Entity, died: boolean) {
+	entities.update((currentEntities: Map<number, Entity>) => {
+		if (died) {
+			currentEntities.delete(entityFinal.id);
+			if (get(entityTracker)?.id === entityFinal.id) {
+				entityTracker.set(null);
+			}
+		} else {
+			currentEntities.set(entityFinal.id, entityFinal);
+			if (get(entityTracker)?.id === entityFinal.id) {
+				entityTracker.set(entityFinal);
+			}
+		}
+		return currentEntities;
+	});
+}
+
+function updateCollisionMap(entityFinal: Entity) {
+	const { x, y } = entityFinal.pos;
+	location.update((prev) => {
+		if (prev) prev.collisionMap[y][x] = Collision.WALKABLE;
+		return prev;
+	});
 }

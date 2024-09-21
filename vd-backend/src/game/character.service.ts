@@ -199,6 +199,7 @@ export class CharacterService {
     characterEntity.level = character.level;
     characterEntity.exp = character.exp;
     characterEntity.maxExp = character.maxExp;
+    characterEntity.pos = character.pos;
 
     await this.charactersRepository.save(characterEntity);
     await this.syncStatsToDatabase(character);

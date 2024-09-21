@@ -9,9 +9,7 @@ import { Inventory } from './entities/inventory.entity';
 import { Slot } from './entities/slot.entity';
 import { Item } from './entities/item.entity';
 import { DungeonProgress } from './entities/dungeon-progress.entity';
-import { GameController } from './game.controller';
 import { GameGateway } from './gateway/game.gateway';
-import { GameService } from './game.service';
 import { InventoryService } from './inventory.service';
 import { CharacterService } from './character.service';
 import { ConnectionHandler } from './gateway/connection.handler';
@@ -22,7 +20,6 @@ import { PartyHandler } from './gateway/party.handler';
 import { ChatHandler } from './gateway/chat.handler';
 import { NpcHandler } from './gateway/npc.handler';
 import { DungeonProgressService } from './dungeon-progress.service';
-import { PartyManager } from './engine/party-manager';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
@@ -42,7 +39,6 @@ import { ConfigService } from '@nestjs/config';
   ],
   providers: [
     GameGateway,
-    GameService,
     JwtService,
     ConfigService,
     InventoryService,
@@ -55,9 +51,8 @@ import { ConfigService } from '@nestjs/config';
     ChatHandler,
     NpcHandler,
     DungeonProgressService,
-    PartyManager,
   ],
-  controllers: [GameController],
-  exports: [GameService],
+  controllers: [],
+  exports: [],
 })
 export class GameModule {}

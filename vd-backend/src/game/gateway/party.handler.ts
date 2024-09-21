@@ -13,7 +13,7 @@ import { Tile } from '../engine/utils';
 @Injectable()
 export class PartyHandler extends BaseHandler {
   private readonly game: Game;
-  private readonly partyManager: PartyManager;
+  private partyManager: PartyManager;
   private votingManager: VotingManager;
   private server: Server;
 
@@ -78,6 +78,7 @@ export class PartyHandler extends BaseHandler {
 
     const party = this.partyManager.getPartyFromCharacter(character.id);
     if (party) {
+      client.data.partyId = undefined;
       this.removeMemberFromParty(character.id, party, client);
     }
   }
@@ -212,13 +213,21 @@ export class PartyHandler extends BaseHandler {
     if (!party) {
       party = this.partyManager.createParty([inviter.id]);
       inviterClient.join(`party:${party.id}`);
+      inviterClient.data.partyId = party.id;
+      console.log(`Created new party ${party.id} for inviter ${inviter.id}`);
     }
 
-    this.leaveCurrentParty(invitee.id);
+    if (party.members.includes(invitee.id)) {
+      console.log(`Invitee ${invitee.id} already in party ${party.id}`);
+      return;
+    }
     party.members.push(invitee.id);
 
     inviteeClient.data.partyId = party.id;
     inviteeClient.join(`party:${party.id}`);
+
+    console.log(`Added invitee ${invitee.id} to party ${party.id}`);
+    console.log('Updated party members:', party.members);
 
     this.emitPartyUpdate(party);
   }
@@ -228,6 +237,7 @@ export class PartyHandler extends BaseHandler {
     party: Party,
     client: GameSocket,
   ): void {
+    console.log('Removing member from party:', characterId, party.id);
     client.leave(`party:${party.id}`);
     delete client.data.partyId;
 

@@ -14,16 +14,17 @@ import { PartyManager } from '../engine/party-manager';
 @Injectable()
 export class CombatHandler extends BaseHandler {
   private readonly game: Game;
+  private partyManager: PartyManager;
   private server: Server;
 
   constructor(
     private readonly characterService: CharacterService,
     private readonly inventoryService: InventoryService,
     private readonly dungeonProgressService: DungeonProgressService,
-    private readonly partyManager: PartyManager,
   ) {
     super();
     this.game = Game.getInstance();
+    this.partyManager = this.game.getPartyManager();
   }
 
   public setServer(server: Server) {
@@ -38,39 +39,36 @@ export class CombatHandler extends BaseHandler {
 
     try {
       const character: Character = client.data.character;
-      const { success, instance, attackLog, entityType } =
-        this.game.attackEntity(character, data.entityId);
+      const result = this.game.attackEntity(character, data.entityId);
 
-      if (success && instance && attackLog) {
-        this.emitEntityAttack(client, instance, attackLog);
-        await this.handleAttackResult(
-          client,
-          character,
-          attackLog,
-          instance,
-          entityType,
-        );
-      } else {
+      if (!result.success || !result.instance || !result.attackLog) {
         throw new Error('Invalid attack attempt');
       }
+
+      const { instance, attackLog, entityType } = result;
+
+      await this.processAttackResult(
+        client,
+        character,
+        attackLog,
+        instance,
+        entityType,
+      );
     } catch (error) {
       this.handleError(client, 'Attack error', error);
     }
   }
 
-  private async handleAttackResult(
+  private async processAttackResult(
     client: GameSocket,
     character: Character,
     attackLog: AttackLog,
     instance: GameInstance,
     entityType: string,
   ): Promise<void> {
-    if (attackLog.characterDied) {
-      await this.handleCharacterDeath(client, character);
-    }
-
     if (attackLog.entityDied) {
-      this.game.removeEntity(instance, attackLog.entityId);
+      this.game.removeEntity(instance, attackLog.entityFinal.id);
+
       if (entityType === 'chest') {
         await this.handleChestOpening(client, character);
       } else {
@@ -78,7 +76,14 @@ export class CombatHandler extends BaseHandler {
       }
     }
 
-    client.emit('updateStats', character.stats);
+    if (attackLog.characterDied) {
+      await this.handleCharacterDeath(client, character);
+    }
+
+    // Update AttackLog with the latest character data
+    attackLog.characterFinal = character;
+
+    this.emitAttackLog(client, instance, attackLog);
   }
 
   private async handleChestOpening(
@@ -96,15 +101,8 @@ export class CombatHandler extends BaseHandler {
       for (const item of droppedItems) {
         client.emit('itemDropped', item);
       }
-      const updatedProgress =
-        await this.dungeonProgressService.incrementItemFoundWithAmount(
-          character.id,
-          3,
-        );
-      if (updatedProgress) {
-        client.emit('dungeonProgressUpdate', updatedProgress);
-      }
-      await this.emitUpdatedInventoryFromDb(client);
+      await this.updateDungeonProgress(client, character.id, 3);
+      await this.emitUpdatedInventory(client);
     }
   }
 
@@ -120,54 +118,62 @@ export class CombatHandler extends BaseHandler {
 
     if (droppedItem) {
       client.emit('itemDropped', droppedItem);
-      await this.emitUpdatedInventoryFromDb(client);
-      const updatedProgress =
-        await this.dungeonProgressService.incrementItemFound(character.id);
-      if (updatedProgress) {
-        client.emit('dungeonProgressUpdate', updatedProgress);
-      }
+      await this.emitUpdatedInventory(client);
+      await this.updateDungeonProgress(client, character.id, 1);
     }
 
-    this.distributeExperience(character, dungeonLevel);
-
-    const updatedProgress =
-      await this.dungeonProgressService.incrementEnemyKilled(character.id);
-    if (updatedProgress) {
-      client.emit('dungeonProgressUpdate', updatedProgress);
-    }
-
-    client.emit('getPlayerCharacter', character);
+    await this.distributeExperience(client, character, dungeonLevel);
+    await this.updateDungeonProgress(client, character.id, 0, 1);
   }
 
-  private distributeExperience(
+  private async distributeExperience(
+    client: GameSocket,
     character: Character,
     dungeonLevel: number,
-  ): void {
+  ): Promise<void> {
     const expGained = this.calculateExperienceGain(
       character.level,
       dungeonLevel,
     );
+    console.log('Distributing experience for character:', character.id);
+    console.log('Character socket data:', JSON.stringify(client.data, null, 2));
+
+    console.log('PartyManager:', this.partyManager);
     const party = this.partyManager.getPartyFromCharacter(character.id);
 
+    console.log('Retrieved party:', party);
+
     if (!party) {
-      this.characterService.addExperience(character, expGained);
+      console.log('No party found, adding experience to single character');
+      await this.addExperienceToCharacter(character, expGained);
       return;
     }
 
+    console.log('Party found, distributing experience among members');
     const expPerMember = Math.floor(expGained / 2);
 
-    party.members.forEach((memberId) => {
+    for (const memberId of party.members) {
       const member = this.game.getCharacterById(memberId);
-      if (!member) return;
+      if (!member) {
+        console.log(`Member ${memberId} not found, skipping`);
+        continue;
+      }
 
       const expToAdd = memberId === character.id ? expGained : expPerMember;
-      this.characterService.addExperience(member, expToAdd);
+      await this.addExperienceToCharacter(member, expToAdd);
+    }
+  }
 
-      const memberSocket = this.game.getConnection(memberId);
-      if (memberSocket) {
-        memberSocket.emit('getPlayerCharacter', member);
-      }
-    });
+  private async addExperienceToCharacter(
+    character: Character,
+    exp: number,
+  ): Promise<void> {
+    console.log('addExperienceToCharacter', character, exp);
+    await this.characterService.addExperience(character, exp);
+    const socket = this.game.getConnection(character.id);
+    if (socket) {
+      socket.emit('getPlayerCharacter', character);
+    }
   }
 
   private calculateExperienceGain(
@@ -185,26 +191,26 @@ export class CombatHandler extends BaseHandler {
     const oldInstance = this.game.disconnectCharacterFromInstance(character);
     this.emitCharacterLeaveInstance(oldInstance, client);
 
+    this.resetCharacterAfterDeath(character);
+
+    const cityInstance = this.game.addCharacterToCity(character);
+
+    await this.characterService.syncCharacterToDatabase(character);
+    this.game.connectCharacterToInstance(character);
+    this.emitCharacterJoinInstance(cityInstance, client);
+  }
+
+  private resetCharacterAfterDeath(character: Character): void {
     character.stats.hp = 1;
     character.stats.mana = character.stats.maxMana;
-
     character.stats.coldStatus = 0;
     character.stats.voidStatus = 0;
     character.stats.lightStatus = 0;
     character.stats.fireStatus = 0;
     character.stats.poisonStatus = 0;
-
-    const cityInstance = this.game.addCharacterToCity(character);
-
-    await Promise.all([
-      this.characterService.syncCharacterToDatabase(character),
-    ]);
-
-    this.game.connectCharacterToInstance(character);
-    this.emitCharacterJoinInstance(cityInstance, client);
   }
 
-  private async emitUpdatedInventoryFromDb(client: GameSocket): Promise<void> {
+  private async emitUpdatedInventory(client: GameSocket): Promise<void> {
     const characterId = client.data?.character?.id;
     const inventoryEntity =
       await this.characterService.getInventory(characterId);
@@ -212,12 +218,11 @@ export class CombatHandler extends BaseHandler {
     client.emit('getInventory', inventory.serialize());
   }
 
-  private emitEntityAttack(
+  private emitAttackLog(
     client: GameSocket,
     instance: GameInstance,
     attackLog: AttackLog,
   ): void {
-    console.log('client rooms', client.rooms);
     this.server.to(instance.room).emit('attackLog', attackLog);
   }
 
@@ -237,5 +242,28 @@ export class CombatHandler extends BaseHandler {
     client.emit('getPlayerCharacter', client.data.character);
     client.emit('getInstance', instance.serialize());
     client.to(instance.room).emit('spawnCharacter', client.data.character);
+  }
+
+  private async updateDungeonProgress(
+    client: GameSocket,
+    characterId: number,
+    itemsFound: number = 0,
+    enemiesKilled: number = 0,
+  ): Promise<void> {
+    let updatedProgress;
+    if (itemsFound > 0) {
+      updatedProgress =
+        await this.dungeonProgressService.incrementItemFoundWithAmount(
+          characterId,
+          itemsFound,
+        );
+    }
+    if (enemiesKilled > 0) {
+      updatedProgress =
+        await this.dungeonProgressService.incrementEnemyKilled(characterId);
+    }
+    if (updatedProgress) {
+      client.emit('dungeonProgressUpdate', updatedProgress);
+    }
   }
 }

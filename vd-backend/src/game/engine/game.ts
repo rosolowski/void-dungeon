@@ -107,8 +107,8 @@ export class Game {
         entityAttacks: [],
         entityDied: true,
         characterDied: false,
-        entityId: entity.id,
-        characterId: character.id,
+        entityFinal: entity,
+        characterFinal: character,
       };
     } else {
       attackLog = simulateAttack(character, entity);

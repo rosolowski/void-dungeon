@@ -1,9 +1,10 @@
+import { Character } from '../class/Character';
 import { Entity } from '../class/Entity';
 import { Stats } from '../class/Stats';
 
 export interface AttackLog {
-  characterId: number;
-  entityId: number;
+  characterFinal: Character;
+  entityFinal: Entity;
   characterAttacks: SingleAttackLog[];
   entityAttacks: SingleAttackLog[];
   characterDied: boolean;
@@ -27,7 +28,10 @@ interface StatusEffects {
 
 interface TempCombatStats extends Stats {}
 
-export function simulateAttack(character: Entity, entity: Entity): AttackLog {
+export function simulateAttack(
+  character: Character,
+  entity: Entity,
+): AttackLog {
   try {
     const characterTempStats = calculateTempCombatStats(character);
     const entityTempStats = calculateTempCombatStats(entity);
@@ -78,8 +82,8 @@ export function simulateAttack(character: Entity, entity: Entity): AttackLog {
     }
 
     return {
-      characterId: character.id,
-      entityId: entity.id,
+      characterFinal: character,
+      entityFinal: entity,
       characterAttacks,
       entityAttacks,
       characterDied,

@@ -1,8 +1,5 @@
 import { Entity } from '$lib/class/Entity';
 import { get, writable } from 'svelte/store';
-import { type AttackLog, type SingleAttackLog } from '$lib/util/types';
-import { location } from './location';
-import { Collision } from '$lib/util/types';
 import { entityTracker, refreshEntityTracker } from './entity-tracker';
 
 export const entities = writable<Map<number, Entity>>(new Map());
@@ -15,51 +12,6 @@ export function inititalizeEntities(data: Array<Entity>) {
 
 	entities.set(newEntities);
 	refreshEntityTracker();
-}
-
-export function processAttackLogForEntity(attackLog: AttackLog) {
-	entities.update((currentEntities) => {
-		const entity = currentEntities.get(attackLog.entityId);
-
-		if (attackLog.entityDied) {
-			console.log(`entity ${entity?.name} died!`);
-			currentEntities.delete(attackLog.entityId);
-
-			if (entity) {
-				const { x, y } = entity.pos;
-				location.update((prev) => {
-					if (prev) prev.collisionMap[y][x] = Collision.WALKABLE;
-					return prev;
-				});
-			}
-
-			entityTracker.set(null);
-		} else if (entity) {
-			const totalDamage = getTotalDamage(attackLog.characterAttacks);
-			console.log(`entity ${entity?.name} total damage taken - ${totalDamage}`);
-
-			const updatedEntity = {
-				...entity,
-				stats: {
-					...entity.stats,
-					hp: Math.max(entity.stats.hp - totalDamage, 0)
-				}
-			};
-			currentEntities.set(attackLog.entityId, updatedEntity);
-
-			if (get(entityTracker) === null) {
-				entityTracker.set(updatedEntity);
-			}
-		}
-
-		return new Map(currentEntities);
-	});
-
-	refreshEntityTracker();
-}
-
-function getTotalDamage(attacks: SingleAttackLog[]): number {
-	return attacks.reduce((total, attack) => total + attack.damageDone, 0);
 }
 
 export function spawnEntity(newEntity: Entity) {

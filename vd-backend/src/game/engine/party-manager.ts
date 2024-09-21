@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import { Party } from '../class/Party';
 
-@Injectable()
 export class PartyManager {
   private parties = new Map<number, Party>();
   private nextFreeParty: number = 1;
@@ -15,6 +13,7 @@ export class PartyManager {
   }
 
   deleteParty(id: number) {
+    console.log('deleting party', id);
     this.parties.delete(id);
   }
 
@@ -23,11 +22,16 @@ export class PartyManager {
   }
 
   getPartyFromCharacter(characterId: number): Party | undefined {
-    for (const party of this.parties.values()) {
+    console.log(`Searching for party for character ${characterId}`);
+    console.log(`Current parties:`, Array.from(this.parties.entries()));
+    for (const [partyId, party] of this.parties) {
+      console.log(`Checking party ${partyId}:`, party);
       if (party.members.includes(characterId)) {
+        console.log(`Found party ${partyId} for character ${characterId}`);
         return party;
       }
     }
+    console.log(`No party found for character ${characterId}`);
     return undefined;
   }
 }

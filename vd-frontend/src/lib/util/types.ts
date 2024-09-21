@@ -1,3 +1,6 @@
+import type { Character } from '$lib/class/Character';
+import type { Entity } from '$lib/class/Entity';
+
 export enum Tile {
 	EMPTY = 0,
 	WALL = 1,
@@ -11,8 +14,8 @@ export enum Collision {
 }
 
 export interface AttackLog {
-	characterId: number;
-	entityId: number;
+	characterFinal: Character;
+	entityFinal: Entity;
 	characterAttacks: SingleAttackLog[];
 	entityAttacks: SingleAttackLog[];
 	characterDied: boolean;
