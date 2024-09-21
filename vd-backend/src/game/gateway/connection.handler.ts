@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Server } from 'socket.io';
 import { BaseHandler, GameSocket } from './base.handler';
-import { Game } from '../engine/game';
 import {
   characterEntityToCharacterClass,
   inventoryEntityToInventoryClass,
@@ -17,9 +15,6 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ConnectionHandler extends BaseHandler {
-  private readonly game: Game;
-  private server: Server;
-
   constructor(
     private readonly dungeonProgressService: DungeonProgressService,
     private readonly characterService: CharacterService,
@@ -27,11 +22,6 @@ export class ConnectionHandler extends BaseHandler {
     private configService: ConfigService,
   ) {
     super();
-    this.game = Game.getInstance();
-  }
-
-  public setServer(server: Server) {
-    this.server = server;
   }
 
   async handleConnection(client: GameSocket): Promise<void> {

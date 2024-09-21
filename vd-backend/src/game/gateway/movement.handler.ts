@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Server } from 'socket.io';
 import { BaseHandler, GameSocket } from './base.handler';
-import { Game } from '../engine/game';
 import { MoveCharacterDto } from '../dto/game.dto';
 import { Character } from '../class/Character';
 import { DungeonProgressService } from '../dungeon-progress.service';
@@ -9,19 +7,11 @@ import { PartyHandler } from './party.handler';
 
 @Injectable()
 export class MovementHandler extends BaseHandler {
-  private readonly game: Game;
-  private server: Server;
-
   constructor(
     private readonly dungeonProgressService: DungeonProgressService,
     private readonly partyHandler: PartyHandler,
   ) {
     super();
-    this.game = Game.getInstance();
-  }
-
-  public setServer(server: Server) {
-    this.server = server;
   }
 
   handleMove(data: MoveCharacterDto, client: GameSocket): void {

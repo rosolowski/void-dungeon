@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Server } from 'socket.io';
 import { BaseHandler, GameSocket } from './base.handler';
-import { Game } from '../engine/game';
 import { Character } from '../class/Character';
 
 export enum NpcAction {
@@ -10,16 +8,8 @@ export enum NpcAction {
 
 @Injectable()
 export class NpcHandler extends BaseHandler {
-  private readonly game: Game;
-  private server: Server;
-
   constructor() {
     super();
-    this.game = Game.getInstance();
-  }
-
-  public setServer(server: Server) {
-    this.server = server;
   }
 
   handleNpcInteraction(client: GameSocket, actionId: NpcAction): void {
@@ -29,7 +19,7 @@ export class NpcHandler extends BaseHandler {
     switch (actionId) {
       case NpcAction.DoctorHeal: {
         character.stats.hp = character.stats.maxHp;
-        client.emit('getStats', character.stats);
+        this.emitCharacterUpdate(client, character);
         break;
       }
     }

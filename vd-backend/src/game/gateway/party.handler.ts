@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Server } from 'socket.io';
 import { BaseHandler, GameSocket } from './base.handler';
-import { Game } from '../engine/game';
 import { Character } from '../class/Character';
 import { PartyManager } from '../engine/party-manager';
 import { Party, VoteType } from '../class/Party';
@@ -12,20 +10,12 @@ import { Tile } from '../engine/utils';
 
 @Injectable()
 export class PartyHandler extends BaseHandler {
-  private readonly game: Game;
   private partyManager: PartyManager;
   private votingManager: VotingManager;
-  private server: Server;
 
   constructor(private readonly dungeonProgressService: DungeonProgressService) {
     super();
-    this.game = Game.getInstance();
     this.partyManager = this.game.getPartyManager();
-  }
-
-  public setServer(server: Server) {
-    this.server = server;
-    this.votingManager = new VotingManager(server);
   }
 
   handleInvite(inviterClient: GameSocket, inviteeId: number): void {

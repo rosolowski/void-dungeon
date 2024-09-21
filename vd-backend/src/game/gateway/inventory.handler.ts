@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Server } from 'socket.io';
 import { BaseHandler, GameSocket } from './base.handler';
 import { InventoryService } from '../inventory.service';
 import { CharacterService } from '../character.service';
@@ -12,18 +11,12 @@ import { DungeonProgressService } from '../dungeon-progress.service';
 
 @Injectable()
 export class InventoryHandler extends BaseHandler {
-  private server: Server;
-
   constructor(
     private readonly inventoryService: InventoryService,
     private readonly characterService: CharacterService,
     private readonly dungeonProgressService: DungeonProgressService,
   ) {
     super();
-  }
-
-  public setServer(server: Server) {
-    this.server = server;
   }
 
   async handleAddItem(

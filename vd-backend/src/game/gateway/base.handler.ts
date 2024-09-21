@@ -1,7 +1,8 @@
 import { Logger } from '@nestjs/common';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { Character } from '../class/Character';
 import { User } from '../class/User';
+import { Game } from '../engine/game';
 
 export interface GameSocket extends Socket {
   data: {
@@ -13,7 +14,17 @@ export interface GameSocket extends Socket {
 }
 
 export abstract class BaseHandler {
+  protected readonly game: Game;
+  protected server: Server;
   protected readonly logger = new Logger(this.constructor.name);
+
+  constructor() {
+    this.game = Game.getInstance();
+  }
+
+  public setServer(server: Server) {
+    this.server = server;
+  }
 
   protected validateClient(client: GameSocket): boolean {
     if (!client.data.validated) {
@@ -34,5 +45,16 @@ export abstract class BaseHandler {
   ): void {
     this.logger.error(`${context}: ${error.message}`, error.stack);
     client.emit('error', { message: error.message });
+  }
+
+  protected emitCharacterUpdate(
+    client: GameSocket,
+    character: Character,
+  ): void {
+    const instance = this.game
+      .getInstanceManager()
+      .getInstanceFromCharacter(character);
+    client.emit('getStats', character.stats);
+    this.server.to(instance.room).emit('characterUpdate', character);
   }
 }

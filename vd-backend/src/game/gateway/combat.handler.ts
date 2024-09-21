@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Server } from 'socket.io';
 import { BaseHandler, GameSocket } from './base.handler';
-import { Game } from '../engine/game';
 import { CharacterService } from '../character.service';
 import { Character } from '../class/Character';
 import { AttackLog } from '../engine/battle-manager';
@@ -10,25 +8,20 @@ import { InventoryService } from '../inventory.service';
 import { inventoryEntityToInventoryClass } from '../engine/utils';
 import { DungeonProgressService } from '../dungeon-progress.service';
 import { PartyManager } from '../engine/party-manager';
+import { PartyHandler } from './party.handler';
 
 @Injectable()
 export class CombatHandler extends BaseHandler {
-  private readonly game: Game;
   private partyManager: PartyManager;
-  private server: Server;
 
   constructor(
     private readonly characterService: CharacterService,
     private readonly inventoryService: InventoryService,
     private readonly dungeonProgressService: DungeonProgressService,
+    private readonly partyHandler: PartyHandler,
   ) {
     super();
-    this.game = Game.getInstance();
     this.partyManager = this.game.getPartyManager();
-  }
-
-  public setServer(server: Server) {
-    this.server = server;
   }
 
   async handleAttackEntity(
@@ -192,6 +185,8 @@ export class CombatHandler extends BaseHandler {
     this.emitCharacterLeaveInstance(oldInstance, client);
 
     this.resetCharacterAfterDeath(character);
+
+    this.partyHandler.handleLeaveParty(client);
 
     const cityInstance = this.game.addCharacterToCity(character);
 
