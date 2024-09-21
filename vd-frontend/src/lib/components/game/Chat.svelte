@@ -108,6 +108,7 @@
 		border: 1px solid var(--tetriary);
 		transition: transform 0.3s ease;
 		z-index: var(--zi-chat);
+		user-select: none;
 	}
 
 	.chat-container:not(.active) {

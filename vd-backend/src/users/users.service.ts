@@ -19,6 +19,7 @@ import {
   isValidCharacterClass,
 } from 'src/game/class/Character';
 import { DungeonProgressService } from 'src/game/dungeon-progress.service';
+import { DungeonProgress } from 'src/game/entities/dungeon-progress.entity';
 
 @Injectable()
 export class UsersService {
@@ -37,6 +38,8 @@ export class UsersService {
     private inventoryRepository: Repository<Inventory>,
     @InjectRepository(Slot)
     private slotRepository: Repository<Slot>,
+    @InjectRepository(DungeonProgress)
+    private dungeonProgressRepository: Repository<DungeonProgress>,
     private readonly dungeonProgressService: DungeonProgressService,
   ) {}
 
@@ -203,6 +206,10 @@ export class UsersService {
     }
     await this.slotRepository.save(slots);
 
+    // create DungeonProgress
+    const newDungeonProgress = this.dungeonProgressRepository.create();
+    await this.dungeonProgressRepository.save(newDungeonProgress);
+
     const character = this.charactersRepository.create({
       ...NEW_CHARACTER_BASE,
       name: characterData.name,
@@ -212,11 +219,10 @@ export class UsersService {
       avatar: newAvatar,
       user,
       inventory: newInventory,
+      dungeonProgress: newDungeonProgress,
     });
 
     const savedCharacter = await this.charactersRepository.save(character);
-
-    await this.dungeonProgressService.createDungeonProgress(savedCharacter);
 
     return savedCharacter;
   }

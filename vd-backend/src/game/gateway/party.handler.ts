@@ -33,7 +33,11 @@ export class PartyHandler extends BaseHandler {
     const inviteeClient = this.game.getConnection(inviteeId);
 
     if (!inviter || !inviteeClient) {
-      this.emitError(inviterClient, 'Invited player not found');
+      this.handleError(
+        inviterClient,
+        'Party handler: handleInvite',
+        new Error('Invited player not found'),
+      );
       return;
     }
 
@@ -53,7 +57,11 @@ export class PartyHandler extends BaseHandler {
     const inviter = this.getCharacter(inviterClient);
 
     if (!invitee || !inviter) {
-      this.emitError(client, 'Inviter not found');
+      this.handleError(
+        client,
+        'Party handler: handleInviteResponse',
+        new Error('Character data not found'),
+      );
       return;
     }
 
@@ -311,15 +319,27 @@ export class PartyHandler extends BaseHandler {
     client: GameSocket,
     level: number,
   ): Promise<void> {
-    const maxReachedLevel = (
-      await this.dungeonProgressService.getDungeonProgress(character.id)
-    ).maxReachedLevel;
+    const dungeonProgress =
+      await this.dungeonProgressService.getDungeonProgress(character.id);
+
+    if (!dungeonProgress) {
+      this.handleError(
+        client,
+        'Party handler: enterDungeonSolo',
+        new Error('No dungeon progress found for character'),
+      );
+      return;
+    }
+
+    const maxReachedLevel = dungeonProgress.maxReachedLevel;
 
     if (level > maxReachedLevel) {
-      this.emitError(
+      this.handleError(
         client,
-        'Cannot enter a level higher than your max reached level',
+        'Party handler: enterDungeonSolo',
+        new Error('Cannot enter a level higher than your max reached level'),
       );
+
       return;
     }
 
@@ -410,7 +430,12 @@ export class PartyHandler extends BaseHandler {
 
   private getCharacter(client: GameSocket): Character | undefined {
     if (!client.data.character) {
-      this.emitError(client, 'Character data not found');
+      this.handleError(
+        client,
+        'Character data not found',
+        new Error('Character data not found'),
+      );
+
       return undefined;
     }
     return client.data.character;

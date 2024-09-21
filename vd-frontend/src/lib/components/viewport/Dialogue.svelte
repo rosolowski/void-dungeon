@@ -59,6 +59,7 @@
 		left: 0;
 		width: 100%;
 		z-index: var(--zi-dialogue);
+		user-select: none;
 	}
 
 	.dialogue-content {

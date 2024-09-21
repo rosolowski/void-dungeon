@@ -11,6 +11,7 @@
 	import Chat from '$lib/components/game/Chat.svelte';
 	import DungeonLevel from '$lib/components/viewport/DungeonLevel.svelte';
 	import LevelUp from '$lib/components/game/LevelUp.svelte';
+	import LowHpEffect from '$lib/components/game/LowHpEffect.svelte';
 
 	let viewportWidth: number;
 	let viewportHeight: number;
@@ -38,6 +39,7 @@
 	<Chat />
 	<DungeonLevel />
 	<LevelUp />
+	<LowHpEffect />
 
 	{#if $player}
 		<GameHud />

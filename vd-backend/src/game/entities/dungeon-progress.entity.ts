@@ -21,6 +21,6 @@ export class DungeonProgress {
   @Column({ default: 0 })
   totalItemsFound: number;
 
-  @OneToOne(() => Character, (character) => character.inventory)
+  @OneToOne(() => Character, (character) => character.dungeonProgress)
   character: Character;
 }

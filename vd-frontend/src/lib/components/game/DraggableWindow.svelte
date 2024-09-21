@@ -97,6 +97,7 @@
 		left: 300px;
 		animation: appear 0.15s;
 		box-shadow: 2px 2px 8px var(--background);
+		user-select: none;
 
 		&.dragging {
 			cursor: move;

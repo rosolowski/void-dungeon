@@ -64,8 +64,9 @@ export class Character {
     (dungeonProgress) => dungeonProgress.character,
     {
       cascade: true,
+      nullable: true,
     },
   )
   @JoinColumn()
-  dungeonProgress: DungeonProgress;
+  dungeonProgress: DungeonProgress | null;
 }
