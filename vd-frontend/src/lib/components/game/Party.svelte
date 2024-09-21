@@ -52,9 +52,9 @@
 					{member.id === $player.id ? `${$player.name} (You)` : member.name}
 					{#if $isVoting}
 						{#if member.id === $player.id}
-							{hasPlayerVoted ? '✅' : ''}
+							{hasPlayerVoted ? '(YES)' : ''}
 						{:else}
-							{$party.votes.includes(member.id) ? '✅' : ''}
+							{$party.votes.includes(member.id) ? '(YES)' : ''}
 						{/if}
 					{/if}
 				</li>
@@ -96,6 +96,7 @@
 		border: 1px solid var(--tetriary);
 		background: var(--background);
 		z-index: var(--zi-party-manager);
+		user-select: none;
 	}
 
 	ul {

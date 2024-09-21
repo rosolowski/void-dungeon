@@ -20,5 +20,6 @@
 		font-weight: bold;
 		color: var(--secondary);
 		z-index: var(--zi-dungeon-level);
+		user-select: none;
 	}
 </style>
