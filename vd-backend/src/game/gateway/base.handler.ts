@@ -54,7 +54,7 @@ export abstract class BaseHandler {
     const instance = this.game
       .getInstanceManager()
       .getInstanceFromCharacter(character);
-    client.emit('getStats', character.stats);
+    client.emit('getPlayerCharacter', character);
     this.server.to(instance.room).emit('characterUpdate', character);
   }
 }

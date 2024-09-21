@@ -1,4 +1,4 @@
-import type { AttackLog, SingleAttackLog, StatusEffects } from '$lib/util/types';
+import type { StatusEffects } from '$lib/util/types';
 import type { Character } from '$lib/class/Character';
 import { get, writable } from 'svelte/store';
 import { player } from './player';
@@ -27,60 +27,6 @@ export interface FightNumber {
 let fightNumbersCounter = 0;
 
 export const fightNumbers = writable<Map<number, FightNumber>>(new Map());
-
-export function attackLogToFightNumbers(attackLog: AttackLog) {
-	const characterTarget: Character | undefined =
-		get(player)?.id === attackLog.characterId
-			? (get(player) as Character)
-			: get(characters).get(attackLog.characterId);
-
-	const entityTarget: Entity | undefined = get(entities).get(attackLog.entityId);
-
-	// Process character's attacks
-	attackLog.characterAttacks.forEach((attack) => {
-		if (entityTarget) {
-			processSingleAttack(attack, entityTarget);
-		}
-	});
-
-	// Process entity's attacks
-	attackLog.entityAttacks.forEach((attack) => {
-		if (characterTarget) {
-			processSingleAttack(attack, characterTarget);
-		}
-	});
-}
-
-function processSingleAttack(attack: SingleAttackLog, target: Character | Entity) {
-	if (attack.dodged) {
-		addFightNumber({
-			type: 'DODGE',
-			value: 0,
-			x: target.pos.x,
-			y: target.pos.y
-		});
-	} else {
-		// Display damage
-		addFightNumber({
-			type: attack.criticalHit ? 'CRITICAL' : 'DAMAGE',
-			value: -attack.damageDone,
-			x: target.pos.x,
-			y: target.pos.y
-		});
-
-		// Display status effects
-		Object.entries(attack.effectsApplied).forEach(([effectType, value]) => {
-			if (value > 0) {
-				addFightNumber({
-					type: effectType.toUpperCase() as FightNumberType,
-					value: -value,
-					x: target.pos.x,
-					y: target.pos.y
-				});
-			}
-		});
-	}
-}
 
 function addFightNumber(fightNumber: FightNumber) {
 	const fnId = fightNumbersCounter++;
