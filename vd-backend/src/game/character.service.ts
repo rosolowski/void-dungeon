@@ -6,6 +6,7 @@ import { Character as CharacterClass } from './class/Character';
 import { CharacterClass as CharacterClassType } from './class/Character';
 import { Repository } from 'typeorm';
 import { Stats } from './entities/stats.entity';
+import { Inventory } from './entities/inventory.entity';
 
 @Injectable()
 export class CharacterService {
@@ -14,12 +15,56 @@ export class CharacterService {
     private charactersRepository: Repository<Character>,
     @InjectRepository(Stats)
     private statsRepository: Repository<Stats>,
+    @InjectRepository(Inventory)
+    private inventoryRepository: Repository<Inventory>,
   ) {}
 
   async getCharacter(characterId: number): Promise<Character> {
     return await this.charactersRepository.findOne({
       where: { id: characterId },
       relations: ['stats'],
+    });
+  }
+
+  // loads character's inventory from database
+  async getInventory(characterId: number): Promise<Inventory> {
+    return await this.inventoryRepository.findOne({
+      where: { character: { id: characterId } },
+      relations: [
+        'slots',
+        'equipment',
+        'equipment.weapon',
+        'equipment.helmet',
+        'equipment.talisman',
+        'equipment.boots',
+        'equipment.armor',
+        'equipment.secondary',
+        'slots.item',
+      ],
+    });
+  }
+
+  // loads user's character from database
+  async getPlayerCharacter(
+    userId: number,
+    characterId: number,
+  ): Promise<Character> {
+    return await this.charactersRepository.findOne({
+      where: { id: characterId, user: { id: userId } },
+      relations: [
+        'avatar',
+        'stats',
+        'inventory',
+        'inventory.slots',
+        'inventory.equipment',
+        'inventory.equipment.weapon',
+        'inventory.equipment.helmet',
+        'inventory.equipment.talisman',
+        'inventory.equipment.boots',
+        'inventory.equipment.armor',
+        'inventory.equipment.secondary',
+        'inventory.slots.item',
+      ],
     });
   }
 

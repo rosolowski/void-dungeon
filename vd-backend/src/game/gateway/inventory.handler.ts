@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { BaseHandler, GameSocket } from './base.handler';
 import { InventoryService } from '../inventory.service';
-import { GameService } from '../game.service';
 import { CharacterService } from '../character.service';
 import { Item } from '../entities/item.entity';
 import { ItemType } from '../class/Item';
@@ -17,7 +16,6 @@ export class InventoryHandler extends BaseHandler {
 
   constructor(
     private readonly inventoryService: InventoryService,
-    private readonly gameService: GameService,
     private readonly characterService: CharacterService,
     private readonly dungeonProgressService: DungeonProgressService,
   ) {
@@ -200,7 +198,8 @@ export class InventoryHandler extends BaseHandler {
 
   private async emitUpdatedInventoryFromDb(client: GameSocket): Promise<void> {
     const characterId = client.data?.character?.id;
-    const inventoryEntity = await this.gameService.getInventory(characterId);
+    const inventoryEntity =
+      await this.characterService.getInventory(characterId);
     const inventory = inventoryEntityToInventoryClass(inventoryEntity);
     client.emit('getInventory', inventory.serialize());
   }

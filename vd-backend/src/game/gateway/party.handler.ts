@@ -441,10 +441,6 @@ export class PartyHandler extends BaseHandler {
     return client.data.character;
   }
 
-  private emitError(client: GameSocket, message: string): void {
-    client.emit('partyError', message);
-  }
-
   private emitPartyInviteRejected(
     client: GameSocket,
     inviteeName: string,

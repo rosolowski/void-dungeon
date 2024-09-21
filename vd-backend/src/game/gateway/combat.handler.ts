@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { BaseHandler, GameSocket } from './base.handler';
 import { Game } from '../engine/game';
-import { GameService } from '../game.service';
 import { CharacterService } from '../character.service';
 import { Character } from '../class/Character';
 import { AttackLog } from '../engine/battle-manager';
@@ -10,6 +9,7 @@ import { GameInstance } from '../class/GameInstance';
 import { InventoryService } from '../inventory.service';
 import { inventoryEntityToInventoryClass } from '../engine/utils';
 import { DungeonProgressService } from '../dungeon-progress.service';
+import { PartyManager } from '../engine/party-manager';
 
 @Injectable()
 export class CombatHandler extends BaseHandler {
@@ -17,10 +17,10 @@ export class CombatHandler extends BaseHandler {
   private server: Server;
 
   constructor(
-    private readonly gameService: GameService,
     private readonly characterService: CharacterService,
     private readonly inventoryService: InventoryService,
     private readonly dungeonProgressService: DungeonProgressService,
+    private readonly partyManager: PartyManager,
   ) {
     super();
     this.game = Game.getInstance();
@@ -111,11 +111,11 @@ export class CombatHandler extends BaseHandler {
   private async handleEntityDeath(
     client: GameSocket,
     character: Character,
-    enemyLevel: number,
+    dungeonLevel: number,
   ): Promise<void> {
     const droppedItem = await this.inventoryService.generateAndAddItem(
       character,
-      enemyLevel,
+      dungeonLevel,
     );
 
     if (droppedItem) {
@@ -128,9 +128,7 @@ export class CombatHandler extends BaseHandler {
       }
     }
 
-    const expGained = this.calculateExperienceGain(character.level, enemyLevel);
-
-    await this.characterService.addExperience(character, expGained);
+    this.distributeExperience(character, dungeonLevel);
 
     const updatedProgress =
       await this.dungeonProgressService.incrementEnemyKilled(character.id);
@@ -141,14 +139,43 @@ export class CombatHandler extends BaseHandler {
     client.emit('getPlayerCharacter', character);
   }
 
+  private distributeExperience(
+    character: Character,
+    dungeonLevel: number,
+  ): void {
+    const expGained = this.calculateExperienceGain(
+      character.level,
+      dungeonLevel,
+    );
+    const party = this.partyManager.getPartyFromCharacter(character.id);
+
+    if (!party) {
+      this.characterService.addExperience(character, expGained);
+      return;
+    }
+
+    const expPerMember = Math.floor(expGained / 2);
+
+    party.members.forEach((memberId) => {
+      const member = this.game.getCharacterById(memberId);
+      if (!member) return;
+
+      const expToAdd = memberId === character.id ? expGained : expPerMember;
+      this.characterService.addExperience(member, expToAdd);
+
+      const memberSocket = this.game.getConnection(memberId);
+      if (memberSocket) {
+        memberSocket.emit('getPlayerCharacter', member);
+      }
+    });
+  }
+
   private calculateExperienceGain(
     characterLevel: number,
-    enemyLevel: number,
+    dungeonLevel: number,
   ): number {
-    const baseExp = 10 + enemyLevel * 5;
-    const levelDifference = enemyLevel - characterLevel;
-    const multiplier = Math.max(0.1, 1 + levelDifference * 0.1);
-    return Math.max(Math.round(baseExp * multiplier), 1);
+    const baseExp = dungeonLevel * 2;
+    return Math.max(Math.round(baseExp), 1);
   }
 
   private async handleCharacterDeath(
@@ -170,8 +197,7 @@ export class CombatHandler extends BaseHandler {
     const cityInstance = this.game.addCharacterToCity(character);
 
     await Promise.all([
-      this.gameService.syncCharacter(character),
-      this.characterService.syncStatsToDatabase(character),
+      this.characterService.syncCharacterToDatabase(character),
     ]);
 
     this.game.connectCharacterToInstance(character);
@@ -180,7 +206,8 @@ export class CombatHandler extends BaseHandler {
 
   private async emitUpdatedInventoryFromDb(client: GameSocket): Promise<void> {
     const characterId = client.data?.character?.id;
-    const inventoryEntity = await this.gameService.getInventory(characterId);
+    const inventoryEntity =
+      await this.characterService.getInventory(characterId);
     const inventory = inventoryEntityToInventoryClass(inventoryEntity);
     client.emit('getInventory', inventory.serialize());
   }

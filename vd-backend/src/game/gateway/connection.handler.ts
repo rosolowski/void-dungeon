@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { BaseHandler, GameSocket } from './base.handler';
-import { GameService } from '../game.service';
 import { Game } from '../engine/game';
 import {
   characterEntityToCharacterClass,
@@ -9,6 +8,12 @@ import {
 } from '../engine/utils';
 import { GameInstance } from '../class/GameInstance';
 import { DungeonProgressService } from '../dungeon-progress.service';
+import { CharacterService } from '../character.service';
+import { JwtPayloadDto } from 'src/auth/dto/jwt.dto';
+import { Character as CharacterEntity } from '../entities/character.entity';
+import { WsException } from '@nestjs/websockets';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ConnectionHandler extends BaseHandler {
@@ -16,8 +21,10 @@ export class ConnectionHandler extends BaseHandler {
   private server: Server;
 
   constructor(
-    private readonly gameService: GameService,
     private readonly dungeonProgressService: DungeonProgressService,
+    private readonly characterService: CharacterService,
+    private jwtService: JwtService,
+    private configService: ConfigService,
   ) {
     super();
     this.game = Game.getInstance();
@@ -48,7 +55,7 @@ export class ConnectionHandler extends BaseHandler {
       client.data.character,
     );
     this.emitCharacterLeaveInstance(instance, client);
-    this.gameService.syncCharacter(client.data.character);
+    this.characterService.syncCharacterToDatabase(client.data.character);
     this.game.removeConnection(client.data.character.id);
   }
 
@@ -89,7 +96,7 @@ export class ConnectionHandler extends BaseHandler {
     token: string,
     characterId: string,
   ): Promise<void> {
-    const data = await this.gameService.validateSocketConnection(
+    const data = await this.validateSocketConnection(
       token,
       parseInt(characterId),
     );
@@ -136,8 +143,44 @@ export class ConnectionHandler extends BaseHandler {
 
   private async emitUpdatedInventoryFromDb(client: GameSocket): Promise<void> {
     const characterId = client.data?.character?.id;
-    const inventoryEntity = await this.gameService.getInventory(characterId);
+    const inventoryEntity =
+      await this.characterService.getInventory(characterId);
     const inventory = inventoryEntityToInventoryClass(inventoryEntity);
     client.emit('getInventory', inventory.serialize());
+  }
+
+  async validateSocketConnection(
+    token: string,
+    characterId: number,
+  ): Promise<{ user: JwtPayloadDto; character: CharacterEntity }> {
+    try {
+      // Decode and verify the JWT token
+      const secret = this.configService.get<string>(
+        'JWT_SECRET',
+        'default_secret',
+      );
+      const payload: JwtPayloadDto = await this.jwtService.verifyAsync(token, {
+        secret,
+      });
+
+      // Extract the user ID from the token's payload
+      const userId = payload.id;
+
+      // Verify whether the specified character belongs to the user
+      const character = await this.characterService.getPlayerCharacter(
+        userId,
+        characterId,
+      );
+      if (!character) {
+        throw new Error('Character does not belong to user');
+      }
+
+      return {
+        user: payload,
+        character,
+      };
+    } catch (e) {
+      throw new WsException('Unauthorized');
+    }
   }
 }
