@@ -48,6 +48,18 @@ function addFightNumber(fightNumber: FightNumber) {
 	}, 1000);
 }
 
+export function showHealEffect(heal: number, targetId: number, targetType: 'character' | 'entity') {
+	const target = getTarget(targetId, targetType);
+	if (target) {
+		addFightNumber({
+			type: 'HEAL',
+			value: heal,
+			x: target.pos.x,
+			y: target.pos.y
+		});
+	}
+}
+
 export function showDamageEffect(
 	damage: number,
 	targetId: number,
@@ -55,7 +67,7 @@ export function showDamageEffect(
 	isCritical: boolean
 ) {
 	const target = getTarget(targetId, targetType);
-	if (target) {
+	if (target && damage > 0) {
 		addFightNumber({
 			type: isCritical ? 'CRITICAL' : 'DAMAGE',
 			value: -damage,

@@ -220,6 +220,7 @@ export class UsersService {
       user,
       inventory: newInventory,
       dungeonProgress: newDungeonProgress,
+      skillIds: [],
     });
 
     const savedCharacter = await this.charactersRepository.save(character);

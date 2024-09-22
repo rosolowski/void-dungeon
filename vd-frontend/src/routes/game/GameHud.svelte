@@ -4,6 +4,8 @@
 	import { windows } from '$lib/store/windows';
 	import CharacterWindow from '$lib/components/windows/CharacterWindow.svelte';
 	import AvatarComponent from '$lib/components/shared/AvatarComponent.svelte';
+	import EntityStatusEffect from '$lib/components/game/EntityStatusEffect.svelte';
+	import SkillBar from '$lib/components/game/SkillBar.svelte';
 
 	function openCharacterWindow() {
 		windows.openWindow({
@@ -19,14 +21,12 @@
 
 {#if $player}
 	<div class="game-hud" class:mobile={$device.isMobile}>
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div class="avatar interactive" on:click={openCharacterWindow}>
 			<AvatarComponent {avatar} />
 			<div class="overlay"></div>
 		</div>
 		<div class="status-container">
-			<div class="title">{$player?.name || 'unkown'} | lvl {$player?.level || '1'}</div>
+			<div class="title">{$player?.name || 'unknown'} | lvl {$player?.level || '1'}</div>
 			<div class="bars">
 				<div class="exp bar">
 					<div
@@ -43,17 +43,12 @@
 				<div class="mana bar">
 					<div
 						class="fill"
-						style:width={(($player?.stats.mana || 1) / ($player?.stats.maxMana || 1)) * 100 + '%'}
+						style:width={(($player?.stats.mana || 0) / ($player?.stats.maxMana || 1)) * 100 + '%'}
 					></div>
 				</div>
 			</div>
-			<div class="skills interactive">
-				<div class="skill s1"></div>
-				<div class="skill s2"></div>
-				<div class="skill s3"></div>
-				<div class="skill s4"></div>
-				<div class="skill s5"></div>
-			</div>
+			<SkillBar />
+			<EntityStatusEffect stats={$player.stats} />
 		</div>
 		<div class="currency-container"></div>
 	</div>
@@ -104,28 +99,12 @@
 		.exp .fill {
 			background-color: var(--exp);
 		}
-
-		.skills {
-			display: flex;
-			gap: 15px;
-
-			.skill {
-				width: 35px;
-				height: 35px;
-				border: 1px solid var(--secondary);
-				background-color: var(--background);
-			}
-		}
-	}
-
-	.currency-container {
 	}
 
 	.avatar {
 		position: relative;
 		border: 1px solid var(--secondary);
 		border-radius: 64px;
-		// box-shadow: 0 0 4px var(--secondary), inset 0 0 32px -16px var(--secondary);
 		background-color: var(--background);
 		width: 110px;
 		height: 110px;
@@ -152,8 +131,7 @@
 		}
 	}
 
-	// mobile
-
+	// mobile styles
 	.game-hud.mobile {
 		.avatar {
 			width: 60px;
@@ -167,10 +145,6 @@
 				height: 10px;
 				width: 165px;
 				max-width: 40vw;
-			}
-
-			.skills {
-				display: none;
 			}
 		}
 	}

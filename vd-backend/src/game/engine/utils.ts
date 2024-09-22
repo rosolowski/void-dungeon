@@ -59,6 +59,7 @@ export function characterEntityToCharacterClass(
     characterEntity.exp,
     characterEntity.maxExp,
     characterEntity.avatar,
+    characterEntity.skillIds,
   );
 }
 

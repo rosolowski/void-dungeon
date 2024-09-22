@@ -9,10 +9,12 @@ import { inventoryEntityToInventoryClass } from '../engine/utils';
 import { DungeonProgressService } from '../dungeon-progress.service';
 import { PartyManager } from '../engine/party-manager';
 import { PartyHandler } from './party.handler';
+import { SkillManager } from '../engine/skill-manager';
 
 @Injectable()
 export class CombatHandler extends BaseHandler {
   private partyManager: PartyManager;
+  private skillManager: SkillManager;
 
   constructor(
     private readonly characterService: CharacterService,
@@ -22,6 +24,7 @@ export class CombatHandler extends BaseHandler {
   ) {
     super();
     this.partyManager = this.game.getPartyManager();
+    this.skillManager = this.game.getSkillManager();
   }
 
   async handleAttackEntity(
@@ -49,6 +52,71 @@ export class CombatHandler extends BaseHandler {
       );
     } catch (error) {
       this.handleError(client, 'Attack error', error);
+    }
+  }
+
+  async handleUseSkill(
+    data: { skillId: string; targetId?: number },
+    client: GameSocket,
+  ): Promise<void> {
+    if (!this.validateClient(client)) return;
+
+    const character: Character = client.data.character;
+    const instance = this.game
+      .getInstanceManager()
+      .getInstanceFromCharacter(character);
+
+    if (!instance) {
+      client.emit('error', { message: 'Character not in an instance' });
+      return;
+    }
+
+    const skillManager = this.game.getSkillManager();
+    const skill = skillManager.getSkill(data.skillId);
+
+    if (!skill) {
+      client.emit('error', { message: 'Invalid skill' });
+      return;
+    }
+
+    const target = skillManager.getTargetForSkill(
+      skill,
+      character,
+      data.targetId,
+      instance,
+    );
+
+    if (
+      (skill.targetType !== 'self' &&
+        skill.targetType !== 'passive' &&
+        skill.targetType !== 'none' &&
+        !target) ||
+      target.type === 'npc'
+    ) {
+      client.emit('error', { message: 'Invalid target for skill' });
+      return;
+    }
+
+    const attackLog = skillManager.useSkill(character, data.skillId, target);
+
+    if (attackLog) {
+      if (attackLog.entityDied && attackLog.entityFinal) {
+        this.game.removeEntity(instance, attackLog.entityFinal.id);
+
+        if (attackLog.entityFinal.type === 'chest') {
+          await this.handleChestOpening(client, character);
+        } else {
+          await this.handleEntityDeath(client, character, instance.depth);
+        }
+      }
+
+      if (attackLog.characterDied) {
+        await this.handleCharacterDeath(client, character);
+      }
+
+      this.server.to(instance.room).emit('attackLog', attackLog);
+    } else {
+      client.emit('error', { message: 'Failed to use skill' });
     }
   }
 
@@ -203,6 +271,8 @@ export class CombatHandler extends BaseHandler {
     character.stats.lightStatus = 0;
     character.stats.fireStatus = 0;
     character.stats.poisonStatus = 0;
+
+    character.clearSkills();
   }
 
   private async emitUpdatedInventory(client: GameSocket): Promise<void> {

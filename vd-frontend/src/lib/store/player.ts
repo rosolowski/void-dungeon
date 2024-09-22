@@ -1,10 +1,10 @@
 import { get, writable } from 'svelte/store';
-
 import { Character } from '$lib/class/Character';
 import type { MoveResponseDto } from '$lib/api/dto/game.dto';
+import { skillManager } from '$lib/store/skill-manager';
 
 function createPlayerStore() {
-	const { subscribe, set, update } = writable<Character | null>(null);
+	const { subscribe, set: originalSet, update } = writable<Character | null>(null);
 
 	return {
 		subscribe,
@@ -13,10 +13,16 @@ function createPlayerStore() {
 			const newLevel = value?.level;
 			const oldLevel = currentPlayer?.level;
 
-			set(value);
+			originalSet(value);
+
+			console.log(value);
 
 			if (newLevel && oldLevel && newLevel > oldLevel) {
 				levelUp.set(true);
+			}
+
+			if (value && value.skillIds) {
+				skillManager.updatePlayerSkills(value.skillIds);
 			}
 		},
 		update
@@ -32,7 +38,6 @@ export function handleMoveCorrection(data: MoveResponseDto) {
 	const { newX, newY } = data;
 
 	if (!data.success && currentPlayer) {
-		// console.log('player not synced - updating x and y position');
 		currentPlayer.pos.x = newX;
 		currentPlayer.pos.y = newY;
 

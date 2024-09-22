@@ -253,19 +253,6 @@ export class PartyHandler extends BaseHandler {
     client.emit('leftParty');
   }
 
-  private leaveCurrentParty(characterId: number): void {
-    const currentParty = this.partyManager.getPartyFromCharacter(characterId);
-    if (currentParty) {
-      currentParty.members = currentParty.members.filter(
-        (id) => id !== characterId,
-      );
-      currentParty.votes = currentParty.votes.filter(
-        (id) => id !== characterId,
-      );
-      this.emitPartyUpdate(currentParty);
-    }
-  }
-
   private async moveToNextLevel(characterIds: number[]): Promise<void> {
     const character = this.game.getCharacterById(characterIds[0]);
     const currentInstance = this.game
@@ -304,6 +291,13 @@ export class PartyHandler extends BaseHandler {
           if (updatedProgress) {
             socket.emit('dungeonProgressUpdate', updatedProgress);
           }
+        }
+
+        const skillManager = this.game.getSkillManager();
+        const newSkill = skillManager.distributeSkillOnNewFloor(character);
+
+        if (newSkill) {
+          socket.emit('newSkillAcquired', newSkill.id);
         }
 
         socket.leave(oldInstance.room);
@@ -360,6 +354,13 @@ export class PartyHandler extends BaseHandler {
       client.emit('dungeonProgressUpdate', updatedProgress);
     }
 
+    const skillManager = this.game.getSkillManager();
+    const newSkill = skillManager.distributeSkillOnNewFloor(character);
+
+    if (newSkill) {
+      client.emit('newSkillAcquired', newSkill.id);
+    }
+
     this.game.connectCharacterToInstance(character);
     this.emitCharacterJoinInstance(newInstance, client);
   }
@@ -391,6 +392,13 @@ export class PartyHandler extends BaseHandler {
           );
         if (updatedProgress) {
           socket.emit('dungeonProgressUpdate', updatedProgress);
+        }
+
+        const skillManager = this.game.getSkillManager();
+        const newSkill = skillManager.distributeSkillOnNewFloor(character);
+
+        if (newSkill) {
+          socket.emit('newSkillAcquired', newSkill.id);
         }
 
         socket.leave(oldInstance.room);

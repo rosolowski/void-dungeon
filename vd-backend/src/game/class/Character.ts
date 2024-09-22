@@ -19,6 +19,9 @@ export const isValidCharacterClass = (
 };
 
 export class Character extends Entity {
+  public skillIds: string[] = [];
+  private readonly MAX_SKILLS = 5;
+
   constructor(
     id: number,
     pos: { x: number; y: number; instanceId: number },
@@ -29,8 +32,10 @@ export class Character extends Entity {
     public exp: number,
     public maxExp: number,
     public avatar: CharacterAvatar,
+    skillIds: string[] = [],
   ) {
     super(id, 'character', pos, name, level, stats);
+    this.skillIds = skillIds.slice(0, this.MAX_SKILLS);
   }
 
   setPos(x: number, y: number) {
@@ -49,5 +54,32 @@ export class Character extends Entity {
       (distanceX === 1 && distanceY === 0) ||
       (distanceX === 0 && distanceY === 1)
     );
+  }
+
+  addSkill(skillId: string): boolean {
+    if (
+      this.skillIds.length < this.MAX_SKILLS &&
+      !this.skillIds.includes(skillId)
+    ) {
+      this.skillIds.push(skillId);
+      return true;
+    }
+    return false;
+  }
+
+  removeSkill(skillId: string) {
+    this.skillIds = this.skillIds.filter((id) => id !== skillId);
+  }
+
+  hasSkill(skillId: string): boolean {
+    return this.skillIds.includes(skillId);
+  }
+
+  clearSkills() {
+    this.skillIds = [];
+  }
+
+  get availableSkillSlots(): number {
+    return this.MAX_SKILLS - this.skillIds.length;
   }
 }

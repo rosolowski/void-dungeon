@@ -22,7 +22,12 @@ import { goto } from '$app/navigation';
 import type { Stats } from '$lib/class/Stats';
 import { entities, entityOnPosition, inititalizeEntities } from '$lib/store/entities';
 import { Collision, Tile, type AttackLog, type SingleAttackLog } from '$lib/util/types';
-import { showDamageEffect, showDodgeEffect, showStatusEffects } from '$lib/store/viewport-effects';
+import {
+	showDamageEffect,
+	showDodgeEffect,
+	showHealEffect,
+	showStatusEffects
+} from '$lib/store/viewport-effects';
 import { dialogueState, progressDialogue } from '$lib/store/dialogue';
 import { entityTracker } from '$lib/store/entity-tracker';
 import type { Item } from '$lib/class/Item';
@@ -34,6 +39,8 @@ import EnterDungeonWindow from '$lib/components/windows/EnterDungeonWindow.svelt
 import { DungeonProgress } from '$lib/class/DungeonProgress';
 import { dungeonProgress } from '$lib/store/dungeon-progress';
 import type { Entity } from '$lib/class/Entity';
+import { skillsArray } from '$lib/store/skills';
+import { skillManager } from '$lib/store/skill-manager';
 
 type direction = 'up' | 'down' | 'left' | 'right';
 type VoteType = 'enterDungeon' | 'nextLevel' | 'exitDungeon';
@@ -245,6 +252,37 @@ export function initializeServerConnection() {
 		const progress = DungeonProgress.fromJSON(data);
 		dungeonProgress.set(progress);
 	});
+
+	client.on('newSkillAcquired', (skill: string) => {
+		if (DEBUG_WS) console.log('newSkillAcquired', skill);
+		player.update((p) => {
+			if (p) {
+				p.skillIds = [...p.skillIds, skill];
+			}
+			return p;
+		});
+		notifications.notifySkillAcquired(skillsArray.find((s) => s.id === skill)!);
+	});
+
+	client.on('skillsUpdate', (updatedSkillIds: string[]) => {
+		if (DEBUG_WS) console.log('skillsUpdate', updatedSkillIds);
+		player.update((p) => {
+			if (p) {
+				p.skillIds = updatedSkillIds;
+			}
+			return p;
+		});
+		skillManager.updatePlayerSkills(updatedSkillIds);
+	});
+}
+
+export function useSkill(skillId: string, targetId?: number) {
+	const client = get(socket);
+	if (!client) return;
+
+	console.log('using skill', skillId, targetId);
+
+	client.emit('useSkill', { skillId, targetId });
 }
 
 export function initiateVote(voteType: VoteType, dungeonLevel?: number) {
@@ -406,10 +444,18 @@ export function processAttackLog(attackLog: AttackLog) {
 
 	characterAttacks.forEach((attack) => {
 		processAttack(attack, entityFinal.id, 'entity');
+
+		if (attack.heal) {
+			showHealEffect(attack.heal, characterFinal.id, 'character');
+		}
 	});
 
 	entityAttacks.forEach((attack) => {
 		processAttack(attack, characterFinal.id, 'character');
+
+		if (attack.heal) {
+			showHealEffect(attack.heal, entityFinal.id, 'entity');
+		}
 	});
 
 	updateCharacter(characterFinal, characterDied);

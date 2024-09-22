@@ -69,4 +69,7 @@ export class Character {
   )
   @JoinColumn()
   dungeonProgress: DungeonProgress | null;
+
+  @Column('simple-array', { nullable: true })
+  skillIds: string[];
 }

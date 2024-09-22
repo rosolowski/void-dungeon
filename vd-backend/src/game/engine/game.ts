@@ -6,16 +6,19 @@ import { AttackLog, simulateAttack } from './battle-manager';
 import { InstanceManager } from './instance-manager';
 import { PartyManager } from './party-manager';
 import { Collision, Tile } from './utils';
+import { SkillManager } from './skill-manager';
 
 export class Game {
   private static instance: Game;
   private instanceManager: InstanceManager;
   private partyManager: PartyManager;
+  private skillManager: SkillManager;
   private connectionsMap: Map<number, Socket> = new Map();
 
   private constructor() {
     this.instanceManager = new InstanceManager();
     this.partyManager = new PartyManager();
+    this.skillManager = new SkillManager();
   }
 
   public static getInstance(): Game {
@@ -27,6 +30,10 @@ export class Game {
 
   public getPartyManager(): PartyManager {
     return this.partyManager;
+  }
+
+  public getSkillManager(): SkillManager {
+    return this.skillManager;
   }
 
   public getInstanceManager(): InstanceManager {
@@ -68,6 +75,7 @@ export class Game {
   }
 
   addCharacterToCity(character: Character): GameInstance {
+    character.clearSkills();
     this.instanceManager.addCharacterToCity(character);
     return this.instanceManager.getCityInstance();
   }
@@ -111,7 +119,7 @@ export class Game {
         characterFinal: character,
       };
     } else {
-      attackLog = simulateAttack(character, entity);
+      attackLog = simulateAttack(character, entity, this.skillManager);
     }
 
     return { success: true, instance, attackLog, entityType: entity.type };

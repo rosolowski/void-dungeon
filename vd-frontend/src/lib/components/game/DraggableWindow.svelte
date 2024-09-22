@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import { device } from '$lib/store/device';
 
 	export let zIndex: number;
@@ -8,6 +8,18 @@
 	let dragging = false;
 	let closing = false;
 	let draggableWindowElement: HTMLElement;
+
+	function centerWindow() {
+		const totalWidth = draggableWindowElement.offsetWidth;
+		const totalHeight = draggableWindowElement.offsetHeight;
+
+		x = (window.innerWidth - totalWidth) / 2;
+		y = (window.innerHeight - totalHeight) / 2;
+	}
+
+	onMount(() => {
+		centerWindow();
+	});
 
 	const dispatch = createEventDispatcher();
 
@@ -98,6 +110,7 @@
 		animation: appear 0.15s;
 		box-shadow: 2px 2px 8px var(--background);
 		user-select: none;
+		z-index: var(--zi-windows);
 
 		&.dragging {
 			cursor: move;

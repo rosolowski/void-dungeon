@@ -1,6 +1,7 @@
 import { Character } from '../class/Character';
 import { Entity } from '../class/Entity';
 import { Stats } from '../class/Stats';
+import { SkillManager } from './skill-manager';
 
 export interface AttackLog {
   characterFinal: Character;
@@ -12,13 +13,14 @@ export interface AttackLog {
 }
 
 export interface SingleAttackLog {
+  heal: number;
   damageDone: number;
   effectsApplied: StatusEffects;
   criticalHit: boolean;
   dodged: boolean;
 }
 
-interface StatusEffects {
+export interface StatusEffects {
   poison: number;
   fire: number;
   cold: number;
@@ -26,15 +28,24 @@ interface StatusEffects {
   void: number;
 }
 
-interface TempCombatStats extends Stats {}
+export interface TempCombatStats extends Stats {
+  accuracy: number;
+}
 
 export function simulateAttack(
   character: Character,
   entity: Entity,
+  skillManager: SkillManager,
 ): AttackLog {
   try {
     const characterTempStats = calculateTempCombatStats(character);
     const entityTempStats = calculateTempCombatStats(entity);
+
+    skillManager.applyPassiveSkills(
+      characterTempStats,
+      entityTempStats,
+      character,
+    );
 
     const characterAttackCount = calculateAttackCount(
       characterTempStats.attackSpeed,
@@ -48,12 +59,12 @@ export function simulateAttack(
     let entityDied = false;
 
     // Process ongoing effects before combat
-    processOngoingEffects(character);
-    processOngoingEffects(entity);
+    processOngoingEffects(characterTempStats);
+    processOngoingEffects(entityTempStats);
 
     // Check if either died from ongoing effects
-    characterDied = character.stats.hp <= 0;
-    entityDied = entity.stats.hp <= 0;
+    characterDied = characterTempStats.hp <= 0;
+    entityDied = entityTempStats.hp <= 0;
 
     // Simulate character's attacks
     for (
@@ -63,9 +74,9 @@ export function simulateAttack(
     ) {
       const result = simulateSingleAttack(characterTempStats, entityTempStats);
       characterAttacks.push(result);
-      entity.stats.hp -= result.damageDone;
-      applyStatusEffects(entity, result.effectsApplied);
-      entityDied = entity.stats.hp <= 0;
+      entityTempStats.hp -= result.damageDone;
+      applyStatusEffects(entityTempStats, result.effectsApplied);
+      entityDied = entityTempStats.hp <= 0;
     }
 
     // Simulate entity's counterattacks
@@ -76,9 +87,34 @@ export function simulateAttack(
     ) {
       const result = simulateSingleAttack(entityTempStats, characterTempStats);
       entityAttacks.push(result);
-      character.stats.hp -= result.damageDone;
-      applyStatusEffects(character, result.effectsApplied);
-      characterDied = character.stats.hp <= 0;
+      characterTempStats.hp -= result.damageDone;
+      applyStatusEffects(characterTempStats, result.effectsApplied);
+      characterDied = characterTempStats.hp <= 0;
+    }
+
+    character.stats.hp = Math.min(characterTempStats.hp, character.stats.maxHp);
+    entity.stats.hp = Math.min(entityTempStats.hp, entity.stats.maxHp);
+
+    character.stats.coldStatus = characterTempStats.coldStatus;
+    character.stats.voidStatus = characterTempStats.voidStatus;
+    character.stats.lightStatus = characterTempStats.lightStatus;
+    character.stats.fireStatus = characterTempStats.fireStatus;
+    character.stats.poisonStatus = characterTempStats.poisonStatus;
+
+    entity.stats.coldStatus = entityTempStats.coldStatus;
+    entity.stats.voidStatus = entityTempStats.voidStatus;
+    entity.stats.lightStatus = entityTempStats.lightStatus;
+    entity.stats.fireStatus = entityTempStats.fireStatus;
+    entity.stats.poisonStatus = entityTempStats.poisonStatus;
+
+    characterDied = character.stats.hp <= 0;
+    entityDied = entity.stats.hp <= 0;
+
+    if (!characterDied) {
+      character.stats.mana = Math.min(
+        character.stats.mana + 5,
+        character.stats.maxMana,
+      );
     }
 
     return {
@@ -95,11 +131,14 @@ export function simulateAttack(
   }
 }
 
-function calculateTempCombatStats(entity: Entity): TempCombatStats {
+export function calculateTempCombatStats(entity: Entity): TempCombatStats {
   const baseStats = entity.stats;
   const statusEffects = getCurrentStatusEffects(entity);
 
-  const tempStats: TempCombatStats = { ...baseStats };
+  const tempStats: TempCombatStats = {
+    ...baseStats,
+    accuracy: 100,
+  };
 
   if (statusEffects.fire > 0) {
     tempStats.armor = Math.max(tempStats.armor - statusEffects.fire, 0);
@@ -107,20 +146,20 @@ function calculateTempCombatStats(entity: Entity): TempCombatStats {
 
   if (statusEffects.cold > 0) {
     tempStats.attackSpeed = Math.max(
-      tempStats.attackSpeed * (1 - statusEffects.cold * 0.1),
-      0.5, // Minimum 50% of original attack speed
+      tempStats.attackSpeed - statusEffects.cold * 0.1,
+      0.5, // minimum 0.5 attack speed
     );
   }
 
   if (statusEffects.light > 0) {
-    tempStats.evasion = Math.min(
-      tempStats.evasion + statusEffects.light * 2,
-      75, // Maximum 75% evasion
+    tempStats.accuracy = Math.max(
+      tempStats.accuracy - statusEffects.light * 5,
+      10, // minimum 10% accuracy
     );
   }
 
   if (statusEffects.void > 0) {
-    const reductionFactor = 1 - statusEffects.void * 0.05; // 5% reduction per stack
+    const reductionFactor = Math.max(1 - statusEffects.void * 0.01, 0); // 1% reduction per stack
     tempStats.armor = Math.round(tempStats.armor * reductionFactor);
     tempStats.damage = Math.round(tempStats.damage * reductionFactor);
     tempStats.attackSpeed = tempStats.attackSpeed * reductionFactor;
@@ -140,8 +179,21 @@ function simulateSingleAttack(
   attackerStats: TempCombatStats,
   defenderStats: TempCombatStats,
 ): SingleAttackLog {
+  // accuracy (includes light status)
+  if (Math.random() * 100 > attackerStats.accuracy) {
+    return {
+      heal: 0,
+      damageDone: 0,
+      effectsApplied: { poison: 0, fire: 0, cold: 0, light: 0, void: 0 },
+      criticalHit: false,
+      dodged: true,
+    };
+  }
+
+  // Check for evasion
   if (Math.random() < defenderStats.evasion / 100) {
     return {
+      heal: 0,
       damageDone: 0,
       effectsApplied: { poison: 0, fire: 0, cold: 0, light: 0, void: 0 },
       criticalHit: false,
@@ -163,6 +215,7 @@ function simulateSingleAttack(
   const effectsApplied = applyNewStatusEffects(attackerStats);
 
   return {
+    heal: 0,
     damageDone: damageAfterArmor,
     effectsApplied,
     criticalHit: isCritical,
@@ -212,52 +265,24 @@ function applyNewStatusEffects(attackerStats: TempCombatStats): StatusEffects {
   return effects;
 }
 
-export function processOngoingEffects(entity: Entity): void {
+export function processOngoingEffects(stats: Stats): void {
   // Apply ongoing damage from poison
-  if (entity.stats.poisonStatus > 0) {
-    entity.stats.hp -= entity.stats.poisonStatus;
+  if (stats.poisonStatus > 0) {
+    stats.hp -= stats.poisonStatus;
   }
 
   // Reduce status effects over time
-  entity.stats.poisonStatus = Math.max(entity.stats.poisonStatus - 1, 0);
-  entity.stats.fireStatus = Math.max(entity.stats.fireStatus - 1, 0);
-  entity.stats.coldStatus = Math.max(entity.stats.coldStatus - 1, 0);
-  entity.stats.lightStatus = Math.max(entity.stats.lightStatus - 1, 0);
-  entity.stats.voidStatus = Math.max(entity.stats.voidStatus - 1, 0);
+  stats.poisonStatus = Math.max(stats.poisonStatus - 1, 0);
+  stats.fireStatus = Math.max(stats.fireStatus - 1, 0);
+  stats.coldStatus = Math.max(stats.coldStatus - 1, 0);
+  stats.lightStatus = Math.max(stats.lightStatus - 1, 0);
+  stats.voidStatus = Math.max(stats.voidStatus - 1, 0);
 }
 
-export function applyStatusEffects(
-  entity: Entity,
-  effects: StatusEffects,
-): void {
-  entity.stats.poisonStatus = Math.max(
-    entity.stats.poisonStatus,
-    effects.poison,
-  );
-  entity.stats.fireStatus = Math.max(entity.stats.fireStatus, effects.fire);
-  entity.stats.coldStatus = Math.max(entity.stats.coldStatus, effects.cold);
-  entity.stats.lightStatus = Math.max(entity.stats.lightStatus, effects.light);
-  entity.stats.voidStatus = Math.max(entity.stats.voidStatus, effects.void);
-}
-
-export function calculateTotalElementalDamage(stats: TempCombatStats): number {
-  return (
-    stats.poisonDamage +
-    stats.fireDamage +
-    stats.coldDamage +
-    stats.lightDamage +
-    stats.voidDamage
-  );
-}
-
-export function calculateAverageElementalChance(
-  stats: TempCombatStats,
-): number {
-  const totalChance =
-    stats.poisonChance +
-    stats.fireChance +
-    stats.coldChance +
-    stats.lightChance +
-    stats.voidChance;
-  return Math.round(totalChance / 5);
+export function applyStatusEffects(stats: Stats, effects: StatusEffects): void {
+  stats.poisonStatus += effects.poison;
+  stats.fireStatus += effects.fire;
+  stats.coldStatus += effects.cold;
+  stats.lightStatus += effects.light;
+  stats.voidStatus += effects.void;
 }

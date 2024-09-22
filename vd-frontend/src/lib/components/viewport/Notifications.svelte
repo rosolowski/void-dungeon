@@ -6,6 +6,7 @@
 	import type { Item } from '$lib/class/Item';
 	import type { NotificationType } from '$lib/store/notifications';
 	import { onMount } from 'svelte';
+	import type { Skill } from '$lib/class/Skill';
 
 	$: rarityGradients = {
 		common: 'linear-gradient(90deg, var(--rarityCommon), transparent)',
@@ -15,14 +16,24 @@
 		legendary: 'linear-gradient(90deg, var(--rarityLegendary), transparent)'
 	};
 
-	function getNotificationBackground(type: NotificationType, content: string | Item): string {
+	function getNotificationBackground(
+		type: NotificationType,
+		content: string | Item | Skill
+	): string {
 		if (type === 'item' && typeof content !== 'string') {
-			return rarityGradients[content.rarity];
+			return rarityGradients[content.rarity.toLowerCase() as keyof typeof rarityGradients];
+		}
+		if (type === 'skill' && typeof content !== 'string') {
+			return rarityGradients[content.rarity.toLowerCase() as keyof typeof rarityGradients];
 		}
 		return 'var(--background-transparency)';
 	}
 
-	function isItem(content: string | Item): content is Item {
+	function isItem(content: string | Item | Skill): content is Item {
+		return typeof content !== 'string';
+	}
+
+	function isSkill(content: string | Item | Skill): content is Skill {
 		return typeof content !== 'string';
 	}
 
@@ -56,6 +67,8 @@
 						class="item-icon"
 					/>
 					{notification.content.name} ({notification.content.type})
+				{:else if notification.type === 'skill' && isSkill(notification.content)}
+					Skill acquired: {notification.content.name}
 				{:else if notification.type === 'gold'}
 					<img src={gold} alt="gold" width="16" height="16" />
 					{notification.content}

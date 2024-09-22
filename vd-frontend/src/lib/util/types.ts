@@ -23,6 +23,7 @@ export interface AttackLog {
 }
 
 export interface SingleAttackLog {
+	heal: number;
 	damageDone: number;
 	effectsApplied: StatusEffects;
 	criticalHit: boolean;

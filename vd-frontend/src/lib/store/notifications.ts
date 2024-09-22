@@ -1,12 +1,13 @@
 import { writable } from 'svelte/store';
 import type { Item } from '$lib/class/Item';
+import type { Skill } from '$lib/class/Skill';
 
-export type NotificationType = 'item' | 'gold' | 'shards';
+export type NotificationType = 'item' | 'gold' | 'shards' | 'skill';
 
 export interface Notification {
 	id: number;
 	type: NotificationType;
-	content: string | Item;
+	content: string | Item | Skill;
 }
 
 function createNotificationsStore() {
@@ -43,6 +44,12 @@ function createNotificationsStore() {
 			addNotification({
 				type: 'shards',
 				content: `${amount} shards looted`
+			});
+		},
+		notifySkillAcquired: (skill: Skill) => {
+			addNotification({
+				type: 'skill',
+				content: skill
 			});
 		}
 	};

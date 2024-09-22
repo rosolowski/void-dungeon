@@ -7,6 +7,7 @@
 	export let borderClass = '';
 
 	let isHovered = false;
+	let isMousePressed = false; // New state to track mouse button press
 	let tooltipElement: HTMLElement;
 	let containerElement: HTMLElement;
 	let initialRender = true;
@@ -47,7 +48,8 @@
 	}
 
 	async function handleMouseMove(event: MouseEvent) {
-		if ($contextMenu.isOpen) {
+		if ($contextMenu.isOpen || isMousePressed) {
+			// Prevent showing tooltip if mouse is pressed
 			isHovered = false;
 			return;
 		}
@@ -73,8 +75,27 @@
 		isHovered = false;
 	}
 
+	function handleMouseDown() {
+		isMousePressed = true; // Set to true when mouse button is pressed
+		isHovered = false; // Hide tooltip immediately
+	}
+
+	function handleMouseUp() {
+		isMousePressed = false; // Reset when mouse button is released
+	}
+
 	onMount(() => {
 		containerElement = document.body;
+
+		// Add global event listeners for mouse button actions
+		window.addEventListener('mousedown', handleMouseDown);
+		window.addEventListener('mouseup', handleMouseUp);
+	});
+
+	onDestroy(() => {
+		// Cleanup event listeners
+		window.removeEventListener('mousedown', handleMouseDown);
+		window.removeEventListener('mouseup', handleMouseUp);
 	});
 </script>
 

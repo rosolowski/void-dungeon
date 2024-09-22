@@ -26,7 +26,8 @@ export class Character extends Entity {
 		public charClass: CharacterClass,
 		public exp: number,
 		public maxExp: number,
-		public avatar: CharacterAvatar
+		public avatar: CharacterAvatar,
+		public skillIds: string[] = []
 	) {
 		super(id, 'character', pos, name, level, stats);
 	}

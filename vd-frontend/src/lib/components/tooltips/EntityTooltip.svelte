@@ -19,7 +19,7 @@
 		<div class="entity-name">${entity.name}</div>
 		<div class="entity-type">${getEntityType(entity)}</div>
 		<div class="entity-level">Level: ${entity.level}</div>
-		<div class="entity-hp">HP: ${entity.stats.hp} / ${entity.stats.maxHp}</div>
+		<div class="entity-hp">HP: ${Math.round(entity.stats.hp)} / ${entity.stats.maxHp}</div>
 	`;
 </script>
 

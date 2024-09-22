@@ -65,6 +65,16 @@ export class CharacterService {
         'inventory.equipment.secondary',
         'inventory.slots.item',
       ],
+      select: [
+        'id',
+        'name',
+        'level',
+        'exp',
+        'maxExp',
+        'charClass',
+        'pos',
+        'skillIds',
+      ],
     });
   }
 
@@ -200,6 +210,7 @@ export class CharacterService {
     characterEntity.exp = character.exp;
     characterEntity.maxExp = character.maxExp;
     characterEntity.pos = character.pos;
+    characterEntity.skillIds = character.skillIds;
 
     await this.charactersRepository.save(characterEntity);
     await this.syncStatsToDatabase(character);
@@ -282,5 +293,23 @@ export class CharacterService {
 
   updateStatsOnUnequip(character: CharacterClass, item: ItemEntity) {
     return this.updateCharacterStats(character, item, false);
+  }
+
+  async removeSkill(character: CharacterClass, skillId: string): Promise<void> {
+    character.removeSkill(skillId);
+    await this.syncCharacterToDatabase(character);
+  }
+
+  async reorderSkills(
+    character: CharacterClass,
+    skillId: string,
+    newIndex: number,
+  ): Promise<void> {
+    const currentIndex = character.skillIds.indexOf(skillId);
+    if (currentIndex > -1) {
+      character.skillIds.splice(currentIndex, 1);
+      character.skillIds.splice(newIndex, 0, skillId);
+      await this.syncCharacterToDatabase(character);
+    }
   }
 }

@@ -141,6 +141,7 @@ export class InstanceManager {
   }
 
   addCharacterToCity(character: Character): void {
+    character.clearSkills();
     const cityInstance = this.getCityInstance();
     const { x, y } = cityInstance.location.spawnCoords;
     character.setPos(x, y);

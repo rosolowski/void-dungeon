@@ -11,6 +11,7 @@
 	import { dungeonProgress } from '$lib/store/dungeon-progress';
 	import DungeonProgress from '$lib/components/game/DungeonProgress.svelte';
 	import DungeonProgressWindow from '$lib/components/windows/DungeonProgressWindow.svelte';
+	import SkillsWindow from '$lib/components/windows/SkillsWindow.svelte';
 
 	function openCharacterWindow() {
 		windows.openWindow({
@@ -39,7 +40,15 @@
 		});
 		open = false;
 	}
-	function openSkillsWindow() {}
+	function openSkillsWindow() {
+		windows.openWindow({
+			id: 'skillsWindow',
+			title: 'Skills',
+			component: SkillsWindow,
+			props: {}
+		});
+		open = false;
+	}
 	function openLeadboardWindow() {
 		addTestItem();
 	}
@@ -80,8 +89,8 @@
 		<li><button on:click={openCharacterWindow}>[CHARACTER]</button></li>
 		<li><button on:click={openInventoryWindow}>[INVENTORY]</button></li>
 		<li><button on:click={openProgressWindow}>[PROGRESS]</button></li>
-		<!-- <li><button on:click={openSkillsWindow}>[SKILLS]</button></li>
-		<li><button on:click={openLeadboardWindow}>[LEADBOARD]</button></li>
+		<li><button on:click={openSkillsWindow}>[SKILLS]</button></li>
+		<!-- <li><button on:click={openLeadboardWindow}>[LEADBOARD]</button></li>
 		<li><button>[GUILD]</button></li> -->
 		<br />
 		<li><button class="logout-btn danger" on:click={logout}>[LOG OUT]</button></li>

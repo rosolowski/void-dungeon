@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { entityTracker } from '$lib/store/entity-tracker';
+	import EntityStatusEffect from '../game/EntityStatusEffect.svelte';
 </script>
 
 {#if $entityTracker}
@@ -13,6 +14,7 @@
 					'%'}
 			/>
 		</div>
+		<EntityStatusEffect stats={$entityTracker.stats} />
 	</div>
 {/if}
 

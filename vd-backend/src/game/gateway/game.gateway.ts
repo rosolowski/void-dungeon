@@ -20,6 +20,7 @@ import { GameSocket } from './base.handler';
 import { ChatHandler } from './chat.handler';
 import { NpcHandler } from './npc.handler';
 import { VoteType } from '../class/Party';
+import { CharacterService } from '../character.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class GameGateway
@@ -29,6 +30,7 @@ export class GameGateway
   private readonly logger = new Logger(GameGateway.name);
 
   constructor(
+    private readonly characterService: CharacterService,
     private readonly connectionHandler: ConnectionHandler,
     private readonly movementHandler: MovementHandler,
     private readonly combatHandler: CombatHandler,
@@ -76,6 +78,14 @@ export class GameGateway
   ): Promise<void> {
     this.logger.log(`Attack request received from client ${client.id}`);
     await this.combatHandler.handleAttackEntity(data, client);
+  }
+
+  @SubscribeMessage('useSkill')
+  async handleUseSkill(
+    @MessageBody() data: { skillId: string; targetId?: number },
+    @ConnectedSocket() client: GameSocket,
+  ): Promise<void> {
+    await this.combatHandler.handleUseSkill(data, client);
   }
 
   @SubscribeMessage('addItem')
@@ -215,5 +225,32 @@ export class GameGateway
   ): void {
     this.logger.log(`Chat message from client ${client.id}: ${data.message}`);
     this.chatHandler.handleInstanceMessage(client, data.message);
+  }
+
+  @SubscribeMessage('removeSkill')
+  async handleRemoveSkill(
+    @MessageBody() data: { skillId: string },
+    @ConnectedSocket() client: GameSocket,
+  ): Promise<void> {
+    this.logger.log(`Remove skill request received from client ${client.id}`);
+    await this.characterService.removeSkill(
+      client.data.character,
+      data.skillId,
+    );
+    client.emit('skillsUpdate', client.data.character.skillIds);
+  }
+
+  @SubscribeMessage('reorderSkills')
+  async handleReorderSkills(
+    @MessageBody() data: { skillId: string; newIndex: number },
+    @ConnectedSocket() client: GameSocket,
+  ): Promise<void> {
+    this.logger.log(`Reorder skills request received from client ${client.id}`);
+    await this.characterService.reorderSkills(
+      client.data.character,
+      data.skillId,
+      data.newIndex,
+    );
+    client.emit('skillsUpdate', client.data.character.skillIds);
   }
 }
