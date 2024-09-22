@@ -280,6 +280,11 @@ export class PartyHandler extends BaseHandler {
         if (updatedProgress) {
           socket.emit('dungeonProgressUpdate', updatedProgress);
         }
+        const skillManager = this.game.getSkillManager();
+        const newSkill = skillManager.distributeSkillOnNewFloor(character);
+        if (newSkill) {
+          socket.emit('newSkillAcquired', newSkill.id);
+        }
         socket.leave(oldInstance.room);
         socket.join(newInstance.room);
         socket.emit('getPlayerCharacter', character);
