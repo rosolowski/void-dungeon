@@ -254,19 +254,17 @@ export class PartyHandler extends BaseHandler {
   }
 
   private async moveToNextLevel(characterIds: number[]): Promise<void> {
-    const character = this.game.getCharacterById(characterIds[0]);
-    const currentInstance = this.game
+    const firstCharacter = this.game.getCharacterById(characterIds[0]);
+    const oldInstance = this.game
       .getInstanceManager()
-      .getInstanceFromCharacter(character);
-    const newInstance = this.game.generateNewInstance(
-      currentInstance.depth + 1,
-    );
+      .getInstanceFromCharacter(firstCharacter);
+    const newInstance = this.game.generateNewInstance(oldInstance.depth + 1);
 
-    for (const characterId of characterIds) {
+    const transitionPromises = characterIds.map(async (characterId) => {
       const character = this.game.getCharacterById(characterId);
-      if (!character) continue;
+      if (!character) return;
 
-      const oldInstance = this.game.disconnectCharacterFromInstance(character);
+      this.game.disconnectCharacterFromInstance(character);
       const { x, y } = newInstance.location.spawnCoords;
       character.setPos(x, y);
       character.pos.instanceId = newInstance.id;
@@ -282,30 +280,20 @@ export class PartyHandler extends BaseHandler {
         if (updatedProgress) {
           socket.emit('dungeonProgressUpdate', updatedProgress);
         }
-
-        if (oldInstance.entities.size === 0) {
-          const updatedProgress =
-            await this.dungeonProgressService.incrementDungeonCompleted(
-              character.id,
-            );
-          if (updatedProgress) {
-            socket.emit('dungeonProgressUpdate', updatedProgress);
-          }
-        }
-
-        const skillManager = this.game.getSkillManager();
-        const newSkill = skillManager.distributeSkillOnNewFloor(character);
-
-        if (newSkill) {
-          socket.emit('newSkillAcquired', newSkill.id);
-        }
-
         socket.leave(oldInstance.room);
         socket.join(newInstance.room);
         socket.emit('getPlayerCharacter', character);
         socket.emit('getInstance', newInstance.serialize());
       }
-    }
+    });
+
+    await Promise.all(transitionPromises);
+
+    this.server
+      .to(newInstance.room)
+      .emit('getInstance', newInstance.serialize());
+
+    this.game.getInstanceManager().disposeInstance(oldInstance.id);
   }
 
   private async enterDungeonSolo(
@@ -411,12 +399,13 @@ export class PartyHandler extends BaseHandler {
 
   private exitDungeon(characterIds: number[]): void {
     const cityInstance = this.game.getCityInstance();
+    let oldInstance: GameInstance;
 
     for (const characterId of characterIds) {
       const character = this.game.getCharacterById(characterId);
       if (!character) continue;
 
-      const oldInstance = this.game.disconnectCharacterFromInstance(character);
+      oldInstance = this.game.disconnectCharacterFromInstance(character);
       this.game.addCharacterToCity(character);
 
       const client = this.game.getConnection(characterId);
@@ -430,6 +419,8 @@ export class PartyHandler extends BaseHandler {
     }
 
     this.server.to(cityInstance.room).emit('partyExitedDungeon', characterIds);
+
+    this.game.getInstanceManager().disposeInstance(oldInstance.id);
   }
 
   private getCharacter(client: GameSocket): Character | undefined {

@@ -42,7 +42,7 @@
 	}
 
 	.pulse {
-		animation: pulse 2s infinite;
+		animation: pulse 4s ease-in-out infinite;
 	}
 
 	@keyframes pulse {
@@ -51,7 +51,7 @@
 			transform: scale(1);
 		}
 		50% {
-			transform: scale(1.05);
+			transform: scale(1.1);
 		}
 	}
 </style>

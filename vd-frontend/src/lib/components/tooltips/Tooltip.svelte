@@ -122,7 +122,7 @@
 		border-radius: 2px;
 		font-size: 14px;
 		color: #fff;
-		background-color: rgba(0, 0, 0, 0.8);
+		background-color: rgba(0, 0, 0, 0.9);
 		box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 		pointer-events: none;
 		left: var(--x);
@@ -130,30 +130,43 @@
 		border: 1px solid var(--tetriary);
 
 		&.common {
+			box-shadow: inset 0 0 24px -8px var(--rarityCommon);
 			border: 1px solid var(--rarityCommon);
 		}
+
 		&.uncommon {
+			box-shadow: inset 0 0 24px -8px var(--rarityUncommon);
 			border: 1px solid var(--rarityUncommon);
 		}
+
 		&.rare {
+			box-shadow: inset 0 0 24px -8px var(--rarityRare);
 			border: 1px solid var(--rarityRare);
 		}
+
 		&.epic {
+			box-shadow: inset 0 0 24px -8px var(--rarityEpic);
 			border: 1px solid var(--rarityEpic);
 		}
+
 		&.legendary {
+			box-shadow: inset 0 0 24px -8px var(--rarityLegendary);
 			border: 1px solid var(--rarityLegendary);
 		}
 		&.character {
+			box-shadow: inset 0 0 24px -8px var(--entityCharacter);
 			border: 1px solid var(--entityCharacter);
 		}
 		&.monster {
+			box-shadow: inset 0 0 24px -8px var(--entityMonster);
 			border: 1px solid var(--entityMonster);
 		}
 		&.npc {
+			box-shadow: inset 0 0 24px -8px var(--entityNpc);
 			border: 1px solid var(--entityNpc);
 		}
 		&.chest {
+			box-shadow: inset 0 0 24px -8px var(--entityChest);
 			border: 1px solid var(--entityChest);
 		}
 	}

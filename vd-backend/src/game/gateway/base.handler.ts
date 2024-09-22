@@ -55,6 +55,6 @@ export abstract class BaseHandler {
       .getInstanceManager()
       .getInstanceFromCharacter(character);
     client.emit('getPlayerCharacter', character);
-    this.server.to(instance.room).emit('characterUpdate', character);
+    client.broadcast.to(instance.room).emit('characterUpdate', character);
   }
 }

@@ -33,7 +33,11 @@
 		const entityX = currentEntity.pos.x;
 		const entityY = currentEntity.pos.y;
 		if (entity.type === 'monster') {
-			entityTracker.set(currentEntity);
+			if ($entityTracker?.id === currentEntity.id) {
+				entityTracker.set(null);
+			} else {
+				entityTracker.set(currentEntity);
+			}
 		} else if (isPlayerNextToEntity(playerX, playerY, entityX, entityY)) {
 			if (entity.type === 'npc') {
 				if (entity.id === 0) {
@@ -83,8 +87,8 @@
 		}
 
 		&.tracked {
-			background-color: rgba(128, 0, 0, 0.15);
-			border: 1px solid var(--tetriary);
+			background-color: rgba(128, 0, 0, 0.05);
+			border: 1px solid rgba(128, 0, 0, 0.5);
 		}
 	}
 </style>
