@@ -78,7 +78,6 @@ export function initializeServerConnection() {
 	});
 
 	client.on('getInstance', (data: GameInstance) => {
-		console.log(data);
 		if (DEBUG_WS) console.log('getInstance', data);
 		console.log('dungeon depth:', data.depth);
 		location.set(null);
@@ -128,7 +127,7 @@ export function initializeServerConnection() {
 	});
 
 	client.on('characterUpdate', (data) => {
-		if (DEBUG_WS) console.log(`characterMoved:`, data);
+		if (DEBUG_WS) console.log(`characterUpdate:`, data);
 		updateCharacter(data, false);
 	});
 
@@ -483,8 +482,10 @@ function processAttack(
 function updateCharacter(characterFinal: Character, died: boolean) {
 	const currentPlayer = get(player);
 	if (currentPlayer?.id === characterFinal.id) {
+		console.log('attacklog - updating player', characterFinal);
 		player.set(characterFinal);
 	} else {
+		console.log('attacklog - updating characters', characterFinal);
 		characters.update((currentCharacters) => {
 			if (died) {
 				currentCharacters.delete(characterFinal.id);
@@ -497,20 +498,25 @@ function updateCharacter(characterFinal: Character, died: boolean) {
 }
 
 function updateEntity(entityFinal: Entity, died: boolean) {
-	entities.update((currentEntities: Map<number, Entity>) => {
-		if (died) {
-			currentEntities.delete(entityFinal.id);
-			if (get(entityTracker)?.id === entityFinal.id) {
-				entityTracker.set(null);
+	const currentPlayer = get(player);
+	if (currentPlayer?.id === entityFinal.id && entityFinal.type === 'character') {
+		return;
+	} else {
+		entities.update((currentEntities: Map<number, Entity>) => {
+			if (died) {
+				currentEntities.delete(entityFinal.id);
+				if (get(entityTracker)?.id === entityFinal.id) {
+					entityTracker.set(null);
+				}
+			} else {
+				currentEntities.set(entityFinal.id, entityFinal);
+				if (get(entityTracker)?.id === entityFinal.id) {
+					entityTracker.set(entityFinal);
+				}
 			}
-		} else {
-			currentEntities.set(entityFinal.id, entityFinal);
-			if (get(entityTracker)?.id === entityFinal.id) {
-				entityTracker.set(entityFinal);
-			}
-		}
-		return currentEntities;
-	});
+			return currentEntities;
+		});
+	}
 }
 
 function updateCollisionMap(entityFinal: Entity) {

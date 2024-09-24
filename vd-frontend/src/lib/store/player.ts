@@ -15,8 +15,6 @@ function createPlayerStore() {
 
 			originalSet(value);
 
-			console.log(value);
-
 			if (newLevel && oldLevel && newLevel > oldLevel) {
 				levelUp.set(true);
 			}
