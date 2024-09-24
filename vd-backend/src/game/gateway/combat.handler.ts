@@ -86,20 +86,17 @@ export class CombatHandler extends BaseHandler {
       instance,
     );
 
-    if (
-      (skill.targetType !== 'self' &&
-        skill.targetType !== 'passive' &&
-        skill.targetType !== 'none' &&
-        !target) ||
-      target.type === 'npc'
-    ) {
-      client.emit('error', { message: 'Invalid target for skill' });
-      return;
-    }
+    const result = skillManager.useSkill(character, data.skillId, target);
 
-    const attackLog = skillManager.useSkill(character, data.skillId, target);
+    if (result) {
+      const { attackLog, effectPosition } = result;
 
-    if (attackLog) {
+      this.server.to(instance.room).emit('showEffect', {
+        type: 'skill',
+        id: data.skillId,
+        position: effectPosition,
+      });
+
       if (attackLog.entityDied && attackLog.entityFinal) {
         this.game.removeEntity(instance, attackLog.entityFinal.id);
 

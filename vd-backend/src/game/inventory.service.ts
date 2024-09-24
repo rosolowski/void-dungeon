@@ -354,7 +354,7 @@ export class InventoryService {
   ): Promise<ItemClass> {
     const itemClass: ItemClass = ItemGenerator.generateItem(enemyLevel);
 
-    // Apply rarity boost
+    // apply rarity boost
     const rarityBoost = character.stats.dropRarityBoost || 0;
     if (rarityBoost > 0 && Math.random() < rarityBoost) {
       const rarities = Object.values(ItemRarity);
@@ -376,7 +376,7 @@ export class InventoryService {
       baseDropChance + (character.stats.extraDropChance / 100 || 0);
 
     if (Math.random() > dropChance) {
-      return null; // No item dropped
+      return null;
     }
 
     const itemClass = await this.generateItem(character, enemyLevel);

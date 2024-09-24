@@ -424,7 +424,7 @@ export class ItemGenerator {
       if (!config) continue;
 
       if (config.probability > 0 && Math.random() < config.probability) {
-        const baseValue = baseStatTotals[key] / 6; // Divide by 6 for per-item value
+        const baseValue = baseStatTotals[key] / 6;
         const scaledValue = this.scaleStatValue(
           baseValue,
           level,
@@ -476,7 +476,7 @@ export class ItemGenerator {
     level: number,
     rarityMultiplier: number,
   ): number {
-    return base * Math.pow(level, 0.7) * rarityMultiplier;
+    return base * Math.pow(level, 1.2) * rarityMultiplier;
   }
 
   private static randomize(value: number, variation: number): number {

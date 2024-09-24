@@ -26,6 +26,7 @@ import {
 	showDamageEffect,
 	showDodgeEffect,
 	showHealEffect,
+	showSkillEffect,
 	showStatusEffects
 } from '$lib/store/viewport-effects';
 import { dialogueState, progressDialogue } from '$lib/store/dialogue';
@@ -273,6 +274,16 @@ export function initializeServerConnection() {
 		});
 		skillManager.updatePlayerSkills(updatedSkillIds);
 	});
+
+	client.on(
+		'showEffect',
+		(data: { type: string; id: string; position: { x: number; y: number } }) => {
+			if (DEBUG_WS) console.log('showEffect', data);
+			if (data.type === 'skill') {
+				showSkillEffect(data.id, data.position.x, data.position.y);
+			}
+		}
+	);
 }
 
 export function useSkill(skillId: string, targetId?: number) {
@@ -441,11 +452,20 @@ export function processAttackLog(attackLog: AttackLog) {
 		entityDied
 	} = attackLog;
 
+	console.log('processing attack log:', attackLog);
+
 	characterAttacks.forEach((attack) => {
 		processAttack(attack, entityFinal.id, 'entity');
 
+		console.log('attack:', attack);
+
 		if (attack.heal) {
-			showHealEffect(attack.heal, characterFinal.id, 'character');
+			console.log('heal:', attack.heal);
+			if (attack.heal < 0) {
+				showDamageEffect(-attack.heal, characterFinal.id, 'character', true);
+			} else {
+				showHealEffect(attack.heal, characterFinal.id, 'character');
+			}
 		}
 	});
 
@@ -453,7 +473,11 @@ export function processAttackLog(attackLog: AttackLog) {
 		processAttack(attack, characterFinal.id, 'character');
 
 		if (attack.heal) {
-			showHealEffect(attack.heal, entityFinal.id, 'entity');
+			if (attack.heal < 0) {
+				showDamageEffect(-attack.heal, characterFinal.id, 'character', true);
+			} else {
+				showHealEffect(attack.heal, entityFinal.id, 'entity');
+			}
 		}
 	});
 

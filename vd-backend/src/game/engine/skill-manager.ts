@@ -24,7 +24,7 @@ export class SkillManager {
     source: Character,
     skillId: string,
     target: Character | Entity | null,
-  ): AttackLog | null {
+  ): { attackLog: AttackLog; effectPosition: { x: number; y: number } } | null {
     const skill = this.getSkill(skillId);
     if (!skill || !source.skillIds.includes(skillId)) {
       return null;
@@ -34,26 +34,42 @@ export class SkillManager {
       return null;
     }
 
-    if (
-      skill.targetType !== 'self' &&
-      skill.targetType !== 'passive' &&
-      skill.targetType !== 'none' &&
-      !target
-    ) {
-      return null;
+    let effectTarget: Character | Entity | null = null;
+    let effectPosition: { x: number; y: number };
+
+    switch (skill.targetType) {
+      case 'self':
+        effectTarget = source;
+        effectPosition = source.pos;
+        break;
+      case 'enemy':
+      case 'ally':
+        if (!target) return null;
+        effectTarget = target;
+        effectPosition = target.pos;
+        break;
+      case 'passive':
+      case 'none':
+        effectPosition = source.pos;
+        break;
+      default:
+        throw new Error(`Unknown target type: ${skill.targetType}`);
     }
 
     source.stats.mana -= skill.manaCost;
-    const result = skill.effect(source, target);
+    const result = skill.effect(source, effectTarget);
 
-    return {
+    const attackLog: AttackLog = {
       characterFinal: source,
-      entityFinal: target instanceof Entity ? target : null,
+      entityFinal: effectTarget instanceof Entity ? effectTarget : null,
       characterAttacks: result ? [result] : [],
       entityAttacks: [],
       characterDied: source.stats.hp <= 0,
-      entityDied: target instanceof Entity ? target.stats.hp <= 0 : false,
+      entityDied:
+        effectTarget instanceof Entity ? effectTarget.stats.hp <= 0 : false,
     };
+
+    return { attackLog, effectPosition };
   }
 
   getAvailableSkills(level: number): Skill[] {

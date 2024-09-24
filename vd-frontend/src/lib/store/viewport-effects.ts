@@ -6,6 +6,13 @@ import { characters } from './characters';
 import { entities } from './entities';
 import type { Entity } from '$lib/class/Entity';
 
+export interface SkillEffect {
+	type: 'skill';
+	id: string;
+	x: number;
+	y: number;
+}
+
 type FightNumberType =
 	| 'DAMAGE'
 	| 'HEAL'
@@ -24,14 +31,16 @@ export interface FightNumber {
 	type: FightNumberType;
 }
 
+export type ViewportEffect = FightNumber | SkillEffect;
+
 let fightNumbersCounter = 0;
 
-export const fightNumbers = writable<Map<number, FightNumber>>(new Map());
+export const viewportEffects = writable<Map<number, ViewportEffect>>(new Map());
 
 function addFightNumber(fightNumber: FightNumber) {
 	const fnId = fightNumbersCounter++;
 
-	fightNumbers.update((prev) => {
+	viewportEffects.update((prev) => {
 		if (!prev) return prev;
 		const newMap = new Map(prev);
 		newMap.set(fnId, fightNumber);
@@ -39,7 +48,7 @@ function addFightNumber(fightNumber: FightNumber) {
 	});
 
 	setTimeout(() => {
-		fightNumbers.update((prev) => {
+		viewportEffects.update((prev) => {
 			if (!prev) return prev;
 			const newMap = new Map(prev);
 			newMap.delete(fnId);
@@ -107,6 +116,24 @@ export function showStatusEffects(
 			}
 		});
 	}
+}
+
+export function showSkillEffect(skillId: string, x: number, y: number) {
+	const effectId = fightNumbersCounter++;
+
+	viewportEffects.update((prev) => {
+		const newMap = new Map(prev);
+		newMap.set(effectId, { type: 'skill', id: skillId, x, y });
+		return newMap;
+	});
+
+	setTimeout(() => {
+		viewportEffects.update((prev) => {
+			const newMap = new Map(prev);
+			newMap.delete(effectId);
+			return newMap;
+		});
+	}, 1000);
 }
 
 function getTarget(

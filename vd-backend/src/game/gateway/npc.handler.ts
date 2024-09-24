@@ -20,6 +20,11 @@ export class NpcHandler extends BaseHandler {
       case NpcAction.DoctorHeal: {
         character.stats.hp = character.stats.maxHp;
         character.stats.mana = character.stats.maxMana;
+        character.stats.coldStatus = 0;
+        character.stats.voidStatus = 0;
+        character.stats.lightStatus = 0;
+        character.stats.fireStatus = 0;
+        character.stats.poisonStatus = 0;
 
         this.emitCharacterUpdate(client, character);
         break;

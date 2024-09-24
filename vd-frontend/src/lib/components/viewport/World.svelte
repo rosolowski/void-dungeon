@@ -8,9 +8,10 @@
 	import Player from '$lib/components/viewport/Player.svelte';
 	import Character from './Character.svelte';
 	import Entity from './Entity.svelte';
-	import { fightNumbers } from '$lib/store/viewport-effects';
+	import { viewportEffects } from '$lib/store/viewport-effects';
 	import FightNumber from './FightNumber.svelte';
 	import ChatMessageManager from './ChatMessageManager.svelte';
+	import SkillEffect from './SkillEffect.svelte';
 
 	export let viewportWidth: number;
 	export let viewportHeight: number;
@@ -24,39 +25,41 @@
 	$: worldX = -px * tileSize + viewportWidth / 2 - tileSize / 2;
 	$: worldY = -py * tileSize + viewportHeight / 2 - tileSize / 2;
 
-	$: canRenderTile = $location!.terrain.map((row, y) =>
-		row.map((tile, x) => {
-			if (tile === 0) return false;
+	$: canRenderTile = (x: number, y: number) => {
+		if ($location?.terrain[y]?.[x] === 0) return false;
 
-			const radius = 16;
-			const distanceSquared = (x - $player!.pos.x) ** 2 + (y - $player!.pos.y) ** 2;
-			return distanceSquared <= radius ** 2;
-		})
-	);
+		const distance = 16;
+
+		return x >= px - distance && x <= px + distance && y >= py - distance && y <= py + distance;
+	};
 </script>
 
 <div class="world" style="left: {worldX}px; top: {worldY}px;">
 	<div class="terrain">
 		{#each terrain as row, y (y)}
 			{#each row as tile, x (x)}
-				{#if tile !== 0 && canRenderTile[y][x]}
+				{#if tile !== 0 && canRenderTile(x, y)}
 					<Tile {x} {y} {tile} />
 				{/if}
 			{/each}
 		{/each}
 	</div>
 	{#each [...$characters] as [id, character] (id)}
-		{#if canRenderTile[character.pos.y][character.pos.x]}
+		{#if canRenderTile(character.pos.x, character.pos.y)}
 			<Character {character} />
 		{/if}
 	{/each}
 	{#each $entities as [id, entity] (id)}
-		{#if canRenderTile[entity.pos.y][entity.pos.x]}
+		{#if canRenderTile(entity.pos.x, entity.pos.y)}
 			<Entity {entity} />
 		{/if}
 	{/each}
-	{#each [...$fightNumbers] as [index, fightNumber] (index)}
-		<FightNumber {fightNumber} />
+	{#each [...$viewportEffects] as [index, effect] (index)}
+		{#if effect.type === 'skill'}
+			<SkillEffect {effect} />
+		{:else}
+			<FightNumber fightNumber={effect} />
+		{/if}
 	{/each}
 	<Player />
 	<ChatMessageManager />
