@@ -1,3 +1,4 @@
+import { Character } from './Character';
 import { Item, ItemType, ItemRarity } from './Item';
 import { Stats } from './Stats';
 
@@ -364,10 +365,10 @@ const baseStatTotals: Record<keyof Stats, number> = {
 export class ItemGenerator {
   static itemIdCounter: number = 0;
 
-  static generateItem(level: number): Item {
+  static generateItem(level: number, character: Character): Item {
     const type = this.chooseItemType();
-    const rarity = this.chooseItemRarity();
-    const stats = this.generateItemStats(level, rarity, type);
+    const rarity = this.chooseItemRarity(character);
+    const stats = this.generateItemStats(level, rarity, type, character);
     const modifier = this.chooseModifier(rarity);
     const name = this.generateItemName(type, rarity, modifier);
     const description = this.generateItemDescription(type, rarity, modifier);
@@ -393,14 +394,19 @@ export class ItemGenerator {
     return types[Math.floor(Math.random() * types.length)];
   }
 
-  private static chooseItemRarity(): ItemRarity {
+  private static chooseItemRarity(character: Character): ItemRarity {
     const rarities = Object.values(ItemRarity);
-    const weights = [0.5, 0.3, 0.15, 0.04, 0.01];
+    const baseWeights = [0.8, 0.1, 0.05, 0.04, 0.01];
+    const adjustedWeights = this.calculateAdjustedWeights(
+      baseWeights,
+      character.stats.dropRarityBoost,
+    );
+
     let sum = 0;
     const rand = Math.random();
 
-    for (let i = 0; i < weights.length; i++) {
-      sum += weights[i];
+    for (let i = 0; i < adjustedWeights.length; i++) {
+      sum += adjustedWeights[i];
       if (rand < sum) {
         return rarities[i];
       }
@@ -409,10 +415,29 @@ export class ItemGenerator {
     return ItemRarity.Common;
   }
 
+  private static calculateAdjustedWeights(
+    baseWeights: number[],
+    rarityBoost: number,
+  ): number[] {
+    const boostFactor = 1 + rarityBoost / 100;
+    const adjustedWeights = baseWeights.map((weight, index) => {
+      if (index === 0) {
+        return Math.max(0.1, weight / boostFactor);
+      } else {
+        const scalingFactor = 1 - Math.exp(-index / 10);
+        return Math.min(0.5, weight * boostFactor * scalingFactor);
+      }
+    });
+
+    const sum = adjustedWeights.reduce((a, b) => a + b, 0);
+    return adjustedWeights.map((weight) => weight / sum);
+  }
+
   private static generateItemStats(
     level: number,
     rarity: ItemRarity,
     type: ItemType,
+    character: Character,
   ): Stats {
     const newStats: Partial<Stats> = {};
     const rarityMultiplier = this.getRarityMultiplier(rarity);
@@ -429,6 +454,7 @@ export class ItemGenerator {
           baseValue,
           level,
           rarityMultiplier,
+          character.level,
         );
         const adjustedValue = scaledValue * config.valueMultiplier;
         const finalValue = this.finalizeStatValue(
@@ -475,8 +501,9 @@ export class ItemGenerator {
     base: number,
     level: number,
     rarityMultiplier: number,
+    characterLevel: number,
   ): number {
-    return base * Math.pow(level, 1.2) * rarityMultiplier;
+    return base * Math.pow(characterLevel + level, 0.65) * rarityMultiplier;
   }
 
   private static randomize(value: number, variation: number): number {
@@ -486,13 +513,13 @@ export class ItemGenerator {
   private static getRarityMultiplier(rarity: ItemRarity): number {
     switch (rarity) {
       case ItemRarity.Uncommon:
-        return 1.2;
-      case ItemRarity.Rare:
         return 1.5;
-      case ItemRarity.Epic:
+      case ItemRarity.Rare:
         return 2.0;
-      case ItemRarity.Legendary:
+      case ItemRarity.Epic:
         return 3.0;
+      case ItemRarity.Legendary:
+        return 5.0;
       default:
         return 1.0;
     }

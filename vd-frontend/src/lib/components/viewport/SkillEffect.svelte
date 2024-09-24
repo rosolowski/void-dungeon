@@ -78,22 +78,24 @@
 	// Skill-specific animations
 	.animation-fireball {
 		.main-circle {
-			background-color: var(--fire);
+			background: radial-gradient(var(--fire), rgb(243, 130, 10), var(--fire));
 			animation: expand-contract 1s ease-in-out infinite;
 		}
 		.particle {
-			background-color: var(--hpLight);
 			animation: particle-burst 1s ease-out infinite;
 		}
 		.p1 {
+			background-color: rgb(243, 99, 10);
 			--tx: -50%;
 			--ty: -50%;
 		}
 		.p2 {
+			background-color: rgb(243, 76, 10);
 			--tx: 50%;
 			--ty: -50%;
 		}
 		.p3 {
+			background-color: rgb(243, 169, 10);
 			--tx: 0;
 			--ty: 50%;
 		}
@@ -133,12 +135,18 @@
 		}
 		.p1 {
 			transform: rotate(0deg);
+			top: 0;
+			left: -50%;
 		}
 		.p2 {
 			transform: rotate(45deg);
+			top: 0;
+			left: -50%;
 		}
 		.p3 {
 			transform: rotate(-45deg);
+			top: 0;
+			left: -50%;
 		}
 	}
 

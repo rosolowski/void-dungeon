@@ -49,7 +49,7 @@
 		top: 0;
 		left: 0;
 		width: 100vw;
-		background-color: transparent;
+		background: linear-gradient(to bottom, var(--background) 30%, transparent);
 		z-index: 1000;
 		height: 64px;
 	}

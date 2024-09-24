@@ -352,17 +352,10 @@ export class InventoryService {
     character: CharacterClass,
     enemyLevel: number,
   ): Promise<ItemClass> {
-    const itemClass: ItemClass = ItemGenerator.generateItem(enemyLevel);
-
-    // apply rarity boost
-    const rarityBoost = character.stats.dropRarityBoost || 0;
-    if (rarityBoost > 0 && Math.random() < rarityBoost) {
-      const rarities = Object.values(ItemRarity);
-      const currentIndex = rarities.indexOf(itemClass.rarity);
-      if (currentIndex < rarities.length - 1) {
-        itemClass.rarity = rarities[currentIndex + 1];
-      }
-    }
+    const itemClass: ItemClass = ItemGenerator.generateItem(
+      enemyLevel,
+      character,
+    );
 
     return itemClass;
   }

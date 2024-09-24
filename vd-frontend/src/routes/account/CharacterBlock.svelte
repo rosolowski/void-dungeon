@@ -78,6 +78,7 @@
 		flex-direction: column;
 		width: 150px;
 		overflow: hidden;
+		transition: box-shadow 0.4s ease;
 
 		.avatar-wrapper {
 			position: relative;
@@ -98,6 +99,7 @@
 			box-shadow:
 				0 0 4px var(--secondary),
 				0 0 16px var(--secondary);
+			transition: none;
 		}
 	}
 

@@ -80,6 +80,18 @@
 		background-image: url('$lib/assets/entities/monsters/dark-elf-scout.gif');
 	}
 
+	.s-ghoul {
+		background-image: url('$lib/assets/entities/monsters/ghoul.gif');
+	}
+
+	.s-orc-shaman {
+		background-image: url('$lib/assets/entities/monsters/orc-shaman.gif');
+	}
+
+	.s-werewolf {
+		background-image: url('$lib/assets/entities/monsters/werewolf.gif');
+	}
+
 	.s-treasure-chest {
 		background-image: url('$lib/assets/entities/other/treasure-chest.png');
 	}

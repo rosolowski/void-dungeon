@@ -17,7 +17,7 @@
 			poison: `Poison: Deals ${effect.value} damage per turn`,
 			fire: `Fire: Reduces armor by ${effect.value}`,
 			cold: `Cold: Reduces attack speed by ${effect.value * 0.1} (minimum 0.5 attack speed remains)`,
-			light: `Light: Reduces accuracy by ${effect.value * 5}% (maximum 10% accuracy)`,
+			light: `Light: Reduces accuracy by ${effect.value * 5}% (minimum 10% accuracy remains)`,
 			void: `Void: Reduces armor, damage, attack speed, and crit chance by ${effect.value * 1}%`
 		};
 

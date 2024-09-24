@@ -4,8 +4,8 @@
 
 	export let fightNumber: FightNumber;
 
-	$: posX = fightNumber.x * $renderer.tileSize;
-	$: posY = fightNumber.y * $renderer.tileSize;
+	$: posX = fightNumber.x * $renderer.tileSize + $renderer.tileSize / 2;
+	$: posY = fightNumber.y * $renderer.tileSize + $renderer.tileSize / 4;
 
 	$: value = fightNumber.type === 'DODGE' ? 'Dodge!' : Math.abs(fightNumber.value);
 </script>
@@ -25,6 +25,7 @@
 		animation: fightNumbers 1s ease forwards;
 		font-weight: bold;
 		text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+		z-index: var(--zi-fight-numbers);
 	}
 
 	.damage {
@@ -33,6 +34,7 @@
 
 	.critical {
 		color: #ff4500;
+		text-shadow: 1px 1px 2px rgba(255, 0, 0, 0.8);
 		font-size: 32px;
 	}
 
@@ -41,7 +43,7 @@
 	}
 
 	.heal {
-		color: #00ff00;
+		color: #51e451;
 	}
 
 	.poison {
@@ -67,15 +69,15 @@
 	@keyframes fightNumbers {
 		0% {
 			opacity: 1;
-			transform: translateY(0) scale(2);
+			transform: translate(-50%, -50%) scale(2);
 		}
 		20% {
 			opacity: 1;
-			transform: translateY(-5px) scale(1);
+			transform: translate(-50%, -50%) scale(1);
 		}
 		100% {
 			opacity: 0;
-			transform: translateY(-40px);
+			transform: translate(-50%, calc(-50% - 40px));
 		}
 	}
 </style>
