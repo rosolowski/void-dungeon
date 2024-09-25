@@ -6,6 +6,7 @@
 	import HeaderLoggedIn from '$lib/components/home/HeaderLoggedIn.svelte';
 	import { jwt, user } from '$lib/store/auth';
 	import logo from '$lib/assets/vd-brand-nobg.png';
+	import bgVideo from '$lib/assets/home/bg-vid.mp4';
 
 	$: loggedIn = $user !== null && $jwt !== null;
 	let loaded = false;
@@ -31,6 +32,12 @@
 	<Header />
 {/if}
 
+<div class="video-background">
+	<video autoplay loop muted playsinline>
+		<source src={bgVideo} type="video/mp4" />
+	</video>
+	<div class="video-overlay"></div>
+</div>
 <main class="game-homepage" class:loaded>
 	<div class="content">
 		<div class="logo-container">
@@ -73,13 +80,37 @@
 		padding: 16px;
 		position: relative;
 		overflow: hidden;
-		background-color: var(--background);
 		opacity: 0;
 		transition: opacity 1s ease;
 
 		&.loaded {
 			opacity: 1;
 		}
+	}
+
+	.video-background {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: -1;
+
+		video {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+	}
+
+	.video-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: var(--background);
+		opacity: 0.6;
 	}
 
 	.content {
@@ -92,7 +123,7 @@
 	}
 
 	.logo-container {
-		margin-bottom: 2rem;
+		margin-bottom: 4rem;
 	}
 
 	.glitch-container {
@@ -109,6 +140,7 @@
 		height: 256px;
 		object-fit: contain;
 		image-rendering: pixelated;
+		filter: drop-shadow(0 0 10px var(--background));
 
 		&.glitch {
 			&:nth-child(2) {
@@ -158,18 +190,24 @@
 	h1 {
 		font-family: var(--font-mono);
 		font-size: 3rem;
-		color: var(--special-red);
+		color: white;
 		margin: 0 0 1rem;
 		text-transform: uppercase;
 		letter-spacing: 4px;
-		text-shadow: 0 0 10px var(--special-red);
+		text-shadow:
+			0 0 2px var(--special-red),
+			0 0 20px var(--special-red),
+			0 0 80px var(--special-red),
+			0 0 120px var(--background);
 	}
 
 	.tagline {
 		font-size: 1.2rem;
 		color: var(--secondary);
 		margin: 0;
+		margin-bottom: 1rem;
 		letter-spacing: 1px;
+		text-shadow: 0 0 20px var(--background);
 	}
 
 	.cta-container {
@@ -201,7 +239,7 @@
 		}
 
 		&.secondary {
-			background-color: transparent;
+			background-color: var(--background);
 			color: var(--secondary);
 			box-shadow: inset 0 0 0 2px var(--secondary);
 

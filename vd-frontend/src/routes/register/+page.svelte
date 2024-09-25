@@ -72,7 +72,7 @@
 			required
 		/>
 		<br /><br />
-		<button type="submit">[register]</button>
+		<button type="submit">[REGISTER]</button>
 	</form>
 </main>
 

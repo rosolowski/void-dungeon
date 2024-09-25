@@ -50,7 +50,7 @@
 			required
 		/>
 		<br /><br />
-		<button type="submit">[login]</button>
+		<button type="submit">[LOGIN]</button>
 	</form>
 </main>
 

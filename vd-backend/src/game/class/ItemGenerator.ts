@@ -396,7 +396,7 @@ export class ItemGenerator {
 
   private static chooseItemRarity(character: Character): ItemRarity {
     const rarities = Object.values(ItemRarity);
-    const baseWeights = [0.8, 0.1, 0.05, 0.04, 0.01];
+    const baseWeights = [0.6, 0.2, 0.1, 0.07, 0.03];
     const adjustedWeights = this.calculateAdjustedWeights(
       baseWeights,
       character.stats.dropRarityBoost,

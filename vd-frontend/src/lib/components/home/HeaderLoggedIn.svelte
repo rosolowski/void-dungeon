@@ -32,7 +32,7 @@
 				<a class="navlink" href="/">About</a>
 				|
 				<a class="navlink" href="/account">{$user?.username}</a>
-				<a class="navlink" href="/account">Settings</a>
+				<a class="navlink" href="/account/settings">Settings</a>
 				<a class="navlink" href="/" on:click={logOut}>Log out</a>
 			</nav>
 		</div>
@@ -43,7 +43,7 @@
 	<nav>
 		<a class="navlink" href="/">Home</a>
 		<a class="navlink" href="/">About</a>
-		<a class="navlink" href="/account">Settings</a>
+		<a class="navlink" href="/account/settings">Settings</a>
 		<a class="navlink" href="/" on:click={logOut}>Log out</a>
 	</nav>
 </div>
