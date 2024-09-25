@@ -285,7 +285,7 @@ export class PartyHandler extends BaseHandler {
         if (newSkill) {
           socket.emit('newSkillAcquired', newSkill.id);
         }
-        socket.leave(oldInstance.room);
+        this.emitCharacterLeaveInstance(oldInstance, socket);
         socket.join(newInstance.room);
         socket.emit('getPlayerCharacter', character);
         socket.emit('getInstance', newInstance.serialize());
@@ -298,7 +298,9 @@ export class PartyHandler extends BaseHandler {
       .to(newInstance.room)
       .emit('getInstance', newInstance.serialize());
 
-    this.game.getInstanceManager().disposeInstance(oldInstance.id);
+    if (oldInstance.characters.size === 0) {
+      this.game.getInstanceManager().disposeInstance(oldInstance.id);
+    }
   }
 
   private async enterDungeonSolo(
@@ -394,7 +396,8 @@ export class PartyHandler extends BaseHandler {
           socket.emit('newSkillAcquired', newSkill.id);
         }
 
-        socket.leave(oldInstance.room);
+        this.emitCharacterLeaveInstance(oldInstance, socket);
+
         socket.join(newInstance.room);
         socket.emit('getPlayerCharacter', character);
         socket.emit('getInstance', newInstance.serialize());
@@ -415,7 +418,7 @@ export class PartyHandler extends BaseHandler {
 
       const client = this.game.getConnection(characterId);
       if (client) {
-        client.leave(oldInstance.room);
+        this.emitCharacterLeaveInstance(oldInstance, client);
         client.join(cityInstance.room);
         client.emit('getPlayerCharacter', character);
         client.emit('getInstance', cityInstance.serialize());
@@ -425,7 +428,9 @@ export class PartyHandler extends BaseHandler {
 
     this.server.to(cityInstance.room).emit('partyExitedDungeon', characterIds);
 
-    this.game.getInstanceManager().disposeInstance(oldInstance.id);
+    if (oldInstance.characters.size === 0) {
+      this.game.getInstanceManager().disposeInstance(oldInstance.id);
+    }
   }
 
   private getCharacter(client: GameSocket): Character | undefined {

@@ -37,35 +37,11 @@ let fightNumbersCounter = 0;
 
 export const viewportEffects = writable<Map<number, ViewportEffect>>(new Map());
 
-const fightNumberQueue: FightNumber[] = [];
-let isProcessingQueue = false;
-
-function processQueue() {
-	if (fightNumberQueue.length === 0) {
-		isProcessingQueue = false;
-		return;
-	}
-
-	isProcessingQueue = true;
-	const fightNumber = fightNumberQueue.shift()!;
-	addFightNumber(fightNumber);
-
-	setTimeout(() => {
-		processQueue();
-	}, 20);
-}
-
-function enqueueFightNumber(fightNumber: FightNumber) {
-	fightNumberQueue.push(fightNumber);
-	if (!isProcessingQueue) {
-		processQueue();
-	}
-}
-
 function addFightNumber(fightNumber: FightNumber) {
 	const fnId = fightNumbersCounter++;
 
 	viewportEffects.update((prev) => {
+		if (!prev) return prev;
 		const newMap = new Map(prev);
 		newMap.set(fnId, fightNumber);
 		return newMap;
@@ -73,6 +49,7 @@ function addFightNumber(fightNumber: FightNumber) {
 
 	setTimeout(() => {
 		viewportEffects.update((prev) => {
+			if (!prev) return prev;
 			const newMap = new Map(prev);
 			newMap.delete(fnId);
 			return newMap;
@@ -83,7 +60,7 @@ function addFightNumber(fightNumber: FightNumber) {
 export function showHealEffect(heal: number, targetId: number, targetType: 'character' | 'entity') {
 	const target = getTarget(targetId, targetType);
 	if (target) {
-		enqueueFightNumber({
+		addFightNumber({
 			type: 'HEAL',
 			value: heal,
 			x: target.pos.x,
@@ -100,7 +77,7 @@ export function showDamageEffect(
 ) {
 	const target = getTarget(targetId, targetType);
 	if (target && damage > 0) {
-		enqueueFightNumber({
+		addFightNumber({
 			type: isCritical ? 'CRITICAL' : 'DAMAGE',
 			value: -damage,
 			x: target.pos.x,
@@ -112,7 +89,7 @@ export function showDamageEffect(
 export function showDodgeEffect(targetId: number, targetType: 'character' | 'entity') {
 	const target = getTarget(targetId, targetType);
 	if (target) {
-		enqueueFightNumber({
+		addFightNumber({
 			type: 'DODGE',
 			value: 0,
 			x: target.pos.x,
@@ -130,7 +107,7 @@ export function showStatusEffects(
 	if (target) {
 		Object.entries(effects).forEach(([effectType, value]) => {
 			if (value > 0) {
-				enqueueFightNumber({
+				addFightNumber({
 					type: effectType.toUpperCase() as FightNumberType,
 					value: -value,
 					x: target.pos.x,

@@ -165,8 +165,8 @@ export const enemyTemplates: EntityTemplate[] = [
   {
     type: 'Orc Warrior',
     baseStats: {
-      hp: 2950,
-      maxHp: 2950,
+      hp: 3950,
+      maxHp: 3950,
       mana: 0,
       maxMana: 0,
       armor: 95,
@@ -185,8 +185,8 @@ export const enemyTemplates: EntityTemplate[] = [
   {
     type: 'Ghoul',
     baseStats: {
-      hp: 5250,
-      maxHp: 5250,
+      hp: 7250,
+      maxHp: 7250,
       mana: 5,
       maxMana: 5,
       armor: 115,
@@ -207,13 +207,13 @@ export const enemyTemplates: EntityTemplate[] = [
   {
     type: 'Orc Shaman',
     baseStats: {
-      hp: 9400,
-      maxHp: 9400,
+      hp: 19400,
+      maxHp: 19400,
       mana: 20,
       maxMana: 20,
       armor: 265,
       evasion: 3,
-      damage: 140,
+      damage: 130,
       attackSpeed: 1,
       critMultiplier: 1.9,
       critChance: 6,
@@ -233,8 +233,8 @@ export const enemyTemplates: EntityTemplate[] = [
   {
     type: 'Werewolf',
     baseStats: {
-      hp: 17800,
-      maxHp: 17800,
+      hp: 57800,
+      maxHp: 57800,
       mana: 200,
       maxMana: 200,
       armor: 320,
@@ -251,18 +251,20 @@ export const enemyTemplates: EntityTemplate[] = [
   {
     type: 'Troll',
     baseStats: {
-      hp: 22000,
-      maxHp: 22000,
+      hp: 220000,
+      maxHp: 220000,
       mana: 200,
       maxMana: 200,
       armor: 160,
       evasion: 0,
-      damage: 160,
+      damage: 260,
       attackSpeed: 1,
       critMultiplier: 1.8,
       critChance: 5,
+      lightChance: 25,
+      lightDamage: 6,
     },
-    minLevel: 15,
+    minLevel: 16,
     maxLevel: 26,
     entityLevel: 430,
   },

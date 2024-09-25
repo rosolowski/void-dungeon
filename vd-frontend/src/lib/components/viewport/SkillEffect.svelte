@@ -103,20 +103,20 @@
 
 	.animation-frostfire_bolt {
 		.main-circle {
-			background: linear-gradient(to right, var(--fire), var(--cold));
+			background: linear-gradient(to right, var(--fire), transparent, var(--cold));
 			animation: rotate 1s linear infinite;
 		}
 		.particle {
 			animation: particle-spiral 1s ease-out infinite;
 		}
 		.p1 {
-			background-color: var(--hpLight);
+			background-color: var(--fire);
 		}
 		.p2 {
 			background-color: var(--cold);
 		}
 		.p3 {
-			background-color: var(--hpLight);
+			background-color: var(--fire);
 		}
 	}
 

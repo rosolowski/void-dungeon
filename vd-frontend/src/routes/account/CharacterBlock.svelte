@@ -52,22 +52,26 @@
 {/if}
 
 <div class="character-block">
-	<div class="show-character">
-		<div class="avatar-wrapper">
-			<AvatarComponent avatar={character.avatar} />
-		</div>
+	<div class="avatar-wrapper">
+		<AvatarComponent avatar={character.avatar} />
+	</div>
 
-		<span>{character.name}</span>
+	<div class="desc">
+		<div class="char-i char-name">{character.name}</div>
 
-		<div class="actions">
-			<button
-				class="danger"
-				on:click={() => {
-					removing = true;
-				}}>[X]</button
-			>
-			<button class="good" on:click={playHandler}>[PLAY]</button>
-		</div>
+		<div class="char-i char-level">lvl {character.level}</div>
+
+		<div class="char-i char-class">{character.charClass}</div>
+	</div>
+
+	<div class="actions">
+		<button
+			class="danger"
+			on:click={() => {
+				removing = true;
+			}}>[X]</button
+		>
+		<button class="good" on:click={playHandler}>[PLAY]</button>
 	</div>
 </div>
 
@@ -76,22 +80,38 @@
 		border: 1px solid var(--tetriary);
 		display: flex;
 		flex-direction: column;
-		width: 150px;
+		width: 180px;
 		overflow: hidden;
 		transition: box-shadow 0.4s ease;
 
 		.avatar-wrapper {
 			position: relative;
 			width: 100%;
-			height: 150px;
+			height: 180px;
 			border-bottom: 1px solid var(--tetriary);
 		}
 
-		span {
-			max-width: 100%;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			padding: 5px;
+		.desc {
+			padding: 5px 10px;
+
+			.char-i {
+				padding-bottom: 5px;
+				max-width: 100%;
+				overflow: hidden;
+				word-break: break-all;
+			}
+
+			.char-name {
+				font-size: 16px;
+			}
+
+			.char-level {
+				color: var(--secondary);
+			}
+
+			.char-class {
+				color: var(--secondary);
+			}
 		}
 
 		&:hover {
@@ -118,5 +138,6 @@
 		justify-content: center;
 		align-items: center;
 		gap: 15px;
+		flex: 1;
 	}
 </style>

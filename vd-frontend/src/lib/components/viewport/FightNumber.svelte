@@ -4,8 +4,11 @@
 
 	export let fightNumber: FightNumber;
 
-	$: posX = fightNumber.x * $renderer.tileSize + $renderer.tileSize / 2;
-	$: posY = fightNumber.y * $renderer.tileSize + $renderer.tileSize / 4;
+	const randomOffsetX = Math.random() * 50;
+	const randomOffsetY = Math.random() * 30;
+
+	$: posX = fightNumber.x * $renderer.tileSize + $renderer.tileSize / 2 + randomOffsetX;
+	$: posY = fightNumber.y * $renderer.tileSize + $renderer.tileSize / 4 + randomOffsetY;
 
 	$: value = fightNumber.type === 'DODGE' ? 'Dodge!' : Math.abs(fightNumber.value);
 </script>
@@ -69,7 +72,7 @@
 	@keyframes fightNumbers {
 		0% {
 			opacity: 1;
-			transform: translate(-50%, -50%) scale(2);
+			transform: translate(-50%, -50%) scale(3);
 		}
 		20% {
 			opacity: 1;

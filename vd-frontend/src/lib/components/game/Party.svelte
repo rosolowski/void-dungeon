@@ -33,7 +33,7 @@
 	}
 
 	$: {
-		if ($party.voting && $party.votingLevel !== null) {
+		if ($party.voting) {
 			startVotingTimer();
 		} else {
 			stopVotingTimer();
