@@ -144,6 +144,14 @@ export class GameGateway
     await this.inventoryHandler.handleSellItem(data, client);
   }
 
+  @SubscribeMessage('buyRandomItem')
+  async handleBuyRandomItem(
+    @ConnectedSocket() client: GameSocket,
+  ): Promise<void> {
+    this.logger.log(`Buy item request received from client ${client.id}`);
+    await this.inventoryHandler.handleBuyItem(client);
+  }
+
   @SubscribeMessage('npcInteraction')
   async npcInteraction(
     @MessageBody() data: { actionId: number },

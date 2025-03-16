@@ -130,6 +130,20 @@ export class InventoryHandler extends BaseHandler {
     }
   }
 
+  async handleBuyItem(client: GameSocket): Promise<void> {
+    if (!this.validateClient(client)) return;
+    try {
+      const character = client.data.character as Character;
+      if (character.pos.instanceId !== CITY_INSTANCE_ID) {
+        throw new Error('Can only buy items in city');
+      }
+      await this.inventoryService.buyRandomItem(character);
+      await this.emitUpdatedInventoryFromDb(client);
+    } catch (error) {
+      this.handleError(client, 'Sell item error', error);
+    }
+  }
+
   async handleDismantleAllItems(
     data: { rarity: string },
     client: GameSocket,

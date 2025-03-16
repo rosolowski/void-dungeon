@@ -397,6 +397,24 @@ export class InventoryService {
     return items;
   }
 
+  async buyRandomItem(character: CharacterClass): Promise<ItemEntity[]> {
+    const items: ItemEntity[] = [];
+
+    const success = await this.spendGold(character.id, 500);
+
+    if (!success) return [];
+    const itemClass = await this.generateItem(character, character.level);
+    const addedItem = await this.addGeneratedItemToInventory(
+      character,
+      itemClass,
+    );
+    if (addedItem) {
+      items.push(addedItem);
+    }
+
+    return items;
+  }
+
   async deleteItem(characterId: number, itemId: number): Promise<void> {
     // Fetch the character's inventory along with slots and items
     const inventory = await this.inventoryRepository.findOne({
@@ -503,6 +521,23 @@ export class InventoryService {
     await this.inventoryRepository.save(inventory);
 
     return { goldGained: sellPrice };
+  }
+
+  async spendGold(characterId: number, amount: number): Promise<boolean> {
+    const inventory = await this.inventoryRepository.findOne({
+      where: { character: { id: characterId } },
+    });
+
+    if (!inventory) {
+      throw new Error(`Inventory not found for character ID ${characterId}`);
+    }
+
+    if (inventory.gold < amount) return false;
+
+    inventory.gold -= amount;
+    await this.inventoryRepository.save(inventory);
+
+    return true;
   }
 
   async dismantleAllItems(

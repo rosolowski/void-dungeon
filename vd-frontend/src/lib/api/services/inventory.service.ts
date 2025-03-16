@@ -136,3 +136,10 @@ export function addItemToInventory(itemData: Partial<Item>) {
 	// Emit the addItem event with the item data
 	client.emit('addItem', itemData);
 }
+
+export function buyRandomItem() {
+	const client = get(socket);
+	if (!client) return;
+
+	client.emit('buyRandomItem');
+}
