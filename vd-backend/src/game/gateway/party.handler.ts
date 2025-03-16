@@ -258,7 +258,9 @@ export class PartyHandler extends BaseHandler {
     const oldInstance = this.game
       .getInstanceManager()
       .getInstanceFromCharacter(firstCharacter);
-    const newInstance = this.game.generateNewInstance(oldInstance.depth + 1);
+    const newInstance = this.game.generateNewInstance(
+      Math.min(oldInstance.depth + 1, 15),
+    );
 
     const transitionPromises = characterIds.map(async (characterId) => {
       const character = this.game.getCharacterById(characterId);
