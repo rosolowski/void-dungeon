@@ -400,7 +400,7 @@ export class InventoryService {
   async buyRandomItem(character: CharacterClass): Promise<ItemEntity[]> {
     const items: ItemEntity[] = [];
 
-    const success = await this.spendGold(character.id, 500);
+    const success = await this.spendGold(character.id, 200 * character.level);
 
     if (!success) return [];
     const itemClass = await this.generateItem(character, character.level);
@@ -617,6 +617,108 @@ export class InventoryService {
     await this.inventoryRepository.save(inventory);
 
     return { shardsGained };
+  }
+
+  async upgradeItem(
+    characterId: number,
+    slotIndex: number,
+  ): Promise<{
+    success: boolean;
+    upgradedItem: ItemEntity;
+    shardsSpent: number;
+  }> {
+    const inventory = await this.inventoryRepository.findOne({
+      where: { character: { id: characterId } },
+      relations: ['slots', 'slots.item', 'slots.item.stats'],
+    });
+
+    if (!inventory) {
+      throw new Error(`Inventory not found for character ID ${characterId}`);
+    }
+
+    const slot = inventory.slots.find((s) => s.index === slotIndex);
+    if (!slot || !slot.item) {
+      throw new Error(`No item found in slot ${slotIndex}`);
+    }
+
+    const item = slot.item;
+
+    const upgradeCost = 500;
+
+    if ((inventory.shards || 0) < upgradeCost) {
+      throw new Error(
+        `Not enough shards to upgrade this item. Required: ${upgradeCost}`,
+      );
+    }
+
+    const stats = item.stats;
+    if (stats) {
+      if (stats.damage) stats.damage = Math.floor(stats.damage * 1.1);
+      if (stats.hp) stats.hp = Math.floor(stats.hp * 1.1);
+      if (stats.maxHp) stats.maxHp = Math.floor(stats.maxHp * 1.1);
+      if (stats.mana) stats.mana = Math.floor(stats.mana * 1.1);
+      if (stats.maxMana) stats.maxMana = Math.floor(stats.maxMana * 1.1);
+      if (stats.armor) stats.armor = Math.floor(stats.armor * 1.1);
+      if (stats.evasion) stats.evasion = Math.floor(stats.evasion * 1.1);
+
+      if (stats.poisonDamage)
+        stats.poisonDamage = Math.floor(stats.poisonDamage * 1.1);
+      if (stats.fireDamage)
+        stats.fireDamage = Math.floor(stats.fireDamage * 1.1);
+      if (stats.coldDamage)
+        stats.coldDamage = Math.floor(stats.coldDamage * 1.1);
+      if (stats.lightDamage)
+        stats.lightDamage = Math.floor(stats.lightDamage * 1.1);
+      if (stats.voidDamage)
+        stats.voidDamage = Math.floor(stats.voidDamage * 1.1);
+
+      const capProbability = (value: number): number => Math.min(value, 95);
+
+      if (stats.critChance)
+        stats.critChance = capProbability(Math.floor(stats.critChance * 1.1));
+      if (stats.critMultiplier)
+        stats.critMultiplier = Math.floor(stats.critMultiplier * 1.05);
+
+      if (stats.poisonChance)
+        stats.poisonChance = capProbability(
+          Math.floor(stats.poisonChance * 1.1),
+        );
+      if (stats.fireChance)
+        stats.fireChance = capProbability(Math.floor(stats.fireChance * 1.1));
+      if (stats.coldChance)
+        stats.coldChance = capProbability(Math.floor(stats.coldChance * 1.1));
+      if (stats.lightChance)
+        stats.lightChance = capProbability(Math.floor(stats.lightChance * 1.1));
+      if (stats.voidChance)
+        stats.voidChance = capProbability(Math.floor(stats.voidChance * 1.1));
+
+      await this.statsRepository.save(stats);
+    }
+
+    let currentUpgradeLevel = 0;
+    const upgradeRegex = /\(Upgraded \+(\d+)\)/;
+    const match = item.name.match(upgradeRegex);
+
+    if (match) {
+      currentUpgradeLevel = parseInt(match[1], 10);
+      item.name = item.name.replace(upgradeRegex, '').trim();
+    } else if (item.name.includes('(Upgraded)')) {
+      currentUpgradeLevel = 0;
+      item.name = item.name.replace(/\(Upgraded\)/, '').trim();
+    }
+
+    currentUpgradeLevel++;
+
+    item.name = `${item.name} (Upgraded +${currentUpgradeLevel})`;
+
+    inventory.shards -= upgradeCost;
+    await this.inventoryRepository.save(inventory);
+
+    return {
+      success: true,
+      upgradedItem: item,
+      shardsSpent: upgradeCost,
+    };
   }
 
   private calculateDismantleShards(rarity: ItemRarity): number {

@@ -20,7 +20,7 @@
 			</div>
 			<div class="title">BUY ITEMS</div>
 			<button on:click={buyRandomItem}
-				>[BUY RANDOM ITEM <span class="gold">(500 gold)</span>]</button
+				>[BUY RANDOM ITEM <span class="gold">({($player?.level || 1) * 200} gold)</span>]</button
 			>
 		</div>
 	</div>

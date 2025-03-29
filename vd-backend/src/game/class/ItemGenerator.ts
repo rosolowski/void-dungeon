@@ -72,7 +72,7 @@ const statConfigurations: Record<
     fireDamage: { probability: 0.1, valueMultiplier: 1 },
     coldDamage: { probability: 0.1, valueMultiplier: 1 },
     lightDamage: { probability: 0.2, valueMultiplier: 1.1 },
-    voidDamage: { probability: 0.2, valueMultiplier: 1.1 },
+    voidDamage: { probability: 0, valueMultiplier: 1.0 },
     poisonChance: { probability: 0.2, valueMultiplier: 1.1 },
     fireChance: { probability: 0.2, valueMultiplier: 1.1 },
     coldChance: { probability: 0.2, valueMultiplier: 1.1 },
@@ -95,7 +95,7 @@ const statConfigurations: Record<
     fireDamage: { probability: 0.2, valueMultiplier: 0.9 },
     coldDamage: { probability: 0.2, valueMultiplier: 0.9 },
     lightDamage: { probability: 0.2, valueMultiplier: 0.9 },
-    voidDamage: { probability: 0.2, valueMultiplier: 0.9 },
+    voidDamage: { probability: 0, valueMultiplier: 1 },
     poisonChance: { probability: 0.2, valueMultiplier: 0.9 },
     fireChance: { probability: 0.2, valueMultiplier: 0.9 },
     coldChance: { probability: 0.2, valueMultiplier: 0.9 },
@@ -123,7 +123,7 @@ const statConfigurations: Record<
     fireChance: { probability: 0.2, valueMultiplier: 1 },
     coldChance: { probability: 0.2, valueMultiplier: 1 },
     lightChance: { probability: 0.2, valueMultiplier: 1 },
-    voidChance: { probability: 0.2, valueMultiplier: 1 },
+    voidChance: { probability: 0, valueMultiplier: 1 },
     extraCurrencyChance: { probability: 0.01, valueMultiplier: 1.2 },
     extraDropChance: { probability: 0.01, valueMultiplier: 1.2 },
     dropRarityBoost: { probability: 0.04, valueMultiplier: 1.2 },
@@ -146,7 +146,7 @@ const statConfigurations: Record<
     fireChance: { probability: 0.1, valueMultiplier: 1.1 },
     coldChance: { probability: 0.1, valueMultiplier: 1.1 },
     lightChance: { probability: 0.1, valueMultiplier: 1.1 },
-    voidChance: { probability: 0.1, valueMultiplier: 1.1 },
+    voidChance: { probability: 0, valueMultiplier: 1 },
     extraCurrencyChance: { probability: 0.1, valueMultiplier: 1.3 },
     extraDropChance: { probability: 0.1, valueMultiplier: 1.3 },
     dropRarityBoost: { probability: 0.1, valueMultiplier: 1.3 },
@@ -217,7 +217,7 @@ const modifiers: Modifier[] = [
     name: 'Void-touched',
     description: 'infused with the power of the void',
     apply: (item: Item) => {
-      item.stats.voidDamage = Math.round((item.stats.voidDamage || 0) + 10);
+      item.stats.voidDamage = Math.round((item.stats.voidDamage || 0) + 2);
       item.stats.voidChance = parseFloat(
         (item.stats.voidChance + 5).toFixed(2),
       );
@@ -255,7 +255,7 @@ const modifiers: Modifier[] = [
     apply: (item: Item) => {
       item.stats.evasion = parseFloat((item.stats.evasion + 0.1).toFixed(2));
       item.stats.evasion = parseFloat((item.stats.evasion * 1.4).toFixed(2));
-      item.stats.voidDamage = Math.round((item.stats.voidDamage || 0) + 15);
+      item.stats.voidDamage = Math.round((item.stats.voidDamage || 0) + 5);
     },
     rarity: ItemRarity.Legendary,
   },
@@ -346,12 +346,12 @@ const baseStatTotals: Record<keyof Stats, number> = {
   fireDamage: 3,
   coldDamage: 3,
   lightDamage: 3,
-  voidDamage: 3,
+  voidDamage: 2,
   poisonChance: 0.05,
   fireChance: 0.05,
   coldChance: 0.05,
   lightChance: 0.05,
-  voidChance: 0.05,
+  voidChance: 0.02,
   poisonStatus: 0, // Not used for items
   fireStatus: 0, // Not used for items
   coldStatus: 0, // Not used for items

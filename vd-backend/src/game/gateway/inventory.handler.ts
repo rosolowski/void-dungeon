@@ -188,6 +188,31 @@ export class InventoryHandler extends BaseHandler {
     }
   }
 
+  async handleUpgradeItem(
+    data: { slotIndex: number },
+    client: GameSocket,
+  ): Promise<void> {
+    if (!this.validateClient(client)) return;
+    try {
+      const character = client.data.character as Character;
+
+      const { success, upgradedItem, shardsSpent } =
+        await this.inventoryService.upgradeItem(character.id, data.slotIndex);
+
+      await this.emitUpdatedInventoryFromDb(client);
+
+      if (success) {
+        client.emit('itemUpgraded', {
+          slotIndex: data.slotIndex,
+          shardsSpent,
+          itemName: upgradedItem.name,
+        });
+      }
+    } catch (error) {
+      this.handleError(client, 'Upgrade item error', error);
+    }
+  }
+
   private async updateClientInventoryAndStats(
     client: GameSocket,
   ): Promise<void> {

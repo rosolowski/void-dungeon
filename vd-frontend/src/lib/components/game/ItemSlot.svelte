@@ -97,6 +97,15 @@
 			});
 		}
 
+		if (slotType === 'inventory') {
+			options.push({
+				label: 'Upgrade (500 shards)',
+				action: () => {
+					dispatch('upgrade');
+				}
+			});
+		}
+
 		return options;
 	}
 

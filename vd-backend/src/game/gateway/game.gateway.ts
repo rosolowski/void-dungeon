@@ -172,6 +172,15 @@ export class GameGateway
     await this.inventoryHandler.handleDismantleItem(data, client);
   }
 
+  @SubscribeMessage('upgradeItem')
+  async handleUpgradeItem(
+    @MessageBody() data: { slotIndex: number },
+    @ConnectedSocket() client: GameSocket,
+  ): Promise<void> {
+    this.logger.log(`Upgrade item request received from client ${client.id}`);
+    await this.inventoryHandler.handleUpgradeItem(data, client);
+  }
+
   @SubscribeMessage('dismantleAllItems')
   async handleDismantleAllItems(
     @MessageBody() data: { rarity: string },
