@@ -33,9 +33,9 @@
 
 	.main-panel {
 		position: relative;
+		padding: 20px;
 
 		.main-panel-content {
-			padding: 0 20px;
 
 			.slots {
 				padding: 30px 0;

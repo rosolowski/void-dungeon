@@ -54,6 +54,23 @@
 		contextMenu.open(event.clientX, event.clientY, getContextMenuOptions());
 	}
 
+	function calculateDismantleShards(rarity: string): number {
+		switch (rarity) {
+			case 'common':
+				return 5;
+			case 'uncommon':
+				return 10;
+			case 'rare':
+				return 20;
+			case 'epic':
+				return 50;
+			case 'legendary':
+				return 200;
+			default:
+				return 5;
+		}
+	}
+
 	function getContextMenuOptions() {
 		if (!item) return [];
 
@@ -88,9 +105,10 @@
 			}
 		}
 
-		if (slotType === 'inventory') {
+		if (slotType === 'inventory' && item) {
+			const shards = calculateDismantleShards(item.rarity);
 			options.push({
-				label: 'Dismantle',
+				label: `Dismantle (+${shards} shards)`,
 				action: () => {
 					dispatch('dismantle');
 				}
@@ -99,7 +117,7 @@
 
 		if (slotType === 'inventory') {
 			options.push({
-				label: 'Upgrade (500 shards)',
+				label: 'Upgrade (-500 shards)',
 				action: () => {
 					dispatch('upgrade');
 				}
