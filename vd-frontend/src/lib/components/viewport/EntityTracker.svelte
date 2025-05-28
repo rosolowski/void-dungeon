@@ -20,15 +20,12 @@
 
 <style lang="scss">
 	.entity-tracker {
-		position: absolute;
 		background-color: var(--background);
 		border: 1px solid var(--tetriary);
 		padding: 15px;
 		display: flex;
 		flex-direction: column;
 		gap: 10px;
-		top: 20px;
-		right: 20px;
 		z-index: var(--zi-game-hud);
 		min-width: 300px;
 		user-select: none;

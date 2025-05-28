@@ -89,9 +89,7 @@
 
 <style lang="scss">
 	.party-container {
-		position: absolute;
-		top: 20px;
-		right: 20px;
+		
 		padding: 10px;
 		border: 1px solid var(--tetriary);
 		background: var(--background);
