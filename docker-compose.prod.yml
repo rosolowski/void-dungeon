@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   vd-frontend:
@@ -31,7 +31,7 @@ services:
       - vd-db
 
   vd-db:
-    image: postgres:latest
+    image: postgres:16
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USERNAME}
