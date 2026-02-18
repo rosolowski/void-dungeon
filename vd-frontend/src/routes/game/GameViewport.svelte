@@ -41,8 +41,11 @@
 	on:wheel={onWheel}
 >
 	<InputHandler />
-	<EntityTracker />
-	<Party />
+	<div class="entity-and-party">
+		<EntityTracker />
+		<Party />
+	</div>
+	
 	<Chat />
 	<DungeonLevel />
 	<LevelUp />
@@ -62,5 +65,14 @@
 	.viewport {
 		position: relative;
 		flex: 1;
+	}
+
+	.entity-and-party {
+		position: absolute;
+		top: 20px;
+		right: 20px;
+		display: flex;
+		gap: 30px;
+		align-items: flex-start;
 	}
 </style>

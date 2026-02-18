@@ -144,6 +144,14 @@ export class GameGateway
     await this.inventoryHandler.handleSellItem(data, client);
   }
 
+  @SubscribeMessage('buyRandomItem')
+  async handleBuyRandomItem(
+    @ConnectedSocket() client: GameSocket,
+  ): Promise<void> {
+    this.logger.log(`Buy item request received from client ${client.id}`);
+    await this.inventoryHandler.handleBuyItem(client);
+  }
+
   @SubscribeMessage('npcInteraction')
   async npcInteraction(
     @MessageBody() data: { actionId: number },
@@ -162,6 +170,15 @@ export class GameGateway
   ): Promise<void> {
     this.logger.log(`Dismantle item request received from client ${client.id}`);
     await this.inventoryHandler.handleDismantleItem(data, client);
+  }
+
+  @SubscribeMessage('upgradeItem')
+  async handleUpgradeItem(
+    @MessageBody() data: { slotIndex: number },
+    @ConnectedSocket() client: GameSocket,
+  ): Promise<void> {
+    this.logger.log(`Upgrade item request received from client ${client.id}`);
+    await this.inventoryHandler.handleUpgradeItem(data, client);
   }
 
   @SubscribeMessage('dismantleAllItems')

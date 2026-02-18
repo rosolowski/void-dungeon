@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { buyRandomItem } from '$lib/api/services/inventory.service';
 	import { inventory } from '$lib/store/inventory';
 	import { player } from '$lib/store/player';
 	import ItemSlot from '../game/ItemSlot.svelte';
@@ -17,22 +18,10 @@
 					<ItemSlot slotType="merchant" slotIndex={0} />
 				</div>
 			</div>
-			<!-- <div class="title">BUY ITEMS</div>
-			If you're looking for more power, these might interest you...
-			<div class="slots">
-				<div class="buy">
-					<ItemSlot slotType="merchant" slotIndex={1} acceptableTypes={[]} />
-				</div>
-				<div class="buy">
-					<ItemSlot slotType="merchant" slotIndex={2} acceptableTypes={[]} />
-				</div>
-				<div class="buy">
-					<ItemSlot slotType="merchant" slotIndex={3} acceptableTypes={[]} />
-				</div>
-				<div class="buy">
-					<ItemSlot slotType="merchant" slotIndex={4} acceptableTypes={[]} />
-				</div>
-			</div> -->
+			<div class="title">BUY ITEMS</div>
+			<button on:click={buyRandomItem}
+				>[BUY RANDOM ITEM <span class="gold">({($player?.level || 1) * 200} gold)</span>]</button
+			>
 		</div>
 	</div>
 </div>
@@ -44,9 +33,9 @@
 
 	.main-panel {
 		position: relative;
+		padding: 20px;
 
 		.main-panel-content {
-			padding: 0 20px;
 
 			.slots {
 				padding: 30px 0;
@@ -80,5 +69,9 @@
 				}
 			}
 		}
+	}
+
+	.gold {
+		color: var(--expLight);
 	}
 </style>

@@ -7,7 +7,8 @@ const isTouchDevice = () => {
 };
 
 const isMobileDevice = () => {
-	return (isBrowser && window.innerWidth <= 768) || isTouchDevice();
+	return false;
+	// return (isBrowser && window.innerWidth <= 768) || isTouchDevice();
 };
 
 export const device = readable(

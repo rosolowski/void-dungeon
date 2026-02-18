@@ -24,7 +24,7 @@
 	$: isLoading = $player == null || $location == null || $characterId == null;
 </script>
 
-<div class="game" on:contextmenu|preventDefault>
+<div class="game" role="presentation" on:contextmenu|preventDefault>
 	<GameLoader hide={!isLoading} />
 	<ItemDragged />
 	<WindowManager />

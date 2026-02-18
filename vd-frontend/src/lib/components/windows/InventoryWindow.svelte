@@ -32,6 +32,13 @@
 		client.emit('dismantleItem', { slotIndex });
 	}
 
+	function upgradeItem(slotIndex: number) {
+		const client = get(socket);
+		if (!client) return;
+
+		client.emit('upgradeItem', { slotIndex });
+	}
+
 	function dismantleAll() {
 		const client = get(socket);
 		if (!client) return;
@@ -70,6 +77,7 @@
 					slotType="inventory"
 					item={$inventory.slots.get(i)}
 					on:dismantle={() => dismantleItem(i)}
+					on:upgrade={() => upgradeItem(i)}
 				/>
 			{/each}
 		</div>

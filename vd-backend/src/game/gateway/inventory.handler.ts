@@ -130,6 +130,20 @@ export class InventoryHandler extends BaseHandler {
     }
   }
 
+  async handleBuyItem(client: GameSocket): Promise<void> {
+    if (!this.validateClient(client)) return;
+    try {
+      const character = client.data.character as Character;
+      if (character.pos.instanceId !== CITY_INSTANCE_ID) {
+        throw new Error('Can only buy items in city');
+      }
+      await this.inventoryService.buyRandomItem(character);
+      await this.emitUpdatedInventoryFromDb(client);
+    } catch (error) {
+      this.handleError(client, 'Sell item error', error);
+    }
+  }
+
   async handleDismantleAllItems(
     data: { rarity: string },
     client: GameSocket,
@@ -171,6 +185,31 @@ export class InventoryHandler extends BaseHandler {
       client.emit('lootShards', { shardsGained });
     } catch (error) {
       this.handleError(client, 'Dismantle item error', error);
+    }
+  }
+
+  async handleUpgradeItem(
+    data: { slotIndex: number },
+    client: GameSocket,
+  ): Promise<void> {
+    if (!this.validateClient(client)) return;
+    try {
+      const character = client.data.character as Character;
+
+      const { success, upgradedItem, shardsSpent } =
+        await this.inventoryService.upgradeItem(character.id, data.slotIndex);
+
+      await this.emitUpdatedInventoryFromDb(client);
+
+      if (success) {
+        client.emit('itemUpgraded', {
+          slotIndex: data.slotIndex,
+          shardsSpent,
+          itemName: upgradedItem.name,
+        });
+      }
+    } catch (error) {
+      this.handleError(client, 'Upgrade item error', error);
     }
   }
 

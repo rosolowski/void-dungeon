@@ -12,10 +12,6 @@ export const CharacterClasses = [
 
 export type CharacterClass = (typeof CharacterClasses)[number];
 
-export const isValidCharacterClass = (charClass: string): charClass is CharacterClass => {
-	return CharacterClasses.includes(charClass as CharacterClass);
-};
-
 export class Character extends Entity {
 	constructor(
 		id: number,

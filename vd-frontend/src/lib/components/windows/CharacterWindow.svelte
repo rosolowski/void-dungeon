@@ -70,28 +70,6 @@
 					/>
 				</div>
 			</div>
-			<div class="title">TRAITS</div>
-			<div class="traits-container">
-				<div class="free-points">
-					<div class="text">POINTS:</div>
-					<div class="value">0</div>
-				</div>
-				<div class="trait">
-					<div class="name">STR</div>
-					<div class="value">
-						5
-						<button class="add">[+]</button>
-					</div>
-				</div>
-				<div class="trait">
-					<div class="name">INT</div>
-					<div class="value">5 <button class="add">[+]</button></div>
-				</div>
-				<div class="trait">
-					<div class="name">REF</div>
-					<div class="value">5 <button class="add">[+]</button></div>
-				</div>
-			</div>
 		</div>
 	</div>
 	<div class="stats">
@@ -315,28 +293,6 @@
 				}
 				.talisman {
 					grid-area: talisman;
-				}
-			}
-			.traits-container {
-				padding: 0 20px;
-
-				.free-points {
-					display: flex;
-					margin-bottom: 10px;
-					gap: 5px;
-					.text {
-						color: var(--secondary);
-					}
-					.value {
-						color: var(--tetriary);
-					}
-				}
-				.trait {
-					display: flex;
-					justify-content: space-between;
-					.value {
-						user-select: none;
-					}
 				}
 			}
 		}

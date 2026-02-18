@@ -22,7 +22,7 @@ services:
       context: ./vd-backend
       dockerfile: Dockerfile.prod
     ports:
-      - "3001:3000"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
     env_file:
       - .env
     environment:

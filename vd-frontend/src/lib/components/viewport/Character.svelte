@@ -14,12 +14,12 @@
 	function onContextMenu(event: MouseEvent) {
 		event.preventDefault();
 		const options = [
-			{
-				label: 'Profile',
-				action: () => {
-					console.log('Viewing profile of:', character.name);
-				}
-			},
+			// {
+			// 	label: 'Profile',
+			// 	action: () => {
+			// 		console.log('Viewing profile of:', character.name);
+			// 	}
+			// },
 			{
 				label: 'Invite to Party',
 				action: () => {
